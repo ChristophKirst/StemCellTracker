@@ -1,0 +1,35 @@
+
+this is imagej 2d segmentation in the 3d viewer / renderer
+
+public Texture2D getTexture(int axis, int index) {
+		int sSize = 0, tSize = 0;
+		ImageComponent2D pArray = null;
+		switch (axis) {
+			case Z_AXIS:
+				sSize = volume.xTexSize;
+				tSize = volume.yTexSize;
+				pArray = volume.getImageComponentZ(index);
+				break;
+			case Y_AXIS:
+				sSize = volume.xTexSize;
+				tSize = volume.zTexSize;
+				pArray = volume.getImageComponentY(index);
+				break;
+			case X_AXIS:
+				sSize = volume.yTexSize;
+				tSize = volume.zTexSize;
+				pArray = volume.getImageComponentX(index);
+				break;
+		}
+		Texture2D tex = new Texture2D(Texture.BASE_LEVEL,
+			textureMode, sSize, tSize);
+
+		tex.setImage(0, pArray);
+		tex.setEnable(true);
+		tex.setMinFilter(Texture.BASE_LEVEL_LINEAR);
+		tex.setMagFilter(Texture.BASE_LEVEL_LINEAR);
+
+		tex.setBoundaryModeS(Texture.CLAMP);
+		tex.setBoundaryModeT(Texture.CLAMP);
+		return tex;
+	}
