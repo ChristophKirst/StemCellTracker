@@ -17,11 +17,12 @@ end
 if isnumeric(id) 
    if isscalar(id)
       b = 1;
-   end
-   return
+   e
+      return
+  
 end
 
-if ischar(id) && ~isnan(str2double(id))
+if ~isnan(str2double(id))
    b = 1;
    return
 end

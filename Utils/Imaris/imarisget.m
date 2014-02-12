@@ -112,5 +112,7 @@ switch type
           otherwise,
               error('Bad value for iDataSet.GetType().');
       end
-
+      
+      data = permute(data,[2,1,3]);
+      
 end

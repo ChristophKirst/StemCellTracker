@@ -27,11 +27,11 @@ end
 image = double(image(:));
 
 if length(image) > 512^2
-   defaultStream = RandStream.getGlobalStream;
-   savedState = defaultStream.State;
-   RandStream.setGlobalStream(RandStream('mt19937ar','seed',0));
+   %defaultStream = RandStream.getGlobalStream;
+   %savedState = defaultStream.State;
+   %RandStream.setGlobalStream(RandStream('mt19937ar','seed',0));
    indexes = randperm(length(image));
-   defaultStream.State = savedState;
+   %defaultStream.State = savedState;
    image = image(indexes(1:512^2));
 end
 

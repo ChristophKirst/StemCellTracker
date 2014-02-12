@@ -11,8 +11,7 @@ function imaris = imarisinstance(imarisApplicationID)
 % See also: imarisstart
 
 try
-   
-   if nargin < 0
+   if nargin < 1
       vImarisLib = ImarisLib();
       server = vImarisLib.GetServer();
       imarisApplicationID = server.GetObjectID(0);
@@ -27,6 +26,7 @@ try
       imaris = vImarisLib.GetApplication(imarisApplicationID);
    end
    
-catch
-   error('imarisintance: no instance running, path to ImarisLib not set, or wrong id');
+catch %#ok<CTCH>
+   %error('imarisintance: no instance running, path to ImarisLib not set, or wrong id');
+   imaris = [];
 end

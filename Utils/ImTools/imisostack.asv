@@ -28,16 +28,16 @@ if zslices > 0
     end
     
 elseif zslices < 0
-    zslices = abs(zslices);
     
     if rem(dim(3), zslices) ~= 0
         error('imisostack: number of z slices should be multiple of reduction factor!')
-    end
-
-    isostack = zeros(dim(1), dim(2),  dim(3)/ zslices);
+        
+        
     
-    for i = 1:dim(3)/zslices;
-        isostack(:,:,i) = stack(:,:,(i-1)*zslices+1);
+    isostack = zeros(dim(1), dim(2), zslices * dim(3));
+    
+    for i = 1:dim(3);
+        isostack(:,:,(i-1)*zslices+1:i*zslices) = repmat(stack(:,:,i),[ 1,1,zslices]);
     end
 
 end

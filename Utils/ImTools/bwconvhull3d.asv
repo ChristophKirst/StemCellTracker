@@ -25,11 +25,11 @@ k = convhulln(xyz);
 
 % linear constrains A x + b <= 0 
 c = mean(xyz(unique(k),:));
-xyz = xyz - repmat(c,[size(xyz,1) 1]);
+V = V - repmat(c,[size(xyz,1) 1]);
 A = NaN*zeros(size(k,1),size(xyz,2));
 rc=0;
 for ix = 1:size(k,1)
-    F = xyz(k(ix,:),:);
+    F = V(k(ix,:),:);
     if rank(F,1e-5) == size(F,1)
         rc=rc+1;
         A(rc,:)=F\ones(size(F,1),1);

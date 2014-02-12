@@ -1,0 +1,29 @@
+function [X,K] = imlabel2surface(labelimage)
+%
+% [X,K] = imlabel2surface(labelimage)
+%
+% description:
+%     calculates convexhull for each label in labeld image labelimage.
+% 
+% input:
+%     labelimage   the labeled image
+%
+% output:
+%     X,K      cells for the convexhull data
+%
+% See also: convexhull
+
+
+lables = unique(labelimage(:));
+n = length(labels);
+
+X = cell(n);
+K = cell(n);
+
+i = 1;
+for l = labelels
+    [X{i}, K{i}] = 
+    
+    
+    
+

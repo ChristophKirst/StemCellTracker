@@ -1,4 +1,4 @@
-function imaris = imarisstart(ipath)
+function imaris = imarisstart()
 %
 % imaris = istart(ipath)
 %
@@ -6,20 +6,25 @@ function imaris = imarisstart(ipath)
 %    starts Imaris searching for XT in ipath
 %
 % input:
-%    ipath   path to ImarisXT or id of instance
+%    ipath   path to ImarisXT or id of instance TODO !
 %
 % 
 % TODO: make this independent of IceImarisConnector
 % See also: IceImarisConnector
 
-conn  = IceMarisConnector([],1);
-success = conn.startImaris();
 
-if ~success
-   error('imarisstart: could not start Imaris');
-end
+imaris = imarisinstance();
 
-imaris = conn.mImarisApplication;
+if isempty(imaris)
+
+    conn  = IceImarisConnector([],1);
+    success = conn.startImaris();
+
+    if ~success
+        error('imarisstart: could not start Imaris');
+    end
+
+    imaris = conn.mImarisApplication;
 
 end
 

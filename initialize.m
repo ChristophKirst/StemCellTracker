@@ -18,7 +18,7 @@ addpath('./Classes', ...
         './Utils/ImageJ',...
         './Utils/Imaris');
  
- addpath('./Test/Scripts');
+ addpath('./Scripts');
         
 
      

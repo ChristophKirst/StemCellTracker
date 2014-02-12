@@ -9,14 +9,20 @@ function imarisput(varargin)
 %
 % See also: convexhulln
 
-if length(varargin) < 2
+if nargin < 1
    error('imarisput: wrong number of input arguments!')
+end
+if nargin < 2
+    varargin{2} = 0;
 end
 if length(varargin) < 3
    varargin{3} = 0;
 end
 
-[imaris, varargin] = imarisvarargin(varargin);
+[imaris, varargin] = imarisvarargin(varargin{:});
+
+length(varargin)
+
 
 if isscalar(varargin{2})
    imarisputstack(imaris, varargin{1:3});
@@ -29,6 +35,10 @@ end
 
 
 function imarisputstack(mImarisApplication, stack, channel, timepoint)
+
+% transform stack
+stack = permute(stack, [2 1 3]);
+
 
 % Create an alias
 iDataSet = mImarisApplication.GetDataSet();
@@ -46,8 +56,8 @@ if isempty(iDataSet)
 end
 
 % Convert channel and timepoint to 0-based indexing
-channel = channel - this.mIndexingStart;
-timepoint = timepoint - this.mIndexingStart;
+%channel = channel - this.mIndexingStart;
+%timepoint = timepoint - this.mIndexingStart;
 
 % Check that the requested channel and timepoint exist
 if channel > (iDataSet.GetSizeC() - 1)
@@ -68,17 +78,19 @@ end
 
 % Check that the input and output datatypes match
 if ~isa(stack, outDatatype)
-    error('Data type mismatch.');
+    error('Data type mismatch. %s != %s', class(stack), outDatatype);
 end
 
 % Check that the size matches
-outSizes = this.getSizes();
+outSizes = imarisgetsizes(mImarisApplication);
 if ismatrix(stack)
     sizes = [size(stack) 1];
 else
     sizes = size(stack);
 end
 if any(sizes(1 : 3) ~= outSizes(1 : 3))
+    disp(sizes);
+    disp(outSizes);
     error('Data volume size mismatch.');
 end
 
@@ -201,7 +213,7 @@ end
 
 
 
-function imarisputsurface(mImarisApplication, X, K, timepoint)
+function imarisputsurface(vImarisApplication, X, K, timepoint)
  
 if ~iscell(X)
    X = {X};
@@ -217,7 +229,7 @@ if nSurfaces ~= length(K)
 end
 
 
-vFactory = mImarisApplication.GetFactory;
+vFactory = vImarisApplication.GetFactory;
 vSurpassScene = vImarisApplication.GetSurpassScene;
 
 vSurfaceHull = vFactory.CreateSurfaces;
@@ -229,8 +241,10 @@ for i = 1:nSurfaces
   vNumberOfPoints = size(vXYZ, 1);
   
   vPoints = false(vNumberOfPoints, 1);
-  vPoints(vConvexHull(:)) = true;
-  vPoints = find(vPoints);
+  size(vPoints);
+  vPoints(unique(vConvexHull(:))) = true;
+  size(vPoints);
+  vPoints = find(vPoints)
   vVertices = vXYZ(vPoints, :);
 
   % remap vertex indices to our selection
@@ -244,6 +258,9 @@ for i = 1:nSurfaces
   vMean = mean(vVertices, 1);
   vNormals = [vVertices(:, 1) - vMean(1), vVertices(:, 2) - vMean(2), ...
     vVertices(:, 3) - vMean(3)];
+
+size(vVertices)
+size(vNormals)
 
   vSurfaceHull.AddSurface(vVertices, vTriangles, vNormals, timepoint);
   

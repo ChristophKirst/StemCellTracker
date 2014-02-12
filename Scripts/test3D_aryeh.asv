@@ -40,21 +40,9 @@ hist(log2(stack(stack > 0)), 120)
 
 %% get everything from Imaris
 
-stack = imarisget();
-stack = imisostack(stack, 2);
-boxr = [1, 1, 1];
-size(stack)
 
-figure(1)
-clf
-imshow3d(stack, 'BoxRatios', boxr )
-xlabel('x'); ylabel('y'); zlabel('z');
 
-%figure(2)
-%immontage(stack)
 
-%figure(3)
-%hist(log2(stack(stack > 0)), 120)
 
 %% threshold
 
@@ -79,7 +67,7 @@ imshow3d(stackmed, 'BoxRatios', boxr )
 
 %% log and maxima
 
-stacklog = logFilter(max(stackmed(:)) - stackmed, [7 7 7]);
+stacklog = logFilter(max(stackmed(:)) - stackmed, [8 8 8]);
 %stacklog = imhmax(mat2gray(stacklog),0.1); 
 stackmax = imextendedmax(mat2gray(stacklog), 0.05);
 
