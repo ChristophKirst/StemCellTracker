@@ -8,6 +8,12 @@ function imarisput(varargin)
 %    or setst a surface objects defined by vertices xyz, faces tri and
 %    normals nrm (as cell arrays)
 %
+% input:
+%    stack          image stack
+%    channel        color channel to put data 
+%    timepoint      timepoint to put data
+%    xyz, tri, nrm  triangulation data with vertices xyz, faces tri and normals nrm
+%
 % See also: convexhulln
 
 [imaris, var] = imarisvarargin(varargin{:});

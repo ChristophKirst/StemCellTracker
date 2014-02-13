@@ -4,8 +4,6 @@ function [model] = implot3d(varargin)
 %
 % description:
 %    implot3d plots 3d volumetirc data in pixel coordinates 
-%    It uses the orthogonal plane 2-D texture mapping technique for 
-%    volume rending 3-D data in OpenGL
 %
 % usage:
 % imshow3d                 Provide a demo of functionality.
@@ -62,7 +60,7 @@ else
 end
 
 if ~ischar(varargin{1})
-   varargin = {'cdata', varargin{:}};
+   varargin = {'cdata', varargin{:}}; %#ok<CCAT>
 end
 
 if length(varargin)>1

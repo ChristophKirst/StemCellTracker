@@ -5,6 +5,10 @@ function ker = fspecial3(type, ksize, varargin)
 % description:
 %      creates sepcial 3d filter kernel in consistent way
 %
+% usage:
+%       fspecial3('average', ksize)
+%       fspecial3('disk', ksize, ring_width, w_disk, w_ring)
+%
 % input:
 %      type      'average', 'gaussian', 'sphere', 'disk', 'laplacian', 'log', or 'dog'
 %      ksize     h x w x l fitler box 
