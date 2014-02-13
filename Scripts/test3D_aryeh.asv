@@ -40,9 +40,21 @@ hist(log2(stack(stack > 0)), 120)
 
 %% get everything from Imaris
 
+stack = imarisget();
+stack = imisostack(stack, 2);
+boxr = [1, 1, 1];
+size(stack)
 
+figure(1)
+clf
+imshow3d(stack, 'BoxRatios', boxr )
+xlabel('x'); ylabel('y'); zlabel('z');
 
+%figure(2)
+%immontage(stack)
 
+%figure(3)
+%hist(log2(stack(stack > 0)), 120)
 
 %% threshold
 
@@ -67,7 +79,7 @@ imshow3d(stackmed, 'BoxRatios', boxr )
 
 %% log and maxima
 
-stacklog = logFilter(max(stackmed(:)) - stackmed, [8 8 8]);
+stacklog = logFilter(max(stackmed(:)) - stackmed, [7 7 7]);
 %stacklog = imhmax(mat2gray(stacklog),0.1); 
 stackmax = imextendedmax(mat2gray(stacklog), 0.05);
 
@@ -164,7 +176,7 @@ hist([props.MeanIntensity], nbin)
 title('Mean Intensity')
 
 
-%% polygonos
+%% select some shapes
 
 idx = unique(segh(:));
 if ~isempty(idx) && idx(1) == 0
@@ -172,25 +184,77 @@ if ~isempty(idx) && idx(1) == 0
 end
 idx
 
-for i = idx
-   i
-   [x,y,z] = find(segh == i);
-   length(x)
+% remoce some points
+idx = idx(50:55);
+
+seghs = segh;
+seghs(seghs < 50) = 0;
+seghs(seghs > 55) = 0;
+seghs = bwlabeln(seghs);
+
+
+figure(40)
+clf
+implot3d(seghs);
+
+
+%% plot as surfaces
+
+clear props
+i = 1;
+for l = idx
+   ind = find(segh == l);
+   [x,y,z] = ind2sub(size(segh), ind);
    props(i).ConvexHull = convhulln([x,y,z]);
    props(i).PixelPositions = [x,y,z];
+   i = i + 1;
 end
 
-subplot(2,3,5)
-for i = 1:length(porps)
-   trisurf(props(i).ConvexHull, props(i).PixelPositions);
+figure(41)
+clf
+hold on
+for i = 1:length(props)
+   trisurf(props(i).ConvexHull, props(i).PixelPositions(:,1),props(i).PixelPositions(:,2), props(i).PixelPositions(:,3));
 end
+
+
+%% surface pixel
+
+idx = unique(seghs(:))';
+surf= cell(length(idx),1);
+i = 1;
+for l = idx;
+   surf{i} = bwsurface(seghs == l);  
+   i = i + 1;
+end
+
+
+figure(50)
+clf
+implot3d(surf{2});
+
 
 
 %hist([props.MeanIntensity], nbin)
 %title('Surface Area')
 
 
-%% propagation
+%% imaris
+
+obj = seghs == 2 ;
+
+imarisput(255 * uint8(imisostack(obj,-2)))
+
+
+%%
+clf
+implot3d(obj)
+
+%% set surface in imaris
+
+[xx,ff,nn] = imisosurface(obj);
+
+imarisput(xx,ff,nn);
 
 
 

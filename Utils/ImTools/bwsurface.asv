@@ -1,0 +1,34 @@
+function surface = bwsurface(bw, conn)
+%
+% surface = bwsurface(bw)
+%
+% description: 
+%    returns pixel that touch the exterior
+%
+% input:
+%    bw    the bw labels reagion
+%    conn  the neighbourhood connectivity, 6, 18, 26
+
+
+if nargin < 2
+   conn = 18;
+end
+
+if isscalar(conn)
+   ker = impixelconn3d(conn);
+else
+   ker = conn;
+   conn = sum(conn(:));
+end
+
+surface = imfilter(double(bw), ker); % imfilter uses 0 for padding by default
+
+
+
+figure(45)
+clf
+implot3d(surface);
+
+surface(surface > 1) = 0;
+
+end

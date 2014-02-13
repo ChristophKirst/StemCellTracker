@@ -22,16 +22,14 @@ function data = imarisget(varargin)
 %
 % See also: imarisput
 
-[mImarisApplication, var] = imarisvarargin(varargin);
+[mImarisApplication, varargin] = imarisvarargin(varargin);
 nargin = length(varargin);
-varargin = var{:};
-
 
 if nargin < 1 
    type = 'Volume';
 else
    type = varargin{1};
-   varargin = varargin(2:end);
+   varargin = {varargin(2:end)};
    nargin = nargin -1;
 end
 
@@ -103,8 +101,6 @@ switch type
       switch char(iDataSet.GetType())
           case 'eTypeUInt8',   
               % Java does not have unsigned ints
-              channel
-              timepoint
               arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint);
               data(:) = typecast(arr, 'uint8');
           case 'eTypeUInt16',
@@ -124,7 +120,7 @@ switch type
     case 'SubVolume'   % (x0, y0, z0, dx, dy, dz, channel, timepoint, iDataSet)
        
        
-       data = [];
+       
        
        if nargin < 7 || nargin > 9
           error('imarisget: expects 7 to 9 input arguments!');
@@ -185,16 +181,16 @@ switch type
        timepoint = uint32(timepoint);
        
        % Check that we are within bounds
-       if x0 + dx > iDataSet.GetSizeX()
+       if x0 + dX > iDataSet.GetSizeX()
           error('imarisget: x range is out of bounds.');
        end
        
-       if y0 + dy > iDataSet.GetSizeY()
-          error('imarisget: y range is out of bounds.');
+       if y0 + dY > iDataSet.GetSizeY()
+          error('The requested x range dimension is out of bounds.');
        end
        
-       if z0 + dz > iDataSet.GetSizeZ()
-          error('imarisget: z range is out of bounds.');
+       if z0 + dZ > iDataSet.GetSizeZ()
+          error('The requested x range dimension is out of bounds.');
        end
        
        % Get the dataset class
@@ -203,33 +199,30 @@ switch type
           case 'eTypeUInt16',  datatype = 'uint16';
           case 'eTypeFloat',   datatype = 'single';
           otherwise,
-             error('imarisget: Bad value for IDataSet::GetType().');
+             error('Bad value for IDataSet::GetType().');
        end
        
        % Allocate memory
-       data = zeros([dx, dy, dz], datatype);
+       stack = zeros([dX, dY, dZ], datatype);
        
        % Get the stack
        switch char(iDataSet.GetType())
           case 'eTypeUInt8',
              % Java does not have unsigned ints
              arr = iDataSet.GetDataSubVolumeAs1DArrayBytes(x0, y0, z0, ...
-                channel, timepoint, dx, dy, dz);
-             data(:) = typecast(arr, 'uint8');
+                channel, timepoint, dX, dY, dZ);
+             stack(:) = typecast(arr, 'uint8');
           case 'eTypeUInt16',
              % Java does not have unsigned ints
              arr = iDataSet.GetDataSubVolumeAs1DArrayShorts(x0, y0, z0, ...
-                channel, timepoint, dx, dy, dz);
-             data(:) = typecast(arr, 'uint16');
+                channel, timepoint, dX, dY, dZ);
+             stack(:) = typecast(arr, 'uint16');
           case 'eTypeFloat',
-             data(:) = ...
+             stack(:) = ...
                 iDataSet.GetDataSubVolumeAs1DArrayFloats(x0, y0, z0, ...
-                channel, timepoint, dx, dy, dz);
+                channel, timepoint, dX, dY, dZ);
           otherwise,
-             error('imarisget: Bad value for iDataSet.GetType().');
-       end
-       
-       data = permute(data,[2,1,3]);
+             error('Bad value for iDataSet.GetType().');
 end
 
       

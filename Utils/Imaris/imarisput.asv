@@ -253,8 +253,28 @@ vSurfaceHull = vFactory.CreateSurfaces;
 
 for i = 1:nSurfaces
 
-  vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
-  %vSurfaceHull.AddSurface(xyz{i}, tri{i}-1, - nrm{i}, timepoint);
+  vXYZ = xyz{i};
+  vTria = tri{i};
+  vNumberOfPoints = size(vXYZ, 1);
+  
+
+
+  % remap vertex indices to our selection
+  % and reorder triangle vertices (clockwise to counter)
+  vPointsMap = zeros(vNumberOfPoints, 1);
+  vPointsMap(vPoints) = 1:numel(vPoints);
+  vTriangles = vPointsMap(vConvexHull(:, [1, 3, 2])) - 1;
+
+  % calculate normals (do not normalize them, imaris will do it)
+  % follow rays from center to vertices
+  vMean = mean(vVertices, 1);
+  vNormals = [vVertices(:, 1) - vMean(1), vVertices(:, 2) - vMean(2), ...
+    vVertices(:, 3) - vMean(3)];
+
+size(vVertices)
+size(vNormals)
+
+  vSurfaceHull.AddSurface(vVertices, vTriangles, vNormals, timepoint);
   
 end
 
