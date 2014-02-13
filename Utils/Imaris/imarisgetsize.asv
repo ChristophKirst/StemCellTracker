@@ -1,0 +1,33 @@
+function varargout = imarisgetsize(varargin)
+%
+% varargout = imarisgetsize(varargin)
+%
+% 
+
+[mImarisApplication, var] = imarisinstance(varargin{:});
+varargin = var{:};
+nargin = length(varargin);
+
+if isempty(mImarisApplication.GetDataSet())
+    error('imarisgetsize: not valid data set');
+end
+
+if nargout <= 1
+   if nargin < 1
+      varargout{1} = [ mImarisApplication.GetDataSet.GetSizeX, ...
+                       mImarisApplication.GetDataSet.GetSizeY, ...
+                       mImarisApplication.GetDataSet.GetSizeZ ];
+   
+   elseif 
+    varargout{1} = [ mImarisApplication.GetDataSet.GetSizeX, ...
+                     mImarisApplication.GetDataSet.GetSizeY, ...
+                     mImarisApplication.GetDataSet.GetSizeZ, ...
+                     mImarisApplication.GetDataSet.GetSizeC, ...
+                     mImarisApplication.GetDataSet.GetSizeT ];
+else    
+    varargout{1} = mImarisApplication.GetDataSet.GetSizeX;
+    varargout{2} = mImarisApplication.GetDataSet.GetSizeY;
+    varargout{3} = mImarisApplication.GetDataSet.GetSizeZ;
+    varargout{4} = mImarisApplication.GetDataSet.GetSizeC;
+    varargout{5} = mImarisApplication.GetDataSet.GetSizeT;
+end

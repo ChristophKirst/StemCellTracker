@@ -103,8 +103,8 @@ switch type
       switch char(iDataSet.GetType())
           case 'eTypeUInt8',   
               % Java does not have unsigned ints
-              channel
-              timepoint
+              %channel
+              %timepoint
               arr = iDataSet.GetDataVolumeAs1DArrayBytes(channel, timepoint);
               data(:) = typecast(arr, 'uint8');
           case 'eTypeUInt16',
@@ -118,7 +118,7 @@ switch type
               error('Bad value for iDataSet.GetType().');
       end
       
-      data = permute(data,[2,1,3]);
+      %data = permute(data,[2,1,3]);
       
     
     case 'SubVolume'   % (x0, y0, z0, dx, dy, dz, channel, timepoint, iDataSet)
@@ -229,7 +229,7 @@ switch type
              error('imarisget: Bad value for iDataSet.GetType().');
        end
        
-       data = permute(data,[2,1,3]);
+       %data = permute(data,[2,1,3]);
 end
 
       

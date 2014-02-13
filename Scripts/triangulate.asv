@@ -3,7 +3,7 @@
 
 %% Create Test Object
 
-image = fspecial3('disk', [40,20,15], [1, 2, 2], 1, 0);
+image = fspecial3('disk', [20,20,15], [1, 2, 2], 1, 0);
 image = padarray(image, [20,10,0], 'pre');
 
 [x,y,z] = imfind3d(image);
@@ -48,18 +48,17 @@ tri = delaunayn([x,y,z]);
 
 figure(50)
 trisurf(tri,x,y,z);
-xlabel('h'); ylabel('w');
 
-[xyz, tri, nrm] = imsurface(obj);
+
+[xyz, tri, nrm] = imisosurface(obj);
 
 figure(3)
-clf; imsurfaceplot3d(xyz, tri, nrm)
+clf; implot3dsurface(xyz, tri, nrm)
+xlabel('h'); ylabel('w'); zlabel('l');
 
 
+%% put single object into imaris 
 
-%% put surface into imaris 
-
-imarisput(xyz, tri, nrm)
 
 
 

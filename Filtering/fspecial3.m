@@ -118,7 +118,7 @@ switch type
 
       ker = ker + ker2;
 
-      if (w_ring == 0) || isequal(ring_width, [0, 0, 0])
+      if isequal(ring_width, [0, 0, 0])
          ker = ker / sum(ker(:));
       end
     

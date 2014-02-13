@@ -154,7 +154,7 @@ end
 function [model,ax] = local_draw(model)
 
 cdata = model.cdata;
-cdata = permute(cdata, [2 1 3]);
+%cdata = permute(cdata, [2 1 3]);
 siz = size(cdata);
 
 try

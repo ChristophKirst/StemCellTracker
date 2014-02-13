@@ -1,35 +1,56 @@
-function surface = imsurface(labeledimage)
+function [vertices, faces, normals] = imsurface(labeledimage)
 %
-% surface = imsurface(label)
+% [vertices, facesangles, normals] = imisosurface(labeledimage)
 %
-% description: 
-%    returns the surface of the labeld image
+% description:
+%    calculates surfaces (vertices, facesangles) and surface normals for objects
+%    in a labeled image
 %
 % input:
-%    label    the labeled image
+%    labeledimage   labeled object's image
 %
 % output:
+%    vertices         vertices of each object surface as cell array
+%    faces            faces
+%    normals          normals
 %
+% See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
 
 label = imlabel(labeledimage);
 isize = size(labeledimage);
-if length(isize) ~= 3
-   error('imsurface: expect 3d bw image')
+nlabel = length(label);
+
+vertices = cell(nlabel);
+faces = cell(nlabel);
+if nargout == 3
+   normals = cell(nlabel);
 end
 
-surface = labeledimage;
-
-for l = label
+for i = 1:nlabel
+   l = label(i);
    obj = labeledimage == l;
+   
+   % reduce calculation to bounding box
    [bmin, bmax] = imboundingbox(obj);
+   bmin = max(bmin - 1, 1);
+   bmax = min(bmax + 1, isize);
    obj = imextract(obj, bmin, bmax);
-   objsurf = bwsurface(obj);
-   idxsurf = find(obj - objsurf);
-   [sx,sy,sz] = ind2sub(size(obj), idxsurf);
-   sx = sx + bmin(1) - 1;
-   sy = sy + bmin(2) - 1;
-   sz = sz + bmin(3) - 1;
-   surface(sub2ind(isize, sx, sy, sz)) = 0;
+   
+   % call isosurface / isonormals
+   [f,v] = isosurface(obj, 0.5);
+   if nargout == 3
+      n = isonormals(obj, v);
+   end
+   
+   % correct for x,y exchange and assign outputs
+   v = v(:, [2 1 3]);  
+   vertices{i} = v + repmat(bmin, size(v,1), 1) - 1;
+   faces{i} = f;
+   
+   if nargout == 3
+      normals{i} = n(:,[2 1 3]);
+   end
+   
 end
 
 end

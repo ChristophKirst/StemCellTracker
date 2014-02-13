@@ -1,20 +1,22 @@
-function imarisput(varargin)
+function imarisset(varargin)
 %
-% imarisput(stack, channel, timepoint)
-% imarisput(xyz, tri, nrm, timepoint)
+% imarisset(stack, channel, timepoint)
+% imarisset(vertices, faces, normals, timepoint)
 %
 % description:
-%    sets a stack in Imaris in color channel and timepoint to stack
-%    or setst a surface objects defined by vertices xyz, faces tri and
-%    normals nrm (as cell arrays)
+%    set object in Imaris.
+%    either image stack data using color channel and timepoint
+%    or oject surfaces defined by vertices faces normals
 %
 % input:
 %    stack          image stack
 %    channel        color channel to put data 
 %    timepoint      timepoint to put data
-%    xyz, tri, nrm  triangulation data with vertices xyz, faces tri and normals nrm
+%    vertices       vertices of surface triangulation
+%    faces          faces of surface triagulation
+%    normals        surface normals at vertices
 %
-% See also: convexhulln
+% See also: imarisget
 
 [imaris, varargin, nargin] = imarisvarargin(varargin{:});
 

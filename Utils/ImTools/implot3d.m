@@ -126,8 +126,8 @@ end
 
 [model] = local_draw(model);
 
-set(gca,'YDir','Reverse');
-xlabel('w'); ylabel('h'); zlabel('l')
+%set(gca,'YDir','Reverse');
+xlabel('h'); ylabel('w'); zlabel('l')
 
 end
 
