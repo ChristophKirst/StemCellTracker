@@ -1,4 +1,4 @@
-Tracker
+Cell Tracker
 =============
 
 Version 0.1 

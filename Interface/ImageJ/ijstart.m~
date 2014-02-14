@@ -1,0 +1,19 @@
+function mij = ijstart()
+%
+% ijstart()
+%
+% description:
+%    starts ImageJ program
+%
+% output:
+%    mij  ImageJ instance
+%
+% See also: ijinitialize
+
+mij = ij.ImageJ([], 2);
+
+end
+
+
+
+

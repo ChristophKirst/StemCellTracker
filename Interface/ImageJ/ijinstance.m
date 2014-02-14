@@ -10,7 +10,11 @@ function mij = ijinstance()
 %
 % See also: ijstart
 
-mij = ij.IJ.getInstance();
+try
+   mij = ij.IJ.getInstance();
+catch
+   mij = []; 
+end
 
 end
    
