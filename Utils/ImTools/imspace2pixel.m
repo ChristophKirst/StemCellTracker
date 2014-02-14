@@ -20,6 +20,6 @@ fac = isize ./ ssize;
 xyzmin = extend(2,:);
 np = size(xyz,1);
 
-hwl = round((xyz -repmat(xyzmin, np,1)).* repmat(fac, np, 1));
+hwl = round((xyz -repmat(xyzmin, np,1)).* repmat(fac, np, 1)) + 0.5;
 
 end

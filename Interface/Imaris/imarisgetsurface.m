@@ -65,17 +65,25 @@ if nargout > 2
    normals = {};
 end
 
+
+psize = imarisgetsize(imaris);
+extend = imarisgetextend(imaris);
+fac = psize./extend;
+
 for i = 1:nsurfaces
 
       if surface.GetTimeIndex(i) == timepoint
          vertices{ndata} = surface.GetVertices(i); %#ok<AGROW>
-         vertices{ndata} = imarispace2pixel(imaris, vertices{ndata}); %#ok<AGROW>
+         %vertices{ndata} = imarispace2pixel(imaris, vertices{ndata}); %#ok<AGROW>
+         vertices{ndata} = imspace2pixel(psize, extend, vertices{ndata}); %#ok<AGROW>
       
          if nargout > 1
             faces{ndata} =  surface.GetTriangles(i) + 1; %#ok<AGROW>
          end
          if nargout > 2
             normals{ndata} = surface.GetNormals(i); %#ok<AGROW>
+            %rescale 
+            normals{ndata} = normals{ndata} * repmat(fac, size(normals{ndata},1),1); %#ok<AGROW>
          end
       end
       ndata = ndata + 1;

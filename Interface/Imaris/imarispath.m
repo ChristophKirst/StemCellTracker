@@ -29,9 +29,10 @@ end
 % is it setup in the javaclasspath already
 jpc = javaclasspath('-all');
 ipath = strfind(jpc, 'ImarisLib.jar');
-ipath = ~cellfun(@isempty, ipath);
+ipath = ~cellfun(@isempty, ipath)
 for i = 1:length(ipath)
-	ipathi = findrootpath(jpc(find(ipath, 1, 'first')));
+   
+	ipathi = findrootpath(jpc{find(ipath, 1, 'first')});
    if ~isempty(ipathi)
       ipath = ipathi;
       return

@@ -80,13 +80,23 @@ else
    timepoint = varargin{5};
 end
 
+psize = imarisgetsize(imaris);
+extend = imarisgetextend(imaris);
+fac = extend ./ psize;
+
+
 surface.RemoveAllSurfaces
 for i = 1:nsurfaces
   %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
   
   % convert vertices to space coordinates
-  vertices{i} = imarispixel2space(imaris, vertices{i});
-  surface.AddSurface(vertices{i}, faces{i}-1, normals{i}, timepoint);
+  % vertices{i} = imarispixel2space(imaris, vertices{i});
+  verts = impixel2space(psize, extend, vertices{i});
+  
+  nrmls = normals{i};
+  nrmls = nrmls .* repmat(fac, size(nrmls,1),1);
+
+  surface.AddSurface(verts, faces{i}-1, nrmls , timepoint);
 end
 
 %surface.SetColorRGBA(xxx);

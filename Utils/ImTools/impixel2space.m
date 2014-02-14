@@ -21,6 +21,6 @@ fac = ssize ./ isize;
 xyzmin = extend(1,:);
 np = size(hwl,1);
 
-xyz = (hwl - 1) .* repmat(fac, np, 1) + repmat(xyzmin, np,1);
+xyz = (hwl - 0.5) .* repmat(fac, np, 1) + repmat(xyzmin, np,1);
 
 end
