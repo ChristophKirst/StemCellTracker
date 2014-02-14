@@ -14,8 +14,6 @@ function mij = ijinitialize(ijpath)
 % See also: ijstart
 
 
-
-
 if nargin < 1
    if isunix()
       ijpath = '/usr/share/imagej/';
@@ -26,15 +24,22 @@ if nargin < 1
    end 
 end
 
-
+if ~checkpath(ijpath)
+   wrning('ijinitialize: ijpath might not be correct!');
+end
 
 javaaddjar(ijpath, 'all');
+
+if ~exist('ij.ImageJ', 'class')
+   error('ijinitialize: failed try to specify correct ijpath!');
+end
+
 
 mij = ij.ImageJ([], 2);
 
 
 %%% old Fiji version
-% dirn = pwd;
+h% dirn = pwd;
 % 
 % if nargin < 1
 %    ijpath = '/home/ckirst/programs/Fiji/scripts/';
@@ -50,11 +55,6 @@ mij = ij.ImageJ([], 2);
 end
 
 % helper
-
-function findrootpath(ijpath)
-   
-end
-
 
 function b = checkpath(ijpath)
    % in the path there should be a imagej.jar or ij.jar or a plugins or a jar folder
