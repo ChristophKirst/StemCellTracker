@@ -4,7 +4,7 @@ function varargout = imarisgetsize(varargin)
 %
 % 
 
-[imaris, varargin, nargin] = imarisvarargin(varargin{:});
+[imaris, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin > 1
    if isimaristye(varargin{1}, 'DataSet')
@@ -21,7 +21,7 @@ if isempty(dataset)
 end
 
 if nargout <= 1
-   if nargin == 1 && strcmp(varargin{1}, 'all')
+   if nargin == 1 && ischar(varargin{1}) && strcmp(varargin{1}, 'all')
       varargout{1} = [ dataset.GetSizeX, ...
                        dataset.GetSizeY, ...
                        dataset.GetSizeZ, ...

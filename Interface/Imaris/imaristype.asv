@@ -1,0 +1,90 @@
+function type = imaristype(varargin)
+% 
+% type = imaristype(iobject)
+%
+% description:
+%   inferst the tzpe of the iobject
+% 
+% input:
+%   iobject  any surpass scene iobject
+%
+% output:
+%   type    one of:
+%               'Cells'
+%               'ClippingPlane'
+%               'Dataset'
+%               'Filaments'
+%               'Frame'
+%               'LightSource'
+%               'MeasurementPoints'
+%               'Spots'
+%               'Surfaces'
+%               'SurpassCamera'
+%               'Volume'
+%               [] for unknwon
+%
+% See also: isimaristype, imariscast
+
+[imaris, varargin, nargin] = imarisvarargin(varargin);
+
+if nargin < 1
+   error('imaristype: need iobject as input parameter');
+else
+   iobject = varargin{1};
+end
+
+if isempty(iobject)
+    return
+end
+
+factory = imaris.GetFactory();
+ 
+type = class(object);
+
+types = {'Cells', 'Surfaces', 'ClippingPlane', 'DataSet', 'Filaments', 'Frame',...
+   'LightSource', 'MeasurementPoints', 'Spots', 'Surfaces', 'SurpassCamera', 'Volume', 
+   'Factory'}
+   
+
+if 
+   type = 'Cells';
+   
+elseif factory.IsClippingPlane(iobject)
+   type = 'ClippingPlane';
+   
+elseif factory.IsDataSet(iobject)
+   type = 'DataSet';
+   
+elseif factory.IsFilaments(iobject)
+   type = 'Filaments';
+   
+elseif factory.IsFrame(iobject)
+   type = 'Frame';
+   
+elseif factory.IsLightSource(iobject)
+   type = 'LightSource';
+   
+elseif factory.IsMeasurementPoints(iobject)
+   type = 'MeasurementPoints';
+   
+elseif factory.IsSpots(iobject)
+   type = 'Spots';
+   
+elseif factory.IsSurfaces(iobject)
+   type = 'Surfaces';
+   
+elseif factory.IsSurpassCamera(iobject)
+   type = 'SurpassCamera';
+   
+elseif factory.IsVolume(iobject)
+   type = 'Volume';
+   
+elseif factory.IsFactory(iobject)
+   type = 'Factory';
+   
+end
+
+end
+   
+   
+

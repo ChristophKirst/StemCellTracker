@@ -30,6 +30,12 @@ if nargin > 0
    end
 end
 
+
+% check if server is running
+if ~isimarisserverrunning()
+   return;
+end
+
 % check for running instance
 imaris = imarisinstance(id{:});
 if ~isempty(imaris)
@@ -37,13 +43,16 @@ if ~isempty(imaris)
 end
 id = 42;
 
-[ipath, server, exe] = imarispath(ipath{:});
+[ipath, exe, server] = imarispath(ipath{:});
+
 if isempty(ipath)
    error('imarisstart: cannot find Imaris.exe')
 end
 
+fprintf('imarisstart: starting ImarisServer: %s\n', server);
 startsever(server);
 
+fprintf('imarisstart: starting Imaris: %s\n', exe);
 imaris = startimaris(exe, id);
 
 end
@@ -60,7 +69,7 @@ if status == 1
 end
 
 % give it some time
-wait(1);
+pause(1);
 
 try
    for trial = 1 : 200
@@ -92,7 +101,7 @@ end
 function startsever(server)
 
    % check for running ImarisServerIce.exe
-   if isserverrunning()
+   if isimarisserverrunning()
       return
    end
    
@@ -111,7 +120,7 @@ function startsever(server)
       timeout = 10;
       while t < timeout
         
-         if isserverrunning() == 1
+         if isimarisserverrunning() == 1
             return;
          end
         
@@ -125,28 +134,5 @@ function startsever(server)
       error('imarisstart: error: %s', ex.message);
    end
 
-end
-
-
-function b = isserverrunning()
-   b = 0;
-   if ispc()
-      [~, result] = system(...
-         'tasklist /NH /FI "IMAGENAME eq ImarisServerIce.exe"');
-      if strfind(result, 'ImarisServerIce.exe')
-         b = 1;
-         return;
-      end
-
-   elseif ismac()
-      [~, result] = system('ps aux | grep ImarisServerIce');
-      if strfind(result, this.mImarisServerExePath)
-         b = 1;
-         return;
-      end
-
-   else
-      error('imarisstart: unsupported platform.');
-   end
 end
 

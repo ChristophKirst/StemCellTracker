@@ -21,17 +21,19 @@ function b = isimaristype(varargin)
 %               'Volume'
 % 
 % output:
-%   b        1 if the object is of the type specified, 0 otherwise
+%   b           1 if the object is of the type specified, 0 otherwise
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
+
+%imaris
+%varargin
 
 if nargin ~= 2
     error('isimaristype: 2 input parameters expected.');
 end
 
-object = varargin{1};
-type = imaristype(imaris, object);
+type = imaristype(imaris, varargin{1});
 
-b = isequal(type, varargin{2});
+b = strcmp(type, varargin{2});
 
 end

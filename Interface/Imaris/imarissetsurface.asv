@@ -26,6 +26,8 @@ function surface = imarissetsurface(varargin)
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
+varargin
+
 if nargin < 3 || nargin > 5
    error('imarissetvolume: expect 3-6 input arguments');
 end
@@ -82,7 +84,7 @@ end
 
 psize = imarisgetsize(imaris);
 extend = imarisgetextend(imaris);
-fac = (extend(2,:) - extend(1,:)) ./ psize;
+fac = (extend ./ psize;
 
 
 surface.RemoveAllSurfaces

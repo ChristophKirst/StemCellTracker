@@ -27,7 +27,7 @@ if nargin > 3
    error('imarissetvolume: expect 0-3 input arguments');
 end
 
-if isimaristype(imaris, varargin{1}, 'DataSet')
+if nargin > 1 && isimaristype(imaris, varargin{1}, 'DataSet')
    dataset = varargin{1};
    varargin = varargin(2:end);
    nargin = length(varargin);

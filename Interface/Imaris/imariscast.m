@@ -35,14 +35,19 @@ function derived = imariscast(varargin)
 
 if nargin < 1
    error('imariscast: need object as input parameter');
+else
+   object = varargin{1};
+end
+
+
+if isempty(object)
+   derived = [];
+   return
 end
 
 factory = imaris.GetFactory();
  
-if isempty(object)
-    derived = object;
-    
-elseif factory.IsLightSource(object)
+if factory.IsLightSource(object)
     derived = factory.ToLightSource(object);
 
 elseif factory.IsFrame(object)

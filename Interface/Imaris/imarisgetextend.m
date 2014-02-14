@@ -7,7 +7,7 @@ function varargout = imarisgetextend(varargin)
 %
 % See also: imarisgetsize
 
-[imaris, varargin, nargin] = imarisvarargin(varargin{:});
+[imaris, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin > 1
    if isimaristye(varargin{1}, 'DataSet')

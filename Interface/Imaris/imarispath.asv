@@ -1,4 +1,4 @@
-function [ipath, exe, server, jar] = imarispath(hintpath)
+function [ipath, server, exe, jar] = imarispath(hintpath)
 %
 % ipath = imarispath(ipath)
 %
@@ -25,7 +25,6 @@ if nargin > 0
    ipath = findrootpath(hintpath);
    
    if ~isempty(ipath)
-      [exe, server, jar] = imarisfilenames(ipath);
       return
    end
 end
@@ -40,7 +39,6 @@ for i = 1:length(ipath)
 	ipathi = findrootpath(jpc{find(ipath, 1, 'first')});
    if ~isempty(ipathi)
       ipath = ipathi;
-      [exe, server, jar] = imarisfilenames(ipath);
       return
    end
 end
@@ -50,7 +48,6 @@ ipath = getenv('IMARISPATH');
 if ~isempty(ipath)
    ipath = findroootpath(ipath);
    if ~isempty(ipath)
-      [exe, server, jar] = imarisfilenames(ipath);
       return
    end
 end
@@ -64,10 +61,10 @@ end
 
 ipath = findrootpath(ipath);
 if ~isempty(ipath)
-   [exe, server, jar] = imarisfilenames(ipath);
    return
 end
 
+[exe, server, jar] = imarisfilenames(ipath);
 
 
 % TODO:

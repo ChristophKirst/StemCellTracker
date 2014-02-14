@@ -1,13 +1,13 @@
-function imarisinitialize(ipath)
+function imarisinitialize(imarispath)
 %
-% imarisinitialize(ipath)
+% imarisinitialize(imarispath)
 %
 % description:
 %    initializes Imaris enviroment by making ImarisLib.jar from Imaris XT
 %    visible to matlab
 %
 % input:
-%    ipath  (optional) path to Imaris ([] = automatic detection)
+%    imarispath  (optional) path to Imaris ([] = automatic detection)
 %
 %
 
@@ -16,10 +16,10 @@ if ~(ismac() || ispc())
     error('imarisinitialize: Imaris runs only on Windows or Mac OS X.');
 end
 
-if nargin < 1 || isempty(ipath)
-   ipath = {};
+if nargin < 1 || isempty(imarispath)
+   imarispath = {};
 else
-   ipath = {ipath};
+   imarispath = {imarispath};
 end
 
 
@@ -29,26 +29,26 @@ jpc = strfind(jcp, 'ImarisLib.jar');
 jpc = ~cellfun(@isempty, jpc);
 
 if any(jpc)  % ImarisLib.jar already installed
-   fprintf('imarisinitialize: ImarisLib.jar already installed.\n'); 
+   error('imarisinitialize: ImarisLib.jar already installed.'); 
    %success = true;
    return;
 end
 
 % Search for ImarisLib.jar
-ipath = imarispath(ipath{:});
+ipath = imarispath(imarispath{:});
 
 if isempty(ipath)
-   error('imarisinitialize: could not find ImarisLib.jar.'); 
-   %return;
+   fprintf('imarisinitialize: could not find ImarisLib.jar.'); 
+   return;
 else
    %add ImarisLib.jar to java libraries
    libjar = fullfile(ipath, 'XT', 'matlab', 'ImarisLib.jar');
    success = javaaddjar(libjar);
    if success; 
-      fprintf('imarisinitialize: installed %s\n', libjar); 
+      fprintf('imarisinitialize: installed ImarisLib.jar.'); 
    else
-      error('imarisinitialize: could not find ImarisLib.jar.'); 
-      %return;
+      fprintf('imarisinitialize: could not find ImarisLib.jar.'); 
+      return;
    end
 end
 

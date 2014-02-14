@@ -88,7 +88,7 @@ end
 
 % Check that the input and output datatypes match
 if ~isa(stack, datatype)
-    warning('imarissetvolume: data type mismatch. %s != %s', class(stack), datatype);
+    warning('imarissetvolume: data type mismatch. %s != %s', class(stack), datatype); %#ok<WNTAG>
     stack = cast(stack, datatype);
 end
     

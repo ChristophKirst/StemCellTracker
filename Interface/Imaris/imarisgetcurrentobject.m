@@ -3,7 +3,7 @@ function selection = imarisgetcurrentobject(varargin)
 % selection = imarisgetcurrentobject(type)
 %
 % description: 
-%   returns current surpass selection if of type type
+%   returns current surpass selection and optionally checks for type
 % 
 % input:
 %   type   (optional) check for type
@@ -20,10 +20,14 @@ else
 end
 
 selection = imariscast(imaris.GetSurpassSelection());
+if isempty(selection)
+   fprintf('imarisgetcurrentobject: no object selected in Imaris Surpass Scene!\n');
+end
 
-if nargin == 2
-    if ~isimaristype(selection, type)
-        error('imarisgetcurrentobject: current object is not of type %s', type)
+if nargin == 1
+    if isempty(selection) || ~isimaristype(selection, type)
+
+       error('imarisgetcurrentobject: current object is not of type %s', type)
     end
 end
 

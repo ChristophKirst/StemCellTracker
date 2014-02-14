@@ -9,7 +9,7 @@ function [vertices, faces, normals] = imarisgetsurface(varargin)
 %    get surface data from Imaris.
 %
 % input:
-%    timepoint                 (optional) timepoint to put data (0)
+%    timepoint      (optional) timepoint to put data (0)
 %
 %    objectename    name of Imaris surface
 %    object         Imarise ISurface surface
@@ -26,24 +26,26 @@ function [vertices, faces, normals] = imarisgetsurface(varargin)
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
-if nargin < 1 || nargin > 2
-   error('imarissetvolume: expect 1-2 input arguments');
+if nargin > 2
+   error('imarissetvolume: expect 0-2 input arguments');
 end
 
-if ischar(varargin{1})
-   surfacename = varargin{1};
-   surface = imarisgetobject(imaris, surfacename, 'Surface');
-   if isempty(surface)
-      error('imarisgetsurface: cannot find surface %s', surfacename);
-   end 
-   varargin = varargin(2:end);
-   nargin = length(varargin);
-elseif isimaristype(imaris, varargin{1}, 'Surface')
-   surface = varargin{1};
-   varargin = varargin(2:end);
-   nargin = length(varargin);
+if nargin > 0
+   if ischar(varargin{1})
+      surfacename = varargin{1};
+      surface = imarisgetobject(imaris, surfacename, 'Surfaces');
+      if isempty(surface)
+         error('imarisgetsurface: cannot find surface %s', surfacename);
+      end
+      varargin = varargin(2:end);
+      nargin = length(varargin);
+   elseif isimaristype(imaris, varargin{1}, 'Surfaces')
+      surface = varargin{1};
+      varargin = varargin(2:end);
+      nargin = length(varargin);
+   end
 else
-   surface = imarisgetcurrentobject(imaris, 'Surface');
+   surface = imarisgetcurrentobject(imaris, 'Surfaces');
 end
 
 
@@ -68,9 +70,9 @@ end
 
 psize = imarisgetsize(imaris);
 extend = imarisgetextend(imaris);
-fac = psize./extend;
+fac = psize./(extend(1,:) - extend(2,:));
 
-for i = 1:nsurfaces
+for i = 0:nsurfaces-1
 
       if surface.GetTimeIndex(i) == timepoint
          vertices{ndata} = surface.GetVertices(i); %#ok<AGROW>
@@ -83,7 +85,7 @@ for i = 1:nsurfaces
          if nargout > 2
             normals{ndata} = surface.GetNormals(i); %#ok<AGROW>
             %rescale 
-            normals{ndata} = normals{ndata} * repmat(fac, size(normals{ndata},1),1); %#ok<AGROW>
+            normals{ndata} = - normals{ndata} .* repmat(fac, size(normals{ndata},1),1); %#ok<AGROW>
          end
       end
       ndata = ndata + 1;

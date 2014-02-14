@@ -1,12 +1,12 @@
 function type = imaristype(varargin)
 % 
-% type = imaristype(object)
+% type = imaristype(iobject)
 %
 % description:
-%   inferst the tzpe of the object
+%   inferst the tzpe of the iobject
 % 
 % input:
-%   object  any surpass scene object
+%   iobject  any surpass scene iobject
 %
 % output:
 %   type    one of:
@@ -25,59 +25,31 @@ function type = imaristype(varargin)
 %
 % See also: isimaristype, imariscast
 
-[imaris, varargin, nargin] = imarisvarargin(varargin);
+[~, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin < 1
-   error('imaristype: need object as input parameter');
+   error('imaristype: need iobject as input parameter');
 else
-   object = varargin{1};
+   iobject = varargin{1};
 end
 
-factory = imaris.GetFactory();
- 
-type = [];
-
-if isempty(object)
+if isempty(iobject)
     return
-   
-elseif factory.IsCells(object)
-   type = 'Cells';
-   
-elseif factory.IsClippingPlane(object)
-   type = 'ClippingPlane';
-   
-elseif factory.IsDataSet(object)
-   type = 'DataSet';
-   
-elseif factory.IsFilaments(object)
-   type = 'Filaments';
-   
-elseif factory.IsFrame(object)
-   type = 'Frame';
-   
-elseif factory.IsLightSource(object)
-   type = 'LightSource';
-   
-elseif factory.IsMeasurementPoints(object)
-   type = 'MeasurementPoints';
-   
-elseif factory.IsSpots(object)
-   type = 'Spots';
-   
-elseif factory.IsSurfaces(object)
-   type = 'Surfaces';
-   
-elseif factory.IsSurpassCamera(object)
-   type = 'SurpassCamera';
-   
-elseif factory.IsVolume(object)
-   type = 'Volume';
-   
-elseif factory.IsFactory(object)
-   type = 'Factory';
-   
 end
 
+type = class(iobject);
+
+types = {'Cells', 'ClippingPlane', 'DataSet', 'Filaments', 'Frame',...
+   'LightSource', 'MeasurementPoints', 'Spots', 'Surfaces', 'SurpassCamera', 'Volume','Factory'};
+
+itypes = find(cellfun(@(s) strcmp(['Imaris.I' s 'PrxHelper'], type), types),1,'first');
+
+if ~isempty(itypes)
+   type = types(itypes);
+else
+   type = [];
+end
+   
 end
    
    

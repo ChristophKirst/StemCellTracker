@@ -5,6 +5,7 @@ function imaris = imarisinstance(id)
 % description:
 %    returns a running Imaris application instance
 %    or [] if a valid Imaris application cannot be found
+%    it is assumed the the ImarisServer is running !
 %
 % input:
 %    id    (optional) id of a specific Imaris application
@@ -18,6 +19,11 @@ try
    if isempty(ilib)
       return
    end
+   
+   % check if server is running
+   %if ~isimarisserverrunning()
+   %   return;
+   %end
    
    server = ilib.GetServer();
    if isempty(server)
@@ -41,8 +47,12 @@ try
          return
       end
    end
-catch 
+catch  %#ok<CTCH>
 end
 
 end
+
+
+
+
    
