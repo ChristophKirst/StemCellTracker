@@ -29,10 +29,12 @@ function mij = ijstart(ijpath)
 %%% version for mij
 
 if nargin < 1
+   % if ispc() make itr work for pc, mac and windows 
+       
    ijpath = '/usr/share/imagej/';
 end
 
-addjavapath(ijpath);
+javaaddjar(ijpath, 'all');
 
 mij = ij.ImageJ([], 2);
 
@@ -41,27 +43,3 @@ end
 
 
 
-%% Subfunction 
-function addjavapath(directory)
-    cpath = javaclasspath('-all');
-
-    fns = dir(fullfile(directory, '*.jar'));
-    jpath = {};
-    for i = 1:length(fns)
-        if isempty(cell2mat(regexp(cpath, [filesep fns(i).name '$'])))
-            jpath{end + 1} = fullfile(directory, fns(i).name); %#ok<AGROW>
-        end
-    end
-    if ~isempty(jpath)
-        javaaddpath(jpath, '-end');
-    end
-    
-    
-    fns = dir(directory);
-    for i = 1:length(fns)
-      if fns(i).isdir && ~strcmp(fns(i).name, '.') && ~strcmp(fns(i).name, '..') 
-           addjavapath(fullfile(directory, fns(i).name));
-      end
-    end
-    
-end

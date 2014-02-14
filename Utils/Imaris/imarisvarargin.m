@@ -1,28 +1,36 @@
-function [imaris, var, nin] = imarisvarargin(varargin)
+function [imaris, varout, nin] = imarisvarargin(varin)
 %
 % [imaris, var, nin] = imarisvarargin(varargin)
 %
 % description:
 %    checks if first argument is imaris instance and returns this and rest of input
-%    
+%
+% input
+%    varin     varargin of top function
+%
 % output:
 %    imaris    reference to imaris application
-%    var       remainder of varargin
+%    varout    remainder of varargin
 %    nin       length of remainder of varargin
 %
 % See also: imarisinstance
 
+nargin = length(varin);
+
 if nargin < 1
    imaris = imarisinstance();
-   var = {};
-elseif isimarisid(varargin{1})
-   imaris = imarisinstance(varargin{1});
-   var = varargin(2:end);
+   varout = {};
+elseif isimaris(varin{1})
+   imaris = varin{1};
+   varout = varin(2:end);
+elseif isimarishead(varin{1})
+   imaris = imarisinstance(varin{1});
+   varout = varin(2:end);
 else
    imaris = imarisinstance();
-   var = {varargin{:}}; %#ok<CCAT1>
+   varout = {varin{:}}; %#ok<CCAT1>
 end
 
 if nargout > 2
-    nin = length(var);
+    nin = length(varout);
 end

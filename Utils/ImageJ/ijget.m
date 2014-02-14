@@ -1,3 +1,3 @@
 function image = ijget(image_title)
 
-image = MIJ.getrrentImage();
+image = MIJ.getCurrentImage();

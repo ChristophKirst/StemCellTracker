@@ -13,15 +13,14 @@ size(image)
 %figure(1)
 %clf; imshow3d(image)
 
-
 figure(2)
 clf; implot3d(image)
 
-line([1,40], [1,30],[1,20])
+%line([1,40], [1,30],[1,20])
 
+obj = image;
 
 %% imaris
-
 
 iim = imarisget();
 size(iim)

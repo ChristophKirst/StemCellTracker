@@ -4,8 +4,13 @@ function imarisquit(varargin)
 %
 % description:
 %    quits running Imaris
+%
+% See also: imarisstart
 
 imaris = imarisvarargin(varargin);
 imaris.Quit()
 
 end
+
+
+

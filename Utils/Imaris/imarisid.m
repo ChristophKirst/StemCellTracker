@@ -1,12 +1,25 @@
-function id = imarisid()
+function id = imarisid(imaris)
 %
-% id = imarisid()
+% id = imarisid(imaris)
 %
 % description:
 %    returns imaris application id
+%
+% input:
+%    imaris   (optional) Imaris application reference
 
-vImarisLib = ImarisLib();
-server = vImarisLib.GetServer();
-id = server.GetObjectID(0);
 
+id = [];
+
+if nargin < 1 
+   try 
+      ilib = ImarisLib();
+      server = ilib.GetServer();
+      id = server.GetObjectID(0);
+   catch
+   end
+   
+elseif isimaris(imaris)
+   % TODO
+   
 end

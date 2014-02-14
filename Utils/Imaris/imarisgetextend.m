@@ -7,21 +7,35 @@ function varargout = imarisgetextend(varargin)
 %
 % See also: imarisgetsize
 
-mImarisApplication = imarisvarargin(varargin{:});
-mDataSet = mImarisApplication.GetDataSet();
+[imaris, varargin, nargin] = imarisvarargin(varargin{:});
 
-if isempty(mDataSet)
-    error('imarisgetsize: not valid data set');
+if nargin > 1
+   if isimaristye(varargin{1}, 'DataSet')
+      dataset = varargin{1};
+   else
+      error('imarisgetextend: passed object is not a DataSet.')
+   end
+else
+   dataset = imaris.GetDataSet();
 end
 
-if nargout <= 1
+if isempty(dataset)
+    error('imarisgetextend: no active data set found.');
+end
+
+if nargout == 1
    varargout{1} = [ 
-      mDataSet.GetExtendMinX, mDataSet.GetExtendMinY, mDataSet.GetExtendMinZ; ...
-      mDataSet.GetExtendMaxX,  mDataSet.GetExtendMaxY, mDataSet.GetExtendMaxZ ];
+      dataset.GetExtendMinX, dataset.GetExtendMinY, dataset.GetExtendMinZ; ...
+      dataset.GetExtendMaxX,  dataset.GetExtendMaxY, dataset.GetExtendMaxZ ];
+   
+elseif nargout == 2
+   varargout{1} = [dataset.GetExtendMinX, dataset.GetExtendMinY, dataset.GetExtendMinZ];
+   varargout{2} = [dataset.GetExtendMaxX,  dataset.GetExtendMaxY, dataset.GetExtendMaxZ];
+   
 else
-   varargout{1} = [mDataSet.GetExtendMinX, mDataSet.GetExtendMaxX];
-   varargout{2} = [mDataSet.GetExtendMinY, mDataSet.GetExtendMaxY];
-   varargout{3} = [mDataSet.GetExtendMinZ, mDataSet.GetExtendMaxZ];
+   varargout{1} = [dataset.GetExtendMinX, dataset.GetExtendMaxX];
+   varargout{2} = [dataset.GetExtendMinY, dataset.GetExtendMaxY];
+   varargout{3} = [dataset.GetExtendMinZ, dataset.GetExtendMaxZ];
 end
 
 end

@@ -2,21 +2,123 @@ function imarisset(varargin)
 %
 % imarisset(stack, channel, timepoint)
 % imarisset(vertices, faces, normals, timepoint)
+% imarisset(imaris, ...)
+% imarisset(objectname, ...)
+% imarisset(imaris, objectname, ...)
 %
 % description:
 %    set object in Imaris.
-%    either image stack data using color channel and timepoint
-%    or oject surfaces defined by vertices faces normals
+%
+% input:
+%    stack          image stack for volumetric data
+%    vertices       vertices of surface triangulation
+%    faces          faces of surface triagulation
+%    normals        surface normals at vertices
+%    channel        (optional) color channel (0)
+%    timepoint      (optional) timepoint to put data (0)
+%
+%    imaris         Imaris application instance
+%    objectname     name of Imaris object 
+%
+% See also: imarisget
+
+
+function imarisput(varargin)
+%
+% imarisput(stack, channel, timepoint)
+% imarisput(xyz, tri, nrm, timepoint)
+%
+% description:
+%    sets a stack in Imaris in color channel and timepoint to stack
+%    or setst a surface objects defined by vertices xyz, faces tri and
+%    normals nrm (as cell arrays)
 %
 % input:
 %    stack          image stack
 %    channel        color channel to put data 
 %    timepoint      timepoint to put data
-%    vertices       vertices of surface triangulation
-%    faces          faces of surface triagulation
-%    normals        surface normals at vertices
+%    xyz, tri, nrm  triangulation data with vertices xyz, faces tri and normals nrm
 %
-% See also: imarisget
+% See also: convexhulln
+
+[imaris, varargin, nargin] = imarisvarargin(varargin{:});
+
+if nargin < 1
+   error('imarisput: wrong number of input arguments!')
+end
+
+if iscell(varargin{1})
+   type = 'Surface';
+   if nargin < 3
+      error('imarisput: wrong number of input arguments!')
+   end
+   if nargin < 4
+      varargin{4} = 0;
+   end
+else
+   type = 'Volume';
+   if nargin < 2 % volume
+      varargin{2} = 0;
+   end
+   if length(varargin) < 3
+      varargin{3} = 0;
+   end
+end
+
+
+switch type
+   case 'Volume'
+      imarisputstack(imaris, varargin{1:3});
+   case 'Surface'
+      imarisputsurface(imaris, varargin{1:4});
+   otherwise
+      error('imarisput: output type unsupported!')
+end
+
+end
+
+
+
+
+function imarisputsurface(vImarisApplication, xyz, tri, nrm, timepoint)
+ 
+if ~iscell(xyz)
+   xyz = {xyzX};
+end
+
+if ~iscell(tri)
+   tri = {tri};
+end
+   
+nSurfaces = length(xyz);
+if nSurfaces ~= length(tri) 
+   error('imarisput: surface sizes do not agree');
+end
+if nSurfaces ~= length(nrm) 
+   error('imarisput: surface sizes do not agree');
+end
+
+vFactory = vImarisApplication.GetFactory;
+vSurpassScene = vImarisApplication.GetSurpassScene;
+
+vSurfaceHull = vFactory.CreateSurfaces;
+
+for i = 1:nSurfaces
+
+  %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
+  vSurfaceHull.AddSurface(xyz{i}, tri{i}-1, nrm{i}, timepoint);
+  
+end
+
+vSurfaceHull.SetName('Matlab Surface');
+%vSurfaceHull.SetColorRGBA(vFilaments.GetColorRGBA);
+vSurpassScene.AddChild(vSurfaceHull, -1);
+
+end
+
+
+
+
 
 [imaris, varargin, nargin] = imarisvarargin(varargin{:});
 
@@ -233,41 +335,3 @@ end
 
 
 
-
-
-
-function imarisputsurface(vImarisApplication, xyz, tri, nrm, timepoint)
- 
-if ~iscell(xyz)
-   xyz = {xyzX};
-end
-
-if ~iscell(tri)
-   tri = {tri};
-end
-   
-nSurfaces = length(xyz);
-if nSurfaces ~= length(tri) 
-   error('imarisput: surface sizes do not agree');
-end
-if nSurfaces ~= length(nrm) 
-   error('imarisput: surface sizes do not agree');
-end
-
-vFactory = vImarisApplication.GetFactory;
-vSurpassScene = vImarisApplication.GetSurpassScene;
-
-vSurfaceHull = vFactory.CreateSurfaces;
-
-for i = 1:nSurfaces
-
-  %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
-  vSurfaceHull.AddSurface(xyz{i}, tri{i}-1, nrm{i}, timepoint);
-  
-end
-
-vSurfaceHull.SetName('Matlab Surface');
-%vSurfaceHull.SetColorRGBA(vFilaments.GetColorRGBA);
-vSurpassScene.AddChild(vSurfaceHull, -1);
-
-end

@@ -1,32 +1,48 @@
-function imaris = imarisinstance(imarisApplicationID)
+function imaris = imarisinstance(id)
 %
-% imaris = imarisinstance(imarisApplicationID)
+% imaris = imarisinstance(id)
 %
 % description:
 %    returns a running Imaris application instance
+%    or [] if a valid Imaris application cannot be found
 %
 % input:
-%    imarisApplicationID    (optional) id of the Imaris application
+%    id    (optional) id of a specific Imaris application
 %
 % See also: imarisstart
 
+imaris = [];
+
 try
-   if nargin < 1
-      vImarisLib = ImarisLib();
-      server = vImarisLib.GetServer();
-      imarisApplicationID = server.GetObjectID(0);
-      imaris = vImarisLib.GetApplication(imarisApplicationID);
-   elseif isa(imarisApplicationID, 'Imaris.IApplicationPrxHelper')
-      imaris = imarisApplicationID;
-   else
-      if ischar(imarisApplicationID)
-         imarisApplicationID = round(str2double(imarisApplicationID));   
-      end
-      vImarisLib = ImarisLib();
-      imaris = vImarisLib.GetApplication(imarisApplicationID);
+   ilib = ImarisLib();
+   if isempty(ilib)
+      return
    end
    
-catch %#ok<CTCH>
-   %error('imarisintance: no instance running, path to ImarisLib not set, or wrong id');
-   imaris = [];
+   server = ilib.GetServer();
+   if isempty(server)
+      return
+   end
+   
+   napps = server.GetNumberOfObjects();
+   if napps == 0
+      return
+   end
+    
+   if nargin < 1
+      id = server.GetObjectID(0);
+   elseif ischar(id)
+      id = round(str2double(id));
+   end
+   
+   for a = 0 : napps - 1
+      if server.GetObjectID(a) == id
+         imaris = ilib.GetApplication(id);
+         return
+      end
+   end
+catch 
 end
+
+end
+   

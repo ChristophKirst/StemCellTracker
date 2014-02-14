@@ -68,20 +68,7 @@ end
 % Store the userControl
 this.mUserControl = userControl;
 
-% On Mac OS X, make sure that the Imaris Frameworks folder is at the
-% beginning of the dynamic library path to prevent any conflicts with
-% the Qt libraries loaded by MATLAB
-if ismac()
-    dylPath = getenv('DYLD_LIBRARY_PATH');
-    ImarisFrameworksPath = [this.mImarisPath, filesep, ...
-        'Contents', filesep, 'Frameworks'];
-    indx = strfind(dylPath, ImarisFrameworksPath);
-    if isempty(indx) || indx ~= 1
-        % Prepend
-        dylPath = [ImarisFrameworksPath, ':', dylPath];
-        setenv('DYLD_LIBRARY_PATH', dylPath)
-    end
-end
+
 
 % If an Imaris instance is open, we close it -- no questions asked
 if this.isAlive() == 1
