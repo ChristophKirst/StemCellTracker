@@ -2,7 +2,7 @@
 Test/
 
 # Temporary Files
-*.~
+*~
 
 # OS generated files #
 .DS_Store

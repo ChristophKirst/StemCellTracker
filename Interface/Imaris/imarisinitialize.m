@@ -39,13 +39,15 @@ if any(jpc)  % ImarisLib.jar already installed
 end
 
 % Search for ImarisLib.jar
-ilibf = imarislibfile(imarispath{:});
-if isempty(ilibf)
+ipath = imarispath(imarispath{:});
+
+if isempty(ipath)
    fprintf('imarisinitialize: could not find ImarisLib.jar.'); 
    return;
 else
    %add ImarisLib.jar to java libraries
-   success = javaaddjar(ilibf);
+   libjar = fullfile(ipath, 'XT', 'matlab', 'ImarisLib.jar');
+   success = javaaddjar(libjar);
    if success; 
       fprintf('imarisinitialize: installed ImarisLib.jar.'); 
    else
@@ -58,7 +60,6 @@ end
 % On Mac OS X, make sure that the Imaris Frameworks folder is at the
 % beginning of the dynamic library path to prevent any conflicts with
 % the Qt libraries loaded by MATLAB
-ipath = imarispath(ilibf);
 if ismac()
     dylPath = getenv('DYLD_LIBRARY_PATH');
     imarisFrameworksPath = [ipath, filesep, 'Contents', filesep, 'Frameworks'];
