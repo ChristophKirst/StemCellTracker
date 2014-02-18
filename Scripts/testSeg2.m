@@ -4,37 +4,109 @@ img = imread('./Test/Images/raw.tif');
 imgd = double(img);
 imgd = mat2gray(imgd);
 
-imgdg = gaussianFilter(imgd,2,10);
-imgmed = medianFilter(imgdg, 3);
-imgmsf = meanShiftFilter(imgd, 3, 0.1);
-
-imgdisk = diskFilter(imgmed, 3, 4, 1, -1);
-
-imgmax = imregionalmax(imgdisk);
-
-
-figure(50)
-subplot(2,3,1)
-hist(imgd(:), 256)
-title('intensity')
-subplot(2,3,2)
 imglogvals = log2(imgd(:)+eps);
 imglogvals(imglogvals < -15) = -15;
 imglogvals(imglogvals > 0) = 0;
+
+
+figure(1)
+clf
+imsubplot(1,2,1)
+imshow(imgd);
+
+subplot(1,2,2)
+hist(imglogvals, 256)
+
+
+%% thresholding / masking 
+th = 2^thresholdMixtureOfGaussians(imglogvals, 0.5)
+
+imgth = imgd;
+imgth(imgth < th) = 0;
+
+imgmask = imgth > 0;
+imgmask = imopen(imgmask, strel('disk', 1));
+imgmask = imclose(imgmask, strel('disk', 1));
+
+
+figure(2)
+clf
+imsubplot(1,2,1)
+imshow(imgth);
+imsubplot(1,2,2)
+imshow(imoverlay(imgd, imgmask))
+
+% plot statistics to find threshold manually if Mixture of Gaussians fails
+
+imgmed = medianFilter(imgd, 3);
+
+figure(3)
+subplot(2,3,1)
+hist(imgd(:), 256)
+title('intensity')
+
+subplot(2,3,2)
 hist(imglogvals, 256)
 title('log2 intensity')
+
 subplot(2,3,3)
 hist(log2(imgmed(:)+eps), 256)
 title('log2 median filtered')
+
 subplot(2,3,4)
 plot(sort(imgd(:)))
+
 subplot(2,3,5)
 plot(sort(imglogvals))
+
 subplot(2,3,6)
 plot(sort(log2(imgmed(:)+eps)))
 
-figure(51)
-imshow([imoverlay(imgd, imgmax) imoverlay(imgdisk, imgmax)])
+
+
+%% Filtering / Seeding
+
+% gaussian smoothing
+%imgdg = gaussianFilter(imgd,3,10);
+imgdg = img
+
+% median filter
+%imgf = medianFilter(imgdg, 3);
+
+% mean shift 
+%imgf = meanShiftFilter(imgd, 3, 0.1);
+
+% disk
+%imgf = diskFilter(imgmed, 3, 4, 1, -1);
+
+% Laplcaina of Gaussians
+param.filter.logsize = [15, 15];
+imgf = logFilter(max(imgdg(:)) - imgdg, param.filter.logsize);
+
+
+% find maxima using h-max detection 
+param.filter.hmax = 0.03;
+%imgmax = imregionalmax(imgf);
+imgmax = imextendedmax(mat2gray(imgf), param.filter.hmax);
+
+%%% Combine nearby points and shrink to single points
+%imgmax = imdilate(imgmax, strel('disk', 3));
+%imgmax = bwmorph(imgmax,'shrink',inf);
+
+
+% plot the results
+figure(10)
+imshow([imoverlay(imgd, imgmax) imoverlay(mat2gray(imgf), imgmax)])
+
+
+%% Segmentation
+
+% watershed
+
+
+rm = imimposemin(max(imgf(:)) - stackmed, stackmax);
+ws = watershed(rm);
+
 
 
 
@@ -46,9 +118,7 @@ imglog = logFilter(1 - imgmed, 15);
 %%% Detect Maxima
 imgmax = imregionalmax(imglog);
 
-%%% Combine nearby points and shrink to single points
-%imgmax = imdilate(imgmax, strel('disk', 3));
-%imgmax = bwmorph(imgmax,'shrink',inf);
+
 
 %%% filter noise
 maxvals = imgd(imgmax);

@@ -56,10 +56,9 @@ trough_drop       = getParameter(param, {'trough', 'drop'},   Inf);        % min
 trough_rise       = getParameter(param, {'trough', 'rise'},   0.1);        % minimal subsequent trough increase in itensity profile
 trough_noise      = getParameter(param, {'trough', 'noise'},   0.1);       % if no increase reset trough minima by ignoring fluctuations less than this
 
-smooth_radius     = getParameter(param, {'smooth'},   false);             % smooth final radii with spline
+smooth_radius     = getParameter(param, {'smooth'},   0);               % smooth final radii with spline
 
 show              = getParameter(param, {'plot'},   false);             % plot final results
-
 
 over_sample  = 2;
 nraypixel = over_sample * cutoff_radius; % oversampling by factor of 2 makes it smoother
@@ -240,8 +239,9 @@ for ir0 = 1:nr0s
    radius_min(radius_min > nraypixel) = nraypixel;
    
    if smooth_radius
-      radius_smooth = smoothLowess(radius_min, 3);
-      radius(ir0, :) = round(radius_smooth / over_sample); % correct for over_sampling
+      radius_smooth = smoothLowess(radius_min, smooth_radius);
+      radius_smooth = round(radius_smooth / over_sample);
+      radius(ir0, :) = radius_smooth; % correct for over_sampling
    else
       radius(ir0, :) = round(radius_min / over_sample); % correct for over_sampling
    end
@@ -257,8 +257,12 @@ for ir0 = 1:nr0s
    %
    
    if show
-      figure
-      plotRays(image, imagegrad, rays, r0(:, ir0), radius(ir0, :), radius_min, cutoff_radius)
+      
+      radius_min = round(radius_min / over_sample); %% correct for oversampling
+     
+      figure(42)
+      hold on
+      plotRays(image, imagegrad, rays, r0(:, ir0), radius(ir0, :), radius_min, cutoff_radius, ir0)
 
       if background == 0; 
          radius_background = [];
@@ -280,7 +284,7 @@ for ir0 = 1:nr0s
       if trough_drop == Inf
          radius_trough = [];
       end
-      if  absolute_gradient_peak == Inf && relative_gradient_peak == Inf
+      if absolute_gradient_peak == Inf && relative_gradient_peak == Inf
          gradient_profile = [];
       end
       if absolute_gradient_peak == Inf
@@ -292,10 +296,12 @@ for ir0 = 1:nr0s
          radius_relative_gradient_peak = []; 
       end  
 
-      figure
-      plotProfiles(profile, absolute_change_profile, relative_profile, relative_change_profile, gradient_profile, relative_gradient_profile,...
+      if show > 1
+         figure(43)
+         plotProfiles(profile, absolute_change_profile, relative_profile, relative_change_profile, gradient_profile, relative_gradient_profile,...
                    center_intensity, center_gradient,...
                    radius_min, radius_background, radius_absolute_change, radius_relative_change, radius_trough, radius_absolute_gradient_peak, radius_relative_gradient_peak);
+      end
    end
              
 end % loop ove seeds
@@ -346,7 +352,6 @@ function trough = findTroughReset(x, rise1, drop, rise2, reset)
             end
       end
    end
-
    
    % did not succeed, check if we need to rest after drop
    if d == -1
@@ -367,7 +372,7 @@ end
 %% visualization for debuggin
 
 % show rays and ploygons on images
-function plotRays(image, imagegrad, rays, r0, radius, radius_min, cutoff_radius)
+function plotRays(image, imagegrad, rays, r0, radius, radius_min, cutoff_radius, ir0)
 
    % draw rays on images 
    nrays = length(radius);
@@ -382,7 +387,9 @@ function plotRays(image, imagegrad, rays, r0, radius, radius_min, cutoff_radius)
    col = hsv2rgb([col', ones( nrays,1), ones(nrays,1)]);
 
    ax(1)= imsubplot(1,2,1);
-   imshow(image);
+   if (ir0 ==1) 
+      imshow(image);
+   end
    for i=1:nrays
       line(x(i,:), y(i,:), 'Color', col(i,:))
    end
@@ -391,7 +398,9 @@ function plotRays(image, imagegrad, rays, r0, radius, radius_min, cutoff_radius)
 
    
    ax(2) = imsubplot(1,2,2);
-   imshow(imagegrad);
+   if (ir0 ==1)
+      imshow(imagegrad);
+   end
    for i=1:nrays
       line(x(i,:), y(i,:), 'Color', col(i,:))
    end

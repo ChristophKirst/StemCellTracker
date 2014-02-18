@@ -50,12 +50,21 @@ xlabel('x'); ylabel('y'); zlabel('z');
 figure(2)
 immontage(max(stack(:)) - stack)
 
-% thresholding 
+
+%%
+
+stack = syntheticConfocalData();
+
+
+
+%% thresholding 
 
 figure(3)
 hist(log2(stack(stack > 0)), 120)
 
-th= 2^thresholdMixtureOfGaussians(log2(stack(stack>0)), 0.1)
+%th= 2^thresholdMixtureOfGaussians(log2(stack(stack>0)), 0.1)
+
+th = 1;
 
 figure(4)
 clf
@@ -109,7 +118,7 @@ immontage(stackmed)
 
 %% detect 3d log maxima 
 
-stacklog = logFilter(max(stack(:)) - stack, [7 7 2]);
+stacklog = logFilter(max(stack(:)) - stack, [20 20 17]);
 stackmax = imregionalmax(stacklog);
 
 figure(104)
@@ -133,7 +142,7 @@ iv = imfiltervalues(stack, stackmax, ker);
 th = thresholdOtsu(iv)
 th = thresholdMutualEntropy(iv)
 th = thresholdEntropy(iv)
-th = 8000;
+th = 1;
 
 pos = find(stackmax);
 

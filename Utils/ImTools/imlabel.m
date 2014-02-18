@@ -1,6 +1,6 @@
 function label = imlabel(labeledimage)
 %
-% label = imlable(labeledimage)
+% label = imlabel(labeledimage)
 %
 % description:
 %    return the list of lables in labeled image, excluding background = 0

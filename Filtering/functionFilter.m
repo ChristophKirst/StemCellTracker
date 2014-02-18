@@ -35,7 +35,10 @@ end
 
 if nargin < 2
    ksize = 3;
+else
+   ksize = ksize(:)';
 end
+
 
 if numel(ksize)==2
     ksize = [ksize 1];

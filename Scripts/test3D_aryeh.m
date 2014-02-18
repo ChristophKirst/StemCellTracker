@@ -73,8 +73,10 @@ figure(11)
 clf
 imshow3d(stackmed, 'BoxRatios', boxr )
 
-%figure(12)
-%immontage(stackmed)
+%%
+
+figure(12)
+immontage(stackmed)
 
 
 %% log and maxima

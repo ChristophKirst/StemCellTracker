@@ -24,7 +24,6 @@ function label = segmentByRays(image, imagegrad, seeds, param)
 % See also: findRayRadius
 
 [~, ~, r0, polx, poly] = findRayRadius(image, imagegrad, seeds, param)
-%
 
 
 

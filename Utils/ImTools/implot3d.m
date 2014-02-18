@@ -217,6 +217,8 @@ if(ind==3 || is3DTexture )
 
 end
 
+%{
+
 % Create x-slice
 if (ind==1 || is3DTexture ) 
   x = [model.xdata(1), model.xdata(1); model.xdata(1), model.xdata(1)];
@@ -250,6 +252,9 @@ if (ind==2 || is3DTexture)
    handle_ind = handle_ind + 1;
   end
 end
+
+end
+%}
 
 model.handles = h;
 

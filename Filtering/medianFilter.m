@@ -38,7 +38,15 @@ end
 
 switch dim
    case 2
-      out = medfilt2(image, ksize, padding);
+      % matlab is inconsistent as usual: replicate padding option not available -> use own median filter
+      % out = medfilt2(image, ksize, padding);
+          
+      if nargin < 4
+         chuncksize = 1;
+      end      
+      
+      out = functionFilter(image, ksize, 'median', padding, chuncksize);
+      
 
    case 3
 
