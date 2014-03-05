@@ -270,7 +270,7 @@ imgmax = imfill(imgmax,'holes');
 
 
 % plot the results. Ideally have one seed per nucleus
-if verbose
+if verbose  % CK I see a figure(20) and such further down is that intended
    
    figure(20 + figure_offset)
    set(gcf, 'Name', ['Seeding: ' filename])
@@ -281,6 +281,7 @@ end
 %% Postprocess Seeds
 
 % Join seeds that can be connected by lines that does not cross boundary
+% CK where is this used??
 
 param.join.distance = 15;     % maximal distance of seeds to join 
 param.join.threshold = -Inf;  % minimum intensity of seed to be considered for joining
@@ -301,7 +302,7 @@ labdist = imlabeldistances(imgmaxp);
 
 pos = immask2coords(imgmaxp);
 pairs = imlabellocalpairs(imgmaxp, 15, 'dist');
-np = length(pairs)
+np = length(pairs);  %CK ;
 
 
 

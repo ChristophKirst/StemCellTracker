@@ -107,7 +107,7 @@ imgmask = imopen(imgmask, strel('disk', 3));
 
 if verbose
    %%
-   figure(4)
+   figure(10)
    clf
    set(gcf, 'Name', ['Thresholded Stack: ' filename ' channel: 1']);
    implot3d(imgth);
