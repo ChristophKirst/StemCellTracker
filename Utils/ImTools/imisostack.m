@@ -1,6 +1,6 @@
 function isostack = imisostack(stack, zslices)
 %
-% stack = imisostack(image, xyspacing, zspacing)
+% stack = imisostack(image,  zspacing)
 %
 % description:
 %     returns isotropic stack by copying z-slices to match xyspacing

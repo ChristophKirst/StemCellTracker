@@ -1,6 +1,6 @@
-function threshold = entropyThreshold(image)
+function threshold = thresholdEntropy(image)
 %
-% threshold = entropyThreshold( image )
+% threshold = thresholdEntropy( image )
 %
 % description:
 %    finds a threshold based on entropies of the image histrogram
@@ -15,10 +15,6 @@ function threshold = entropyThreshold(image)
 %    Kapur, Sahoo, & Wong, A new Method for Gray Level Picture Thresholding
 %    Using the Entropy of the Histogram, 1985
 
-
-if ~ismatrix(image)
-   image = rgb2gray(image);
-end
 image = double(image);
 
 %histrogram

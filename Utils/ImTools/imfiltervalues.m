@@ -57,7 +57,7 @@ if length(filter) == 1
    end
 
    if d == 2
-      filter = fspecial('disk', filter);
+      filter = fspecial2('disk', filter);
       %filter = filter / sum(filter(:));
    else
       filter = fspecial3('disk', filter);
@@ -69,7 +69,7 @@ switch d
    case 2
 
       values = roifilt2(filter, image, mask);
-      values = values(mask > 0.5);
+      values = values(mask > 0);
       
    case 3
       

@@ -1,15 +1,12 @@
-classdef Tile < handle
+classdef Frame < handle
 %
 % Frame is a class that conains data about objects from single time point
 %
 
    properties
-      filename = '';   % the file name of the source image
-      %
-      % fluoresence
-      objects  = [];   % objects in image   
+      filename = {};   % the file names of the source image
+      objects  = [];   % objects in image (e.g. nuclei)  
 
-      %picutres =    [];  % pictures form a single time point from which the objects were extracted
    end
    
    methods

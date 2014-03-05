@@ -19,4 +19,8 @@ if nargin < 2
    colmap = @jet;
 end
 
-image = label2rgb(image, colmap, 'k', 'shuffle');
+if ndims(image) == 2 %#ok<ISMAT>
+   image = label2rgb(image, colmap, 'k', 'shuffle');
+else
+   image = label2rgb3d(image, colmap, 'k', 'shuffle');
+end

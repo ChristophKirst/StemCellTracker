@@ -37,23 +37,25 @@ using namespace std;
 #define DIFF_COUNT_OUT    plhs[2]
 #define POP_COUNT_OUT     plhs[3]
 
-#define IJ(i,j) ((j)*m+(i))
+#define IJ(i,j) ((j)*m + (i))
 
 static double *difference_count = 0;
 static double *pop_count = 0;
 
 class Pixel { 
 public:
-  double distance;
-  unsigned int i, j;
-  double label;
-  Pixel (double ds, unsigned int ini, unsigned int inj, double l) : 
-    distance(ds), i(ini), j(inj), label(l) {}
+   double distance;
+   double spatial_distance;
+   unsigned int i, j;
+   double label;
+   Pixel (double d, double sd, unsigned int ini, unsigned int inj, double l) : 
+          distance(d), spatial_distance(sd), i(ini), j(inj), label(l) {}
 };
 
 struct Pixel_compare { 
- bool operator() (const Pixel& a, const Pixel& b) const 
- { return a.distance > b.distance; } // smallest element is processed next
+   bool operator() (const Pixel& a, const Pixel& b) const {
+      return a.distance > b.distance; 
+   }
 };
 
 typedef priority_queue<Pixel, vector<Pixel>, Pixel_compare> PixelQueue;
@@ -65,6 +67,7 @@ clamped_fetch(double *image,
 {
   if (i < 0) i = 0;
   if (i >= m) i = m-1;
+  
   if (j < 0) j = 0;
   if (j >= n) j = n-1;
 
@@ -73,104 +76,85 @@ clamped_fetch(double *image,
 
 
 /* average intensity around a point */
-static double
-average_intensity(double * image, 
-                  int i,  int j,
+static double average_intensity(double * image, 
+                  int i,  int j, 
                   unsigned int m, unsigned int n, int radius)
 {
-  int delta_i, delta_j;
-  double intensity = 0.0;
+   int delta_i, delta_j;
+   double intensity = 0.0;
 
-  // Calculate average pixel intensities
-  for (delta_j = -radius; delta_j <= radius; delta_j++) {
-    for (delta_i = -radius; delta_i <= radius; delta_i++) {
-      intensity += clamped_fetch(image, i + delta_i, j + delta_j, m, n);
-    }
-  }
-  return (intensity/((radius+1.0)*(radius+1.0)));
+   // Calculate average pixel intensities
+   for (delta_j = -radius; delta_j <= radius; delta_j++) {
+      for (delta_i = -radius; delta_i <= radius; delta_i++) {
+
+            intensity += clamped_fetch(image, i + delta_i, j + delta_j, m, n);
+
+      }
+   }
+    
+   double norm = 2*radius+1.0;
+   return (intensity/(norm*norm));
 }
-
 
 
 /* difference between two pixels */
-static double
-Difference(double *image,
+static double difference(double *image,
            int i1,  int j1,
            int i2,  int j2,
-           unsigned int m, unsigned int n, 
-           int radius, double ref_intensity,  double lambda)
+           unsigned int m, unsigned int n,
+           int radius, double ref_intensity,  double lambda, double spatial_dist, double& space_dist)
 {
-  int delta_i, delta_j;
-  double pixel_diff = 0.0;
-  (*difference_count)++; 
+   int delta_i, delta_j;
+   double pixel_diff = 0.0;
+   (*difference_count)++; 
 
-  // Calculate average pixel difference
-  for (delta_j = -radius; delta_j <= radius; delta_j++) {
-    for (delta_i = -radius; delta_i <= radius; delta_i++) {
-      //pixel_diff += fabs(clamped_fetch(image, i1 + delta_i, j1 + delta_j, m, n) - 
-      //                   clamped_fetch(image, i2 + delta_i, j2 + delta_j, m, n));
-       
-        pixel_diff += fabs(clamped_fetch(image, i1 + delta_i, j1 + delta_j, m, n) - ref_intensity);   
-    }
-  }
-  pixel_diff *= 1.0/((radius+1.0)*(radius+1.0)*ref_intensity);
+   // Calculate average pixel difference
+   for (delta_j = -radius; delta_j <= radius; delta_j++) {
+      for (delta_i = -radius; delta_i <= radius; delta_i++) {
+         //pixel_diff += fabs(clamped_fetch(image, i1 + delta_i, j1 + delta_j, k1 + delta_k, m, n, l) - 
+         //                   clamped_fetch(image, i2 + delta_i, j2 + delta_j, k2 + delta_k, m, n, l));
+         pixel_diff += fabs(clamped_fetch(image, i1 + delta_i, j1 + delta_j, m, n) - ref_intensity);          
+      }
+   }
+  
+   double norm = (2*radius+1.0);
+   pixel_diff *= 1.0/(norm*norm);
  
-  // distance (is 'semi geodesic') 
-  double space_diff = sqrt(((double) i1 - i2)  * ((double) i1 - i2) +  ((double) j1 - j2)  * ((double) j1 - j2));  
+   // distance (is 'semi geodesic') 
+   double d1 = i1 - i2; double d2 = j1 -j2;
+   space_dist = sqrt(d1*d1 + d2*d2) + spatial_dist;  
   
-  //here is space for taking into account gradient image / gradient crossings form the label center to the new pixel etc....
+   //here is space for taking into account gradient image / gradient crossings form the label center to the new pixel etc....
   
-  return ((1 - lambda) * pixel_diff + space_diff * lambda /* * lambda*/);
+   return ((1 - lambda) * pixel_diff + space_dist * lambda /* * lambda*/);
 }
 
 
 
 
-static void
-push_neighbors_on_queue(PixelQueue &pq, double dist,
+static void push_neighbors_on_queue(PixelQueue &pq, double spatial_dist,
                         double *image,
                         unsigned int i, unsigned int j,
                         unsigned int m, unsigned int n,
                         int radius, double ref_intensity,  double lambda, 
                         double label, double *labels_out, mxLogical* mask_in)
-{
-    
-  /* 4-connected */
-  if (i > 0) {
-    if ( mask_in[IJ(i-1,j)] &&  0 == labels_out[IJ(i-1,j)] /* && image[IJ(i-1,j)] > threshold */) // if the neighbor was not labeled - threshold is taken care of by the mask
-      pq.push(Pixel(dist + Difference(image, i, j, i-1, j, m, n, radius, ref_intensity, lambda), i-1, j, label));
-  }                                                                   
-  if (j > 0) {                                                        
-    if ( mask_in[IJ(i,j-1)] &&  0 == labels_out[IJ(i,j-1)]/* && image[IJ(i,j-1)] > threshold */ )   
-      pq.push(Pixel(dist + Difference(image, i, j, i, j-1, m, n, radius, ref_intensity, lambda), i, j-1, label));
-  }                                                                   
-  if (i < (m-1)) {
-    if ( mask_in[IJ(i+1,j)] &&  0 == labels_out[IJ(i+1,j)] /* && image[IJ(i+1,j)] > threshold */) 
-      pq.push(Pixel(dist + Difference(image, i, j, i+1, j, m, n, radius, ref_intensity, lambda), i+1, j, label));
-  }                                                                   
-  if (j < (n-1)) {              
-    if ( mask_in[IJ(i,j+1)] &&  0 == labels_out[IJ(i,j+1)] /* && image[IJ(i,j+1)] > threshold */)   
-      pq.push(Pixel(dist + Difference(image, i, j, i, j+1, m, n, radius, ref_intensity, lambda), i, j+1, label));
-  } 
-
-  /* 8-connected */
-  if ((i > 0) && (j > 0)) {
-    if ( mask_in[IJ(i-1,j-1)] && 0 == labels_out[IJ(i-1,j-1)] /*  && image[IJ(i-1,j-1)] > threshold */)   
-      pq.push(Pixel(dist + Difference(image, i, j, i-1, j-1, m, n, radius, ref_intensity, lambda), i-1, j-1, label));
-  }                                                                       
-  if ((i < (m-1)) && (j > 0)) {                                           
-    if ( mask_in[IJ(i+1,j-1)] && 0 == labels_out[IJ(i+1,j-1)] /* && image[IJ(i+1,j-1)] > threshold */)    
-      pq.push(Pixel(dist + Difference(image, i, j, i+1, j-1, m, n, radius, ref_intensity, lambda), i+1, j-1, label));
-  }                                                                       
-  if ((i > 0) && (j < (n-1))) {                                           
-    if ( mask_in[IJ(i-1,j+1)] && 0 == labels_out[IJ(i-1,j+1)] /* && image[IJ(i-1,j+1)] > threshold */)   
-      pq.push(Pixel(dist + Difference(image, i, j, i-1, j+1, m, n, radius, ref_intensity, lambda), i-1, j+1, label));
-  }                                                                       
-  if ((i < (m-1)) && (j < (n-1))) {
-    if ( mask_in[IJ(i+1,j+1)] && 0 == labels_out[IJ(i+1,j+1)] /* && image[IJ(i+1,j+1)] > threshold */)   
-      pq.push(Pixel(dist + Difference(image, i, j, i+1, j+1, m, n, radius, ref_intensity, lambda), i+1, j+1, label));
-  }
+{ 
+   int di, dj, dk, idi, jdj;
+   double d, sd;
   
+   /* 26-connected */
+   for(di = -1; di <= 1; di++) {
+      for (dj = -1; dj <= 1; dj++) {
+
+            idi = i +di; jdj = j + dj;
+            if (idi>=0 && idi < m && jdj >= 0 && jdj < n && 
+                mask_in[IJ(idi,jdj)] &&  0 == labels_out[IJ(idi,jdj)]) {
+                d = difference(image, i, j, idi, jdj, m, n, radius, ref_intensity, lambda, spatial_dist, sd);
+                pq.push(Pixel(d, sd , idi, jdj, label));
+            }
+
+      }
+   }          
 }
 
 static void propagate(double *labels_in, double *im_in, mxLogical *mask_in, 
@@ -182,64 +166,70 @@ static void propagate(double *labels_in, double *im_in, mxLogical *mask_in,
                       double lambda)
 {
 
-  unsigned int i, j;
-  PixelQueue pixel_queue;
-  //map<double, double> center_intensities;  / for auto center_intensities 
+   unsigned int i, j;
+  
+   PixelQueue pixel_queue;
+   //map<double, double> center_intensities;  / for auto center_intensities 
   
   
-  /* initialize dist to Inf, read labels_in and wrtite out to labels_out */
-  for (j = 0; j < n; j++) {
-    for (i = 0; i < m; i++) {
-      dists[IJ(i,j)] = mxGetInf();            
-      labels_out[IJ(i,j)] = labels_in[IJ(i,j)];
-    }
-  }
+   /* initialize dist to Inf, read labels_in and wrtite out to labels_out */
+   for (j = 0; j < n; j++) {
+      for (i = 0; i < m; i++) {
+
+            dists[IJ(i,j)] = mxGetInf();            
+            labels_out[IJ(i,j)] = labels_in[IJ(i,j)];
+
+      }
+   }
   
-  /* if the pixel is already labeled (i.e, labeled in labels_in) and within a mask, 
+   /* if the pixel is already labeled (i.e, labeled in labels_in) and within a mask, 
    * then set dist to 0 and push its neighbors for propagation */
-  for (j = 0; j < n; j++) {
-    for (i = 0; i < m; i++) {        
-      double label = labels_in[IJ(i,j)];
-      if ((label > 0) && (mask_in[IJ(i,j)])) {
+   for (j = 0; j < n; j++) {
+      for (i = 0; i < m; i++) { 
+
+            double label = labels_in[IJ(i,j)];
+            if ((label > 0) && (mask_in[IJ(i,j)])) {
          
         
-        if ((int) label >= nlabel || ( (int) label < 0) || (fabs(label - (int) label) > 0) ) {
-           //cout << label << " " << (int) label << " " << fabs(label - (int) label) << " "<< nlabel << endl;
-           //cout << ((int) label >= nlabel) << " " << ((int) label < 0) << " " <<  (fabs(label - (int) label) > 0) << endl;
+               if ((int) label >= nlabel || ( (int) label < 0) || (fabs(label - (int) label) > 0) ) {
+                  //cout << label << " " << (int) label << " " << fabs(label - (int) label) << " "<< nlabel << endl;
+                  //cout << ((int) label >= nlabel) << " " << ((int) label < 0) << " " <<  (fabs(label - (int) label) > 0) << endl;
 
-           mexErrMsgTxt("Inconsistent label of seeds, should be integer from 1 - nlabel, 0 for background %g.");
-        };
+                  mexErrMsgTxt("Inconsistent label of seeds, should be integer from 1 - nlabel, 0 for background %g.");
+               };
           
-        dists[IJ(i,j)] = 0.0;
+               dists[IJ(i,j)] = 0.0;
+            
         
-        /* auto initialize intensities */
-        /*
-        double norm = 1.0;
-        if (radius_center >= 0) {
-            norm = average_intensity(im_in, i, j, m, n, radius_center);
-        }
-        center_intensities[label] = norm;
-        */
+               /* auto initialize intensities */
+               /*
+               double norm = 1.0;
+               if (radius_center >= 0) {
+                  norm = average_intensity(im_in, i, j, m, n, radius_center);
+               }
+               center_intensities[label] = norm;
+               */
+            
+               push_neighbors_on_queue(pixel_queue, 0.0, im_in, i, j, m, n, radius, center_intensities[(int) label], lambda, label, labels_out, mask_in);
+        
+            }
 
-        push_neighbors_on_queue(pixel_queue, 0.0, im_in, i, j, m, n, radius, center_intensities[(int) label], lambda, label, labels_out, mask_in);
-        
       }
-    }
-  }
+   }
 
-  while (! pixel_queue.empty()) {
-    Pixel p = pixel_queue.top();
-    pixel_queue.pop();
-    (*pop_count)++;  
-    //cout << "popped " << p.i << " " << p.j << endl;
+   while (! pixel_queue.empty()) {
+      Pixel p = pixel_queue.top();
+      pixel_queue.pop();
+      (*pop_count)++;  
+      //cout << "popped " << p.i << " " << p.j << " " << p.k << endl;
 
-    if ((dists[IJ(p.i, p.j)] > p.distance) /* && (mask_in[IJ(p.i,p.j)])*/) {
-      dists[IJ(p.i, p.j)] = p.distance;
-      labels_out[IJ(p.i, p.j)] = p.label;      
-      push_neighbors_on_queue(pixel_queue, p.distance, im_in, p.i, p.j, m, n, 
+      if ((dists[IJ(p.i, p.j)] > p.distance) /* && (mask_in[IJ(p.i,p.j, p.k)])*/) {
+         dists[IJ(p.i, p.j)] = p.distance;
+         labels_out[IJ(p.i, p.j)] = p.label;      
+         push_neighbors_on_queue(pixel_queue, p.spatial_distance, im_in, p.i, p.j, m, n,
                               radius, center_intensities[(int) p.label], lambda, p.label, labels_out, mask_in);
-    }
-  }
+      }
+   }
 }
 
 void mexFunction( int nlhs, mxArray *plhs[], 
@@ -255,6 +245,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     double *intensity_refs;
     unsigned int nlabel;
+    mwSize  ndim;
+    
     
     /* Check for proper number of arguments */
     
@@ -263,19 +255,33 @@ void mexFunction( int nlhs, mxArray *plhs[],
     } else if (nlhs !=1 && nlhs !=2 && nlhs !=4) {
         mexErrMsgTxt("The number of output arguments should be 1, 2, or 4."); 
     } 
+    
+    /* Size of Image */
+    ndim = mxGetNumberOfDimensions(IM_IN);
+    const mwSize* size = mxGetDimensions(IM_IN);
+    
+    if (2 != ndim){
+        mexErrMsgTxt("input image must be 3d grayscale image");
+    }
+    
+    m = size[0];
+    n = size[1];
 
-    m = mxGetM(IM_IN); 
-    n = mxGetN(IM_IN);
-
-    if ((m != mxGetM(LABELS_IN)) ||
-        (n != mxGetN(LABELS_IN))) {
-      mexErrMsgTxt("First and second arguments must have same size.");
+    
+    /* Size of Labeled Image */
+    ndim = mxGetNumberOfDimensions(LABELS_IN);
+    size = mxGetDimensions(LABELS_IN);
+    
+    /* Check for the correct number of indices  */
+    if (2 != ndim){
+        mexErrMsgTxt("input label image must be 3d grayscale image");
     }
 
-    if ((m != mxGetM(MASK_IN)) ||
-        (n != mxGetN(MASK_IN))) {
-      mexErrMsgTxt("First and third arguments must have same size.");
+    if ((m != size[0]) || (n != size[1])) {
+         mexErrMsgTxt("sizes of image and labels do not agree");
     }
+
+
 
     if (! mxIsDouble(IM_IN)) {
       mexErrMsgTxt("First argument must be a double array.");
@@ -287,9 +293,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgTxt("Third argument must be a logical array.");
     }
 
-    /* Create matrices for the return arguments */ 
-    LABELS_OUT = mxCreateDoubleMatrix(m, n, mxREAL); 
-    DISTANCES_OUT = mxCreateDoubleMatrix(m, n, mxREAL);
+    /* Create matrices for the return arguments */    
+    
+    LABELS_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL); 
+    DISTANCES_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL);
     DIFF_COUNT_OUT = mxCreateDoubleScalar(0);
     POP_COUNT_OUT = mxCreateDoubleScalar(0);
     

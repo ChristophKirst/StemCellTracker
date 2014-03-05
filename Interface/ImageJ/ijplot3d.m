@@ -3,58 +3,60 @@ function universe = ijplot3d(image, varargin)
 % universe = ijplot3d(image, varargin)
 %
 % description:
-%    starts ImageJ interface
+%    plots a 3d image using the ImageJ 3DViewer
 %
 % input:
-%    image      image to plot
+%    image      3D image to plot
 %    varargin   parameter 'ParameterName' ParameterValue
-%               'ImageSequence'   (true = display image as sequence)
-%               'PixelDepth'      (z depth of pixel w.r.t to x,y)
+%               'PixelDepth'      z depth of pixel w.r.t to x,y (1)
+%               'Name'            name of image ('Figure')
+%               'Universe'        add the image to an exsiting universe
 %
 % output:
 %    universe    Universe object representing the 3D viewer window
 %
 % See also: ijstart
 
-
-param.sequence = false;
-param.pixel_depth = 1;
+pixel_depth = 1;
+name = '3DImage (Matlab)';
+univ = [];
 
 for n = 1:2:length(varargin)
    switch(lower(varargin{n}))
-      case 'imagesequence'
-         param.sequence = varargin{n+1};
       case 'pixeldepth'
-         param.pixel_depth = varargin{n+1};
+         pixel_depth = varargin{n+1};
+      case 'name'
+         name = varargin{n+1};
+      case 'universe'
+         univ = varargin{n+1};   
    end
 end
 
-% convert image to [X Y Z C]
-% matlab uses [X Y C Z]
+
 dim = ndims(image);
 
 if dim == 4 % color image
-   image = permute(image, [1 2 4 3]);
+   % nothing to be done / maybe check format hwlc !!
 else % stack of gray scale images
    image = cat(4, image,image,image);
 end
-% need to convert to uint8 ?
+% convert to uint8 
 
-% create image
+image = cast(255 * image / max(image(:)), 'uint8');
 
-% get ij instance
-
-
-
-imp = MIJ.createColor('Figure', image, param.sequence);
+imp = MImageJ.createImage(name, 'hwlc', image);
 
 % pixel depth
 calibration = ij.measure.Calibration();
-calibration.pixelDepth = param.pixel_depth;
+calibration.pixelDepth = pixel_depth;
 imp.setCalibration(calibration);
 
-%new 3D viewer
-universe = ij3d.Image3DUniverse();
+% plot
+if isa(univ, 'ij3d.Image3DUniverse')
+   universe = univ;
+else
+   universe = ij3d.Image3DUniverse();
+end
 universe.show();
 universe.addVoltex(imp);
 

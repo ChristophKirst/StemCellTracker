@@ -1,6 +1,6 @@
 function out = medianFilter(image, ksize, padding)
 %
-% out = medianFilter(image, radius)
+% out = medianFilter(image, ksize, padding)
 %
 % description:
 %     replaces each pixel by median of pixels within radius
@@ -8,6 +8,7 @@ function out = medianFilter(image, ksize, padding)
 % input:
 %     image            image to filter
 %     ksize            h x w (x l) size of the fitler
+%     padding          (optional) specify the padding for boundary pixel
 %
 % output:
 %     out              filtered image

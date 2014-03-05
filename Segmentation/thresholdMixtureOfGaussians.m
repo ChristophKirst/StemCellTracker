@@ -1,6 +1,6 @@
-function threshold = mixtureOfGaussiansThreshold(image, probability)
+function threshold = thresholdMixtureOfGaussians(image, probability)
 %
-% threshold = mixtureOfGaussiansThreshold(image, probability)
+% threshold = thresholdMixtureOfGaussians(image, probability)
 %
 % description:
 %      fits the sum of three gaussians to the histogram of image and
@@ -21,9 +21,6 @@ if nargin < 2
 end
 probBackground = 1 - probability;
 
-if ~ismatrix(image)
-   image = rgb2gray(image);
-end
 image = double(image(:));
 
 if length(image) > 512^2

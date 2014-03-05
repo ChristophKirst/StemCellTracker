@@ -12,19 +12,11 @@ function [minpos, maxpos] = imboundingbox(image)
 %    minpos  lower corner of bbox
 %    maxpos  upper corner of bbox
 
-
-d = ndims(image);
 indx =  find(image > 0);
 
-if d == 2
-   [ix, iy] = ind2sub(size(image), indx);
-   ii = [ix iy];
-else
-   [ix, iy, iz] = ind2sub(size(image), indx);
-   ii = [ix iy iz];
-end
+ii = imind2sub(size(image), indx);
 
-minpos = min(ii);
-maxpos = max(ii);
+minpos = min(ii,[],1);
+maxpos = max(ii,[],1);
 
 end

@@ -38,6 +38,7 @@ function [] = imwrite_hdr(data,varargin)
 % Feb, 2000
 % University of California, Irvine
 % colin@alumni.caltech.edu
+% modified C. Kirst 2014
 
 % Updated Sep 2003 - Changed parameter list
 %                  - Can now handle 4-d data

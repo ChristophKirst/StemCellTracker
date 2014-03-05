@@ -10,17 +10,29 @@ function cost = costMatrixObjectMatching(data0, data1, param)
 %                arrays of objects to calculate linking cost 
 %                objects used entries: r, time, volume, intensity, identity
 %   param        parameter structure with entries:
-%                .cost.creation        - costs for creating new objects ([])
-%                .cost.deletion        - costs for deleting objects ([])
-%                .cutoff.cost          - overall cost cutoff ([] = automatic)
-%                .cutoff.dist          - cutoff for spatial distance ([] = automatic)
-%                .cutoff.time          - cutoff for temporal distances (Inf)
-%                .weight.dist          - weight for distances in space (1.0)
-%                .weight.time.forward  - weight for positive time distances (0.0)
-%                .weight.time.backward - weight for negative time distances (0.0)
-%                .weight.volume        - weight for distances in volume (0.0)
-%                .weight.intensity     - weight for distances in intensity (0.0)
-%                .weight.type          - weight for different types of objects (Inf)
+%                .cost.creation           - costs for creating new objects ([])
+%                .cost.deletion           - costs for deleting objects ([]) 
+%                .cost.join               - cost for join objects (Inf = not allowed)
+%                .cost.split              - cost for splitting objects (Inf = not allowed)
+%                .cutoff.cost             - overall cost cutoff ([] = automatic)
+%                .cutoff.dist             - cutoff for spatial distance ([] = automatic)
+%                .cutoff.time             - cutoff for temporal distances (Inf)
+%                .cutoff.join.distance    - cutoff for spatial distance when joining objects ([] = automatic)
+%                .cutoff.split.distance   - cutoff for spatial distance when joining objects ([] = automatic)
+%                .cutoff.join.nmax        - cutoff for maximal number of objects to join (2)
+%                .cutoff.split.nmax       - cutoff for maximal number of objects to split into (2)
+%                .weight.dist             - weight for distances in space (1.0)
+%                .weight.time.forward     - weight for positive time distances (0.0)
+%                .weight.time.backward    - weight for negative time distances (0.0)
+%                .weight.volume           - weight for distances in volume (0.0)
+%                .weight.intensity        - weight for distances in intensity (0.0)
+%                .weight.type             - weight for different types of objects (Inf)
+%                .weight.join.volume      - weight for volume differnces of joining objects
+%                .weight.join.intensity   - weight for intensity differences for joining objects
+%                .weight.join.distance    - weight for distance differences for joining objects
+%                .weight.split.volume     - weight for volume differnces of splitting objects
+%                .weight.split.intensity  - weight for intensity differences for splitting objects
+%                .weight.split.distance   - weight for distance differences for splitting objects
 %
 % output:
 %   cost         the cost matrix
@@ -37,6 +49,7 @@ if nargin < 3
    param = [];
 end
 
+% basic join of objects
 dist_cutoff = getParameter(param, {'cutoff', 'dist'}, []);      % cutoff for weighted distances in space
 time_cutoff = getParameter(param, {'cutoff', 'time'}, Inf);     % cutoff for weighted distances in time
 cost_cutoff = getParameter(param, {'cutoff', 'cost'}, []);      % over all cost cutoff 
@@ -50,6 +63,25 @@ w_time_backward = getParameter(param, {'weight', 'time', 'backward'}, Inf);  % w
 w_volume        = getParameter(param, {'weight', 'volume'}, 0.0);            % weight for size distance
 w_intensity     = getParameter(param, {'weight', 'intensity'}, 0.0);         % weight for intensity distance
 w_type          = getParameter(param, {'weight', 'type'}, Inf);              % weight for two objects that have different identity
+
+
+%joining an splitting
+join_cost = getParameter(param, {'cost', 'join'}, Inf); 
+split_cost = getParameter(param, {'cost', 'split'}, Inf);
+
+join_nmax = getParameter(param, {'cutoff', 'join', 'namx'}, 2);
+split_namx = getParameter(param, {'cutoff', 'split', 'namx'}, 2);
+
+join_cutoff_distance = getParameter(param, {'cutoff', 'join', 'distance'}, []);
+split_cutoff_distance = getParameter(param, {'cutoff', 'split', 'distnace'}, []);
+
+join_w_distance = getParameter(param, {'weight', 'join', 'distance'}, 1.0);
+split_w_distance = getParameter(param, {'weight', 'split', 'distance'}, 1.0);
+join_w_volume = getParameter(param, {'weight', 'join', 'volume'}, 0.0);
+split_w_volume = getParameter(param, {'weight', 'split', 'volume'}, 0.0);
+join_w_intensity = getParameter(param, {'weight', 'join', 'intensity'}, 0.0);
+split_w_intensity = getParameter(param, {'weight', 'split', 'intensity'}, 0.0);
+
 
 
 if isentry(data0, 'objects')
@@ -75,7 +107,7 @@ if isentry(data0, 'r') && ( w_dist > 0 )
   
    dim = data0.dim;
    if dim ~= data1.dim
-      error('positions in data do not have different dimensions: %d ~= %d', dim, data1.dim);
+      error('positions in data have different dimensions: %d ~= %d', dim, data1.dim);
    end
    
    cost = w_dist * sqrt(sum(bsxfun(@minus,reshape(r0',[n0,1,dim]),reshape(r1',[1,n1,dim])).^2,3));
@@ -188,5 +220,13 @@ cost(:,n1+1) = deletion_cost * ones(n0,1);
 cost(n0+1,:) = creation_cost * ones(1,n1+1);
 
 cost(n0+1,n1+1) = Inf;
+
+
+% joning and splitting cost
+
+
+
+
+
 
 end

@@ -14,23 +14,36 @@ function surface = impixelsurface(labeledimage)
 
 label = imlabel(labeledimage);
 isize = size(labeledimage);
-if length(isize) ~= 3
-   error('imsurface: expect 3d bw image')
+dim = length(isize);
+if dim < 2 || dim > 3
+   error('impixelsurface: expect 2d or 3d bw image');
 end
-
-surface = labeledimage;
+surface = zeros(isize);
 
 for l = label
+   
    obj = labeledimage == l;
    [bmin, bmax] = imboundingbox(obj);
    obj = imextract(obj, bmin, bmax);
-   objsurf = bwsurface(obj);
-   idxsurf = find(obj - objsurf);
-   [sx,sy,sz] = ind2sub(size(obj), idxsurf);
-   sx = sx + bmin(1) - 1;
-   sy = sy + bmin(2) - 1;
-   sz = sz + bmin(3) - 1;
-   surface(sub2ind(isize, sx, sy, sz)) = 0;
+   objsurf = bwpixelsurface(obj, 'border');
+   idxsurf = find(objsurf);
+   
+   if dim == 2
+      
+      [sx,sy] = ind2sub(size(obj), idxsurf);
+      sx = sx + bmin(1) - 1;
+      sy = sy + bmin(2) - 1;
+      surface(sub2ind(isize, sx, sy)) = l;
+      
+   else
+      
+      [sx,sy,sz] = ind2sub(size(obj), idxsurf);
+      sx = sx + bmin(1) - 1;
+      sy = sy + bmin(2) - 1;
+      sz = sz + bmin(3) - 1;
+      surface(sub2ind(isize, sx, sy, sz)) = l;
+      
+   end
 end
 
 end

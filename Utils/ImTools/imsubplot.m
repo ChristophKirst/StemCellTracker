@@ -3,8 +3,17 @@ function h_subplot = imsubplot(m, n, p, gap, marg, varargin)
 % h_subplot = imsubplot(m, n, p, gap, marg, varargin))
 %
 % description:
-%   creates subplot with small spacings
+%    creates subplot with small spacings
 %
+% input:
+%     m,n,p     as in subplot
+%     gap       (optional) spacing between plots
+%     marg      (optional) border spacings
+%     varargin  other inputs to subplot
+% output:
+%     h_subplot handle to subplot
+%
+% See also: subplot
 
 if nargin < 4
    gap = 0.005;

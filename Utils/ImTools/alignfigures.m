@@ -14,9 +14,9 @@ function alignfigures(figs, style, screenarea)
 % default values
 default_style = 'tile';
 
-screen_top = 837;  % set this in multiple monitor setup and dection is bad
-screen_height = 736;  % set this in multiple monitor setup and dection is bad
-%screen_width = 837;  % set this in multiple monitor setup and dection is bad
+screen_top = 837;  % set this in multiple monitor setup if dection is bad
+screen_height = 736;  % set this in multiple monitor setup if dection is bad
+%screen_width = 837;  % set this in multiple monitor setup if dection is bad
 screen_left = 0;
 
 if nargin < 1

@@ -10,6 +10,8 @@ function implot(image)
 %
 % See also: implot3d, imshow
 
+image = squeeze(image);
 imshow(permute(image, [2 1 3]))
+
 axis on
-xlabel('w'); ylabel('h'); 
+xlabel('h'); ylabel('w'); 

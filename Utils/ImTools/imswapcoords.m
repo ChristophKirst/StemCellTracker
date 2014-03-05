@@ -3,7 +3,7 @@ function swap = imswapcoords(image)
 % swap = imswapcoords(image)
 %
 % description: 
-%      swaps between pixel and süpace coordinates
+%      swaps between pixel and space coordinates
 %
 % input:
 %      image   image to be swapped
@@ -16,7 +16,7 @@ function swap = imswapcoords(image)
 
 dim = ndims(image);
 if dim < 2
-   error('imswapcoords: expected image as input');
+   error('imswapcoords: expects image as input');
 end
 
 ids = 1:ndims(image);

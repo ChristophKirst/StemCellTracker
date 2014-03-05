@@ -3,18 +3,11 @@ function [model] = implot3d(varargin)
 % [model] = implot3d(varargin)
 %
 % description:
-%    implot3d plots 3d volumetirc data in pixel coordinates 
+%    implot3d visualizes 3d volumetirc data in pixel coordinates using semi transparent slicing
 %
-% usage:
-% imshow3d                 Provide a demo of functionality.
-%
-% H = imshow3d('CData',data)   Create volume render object from input 
-%                              3-D data. Use interp3 on data to increase volume
-%                              rendering resolution. Returns a struct 
-%                              encapsulating the pseudo-volume rendering object.
-%                              XxYxZ array represents scaled colormap indices.
-%                              XxYxZx3 array represents truecolor RGB values for
-%                              each voxel (along the 4th dimension).
+% input:
+% imshow3d('CData',data)       Create volume render object from input 
+%                              3-D data.
 %
 % imshow3d(...,'Alpha',alpha)  XxYxZ array of alpha values for each voxel, in
 %                              range [0,1]. Default: data (interpreted as
@@ -22,21 +15,14 @@ function [model] = implot3d(varargin)
 %
 % imshow3d(...,'Parent',axH)   Specify parent axes. Default: gca.
 %
-% imshow3d(...,'HRange',y)     1x2 h-axis bounds. Default: [1 size(data, 1)].
-% imshow3d(...,'WRange',x)     1x2 w-axis bounds. Default: [1 size(data, 2)].
-% imshow3d(...,'LRange',z)     1x2 z-axis bounds. Default: [1 size(data, 3)].
-% imshow3d(...,'Range', r)     1x6 h,w,z bounds [xmin xmax; xmin, ymax;  zmin, zmax];
+% imshow3d(...,'HRange',h)     1x2 h-axis bounds. Default: [1 size(data, 1)].
+% imshow3d(...,'WRange',w)     1x2 w-axis bounds. Default: [1 size(data, 2)].
+% imshow3d(...,'LRange',l)     1x2 z-axis bounds. Default: [1 size(data, 3)].
+% imshow3d(...,'Range', r)     1x6 bounds short version of HRange, WRange, LRange
 % imshow3d(...,'BoxRatios', r) 1x3 ratio array: coordinate ranges are [1 r(1)*size(data,1)], [1 r(2)*size(data,1)]...
 %
-% imshow3d(...,'texture','2D') Only render texture planes parallel to nearest
-%                              orthogonal viewing plane. Requires doing
-%                              imshow3d(h) to refresh if the view is rotated
-%                              (i.e. using cameratoolbar).
 %
-% imshow3d(...,'texture','3D') Default. Render x,y,z texture planes
-%                              simultaneously. This avoids the need to
-%                              refresh the view but requires faster OpenGL
-%                              hardware peformance.
+% imshow3d(...,'texture','z')  
 %
 % imshow3d(H)                  Refresh view. Updates rendering of texture planes 
 %                              to reduce visual aliasing when using the 'texture'='2D' option.
@@ -98,7 +84,7 @@ end
 % Define [x,y,z]data
 siz = size(model.cdata);
 if isempty(model.xdata)
-    model.xdata = [0 siz(1)] + 0.5;  % we use pixel coordinates,model here stores spatial coordinates [h,w] = [y,x]
+    model.xdata = [0 siz(1)] + 0.5;  % we use pixel coordinates
 end
 if isempty(model.ydata)
     model.ydata = [0 siz(2)] + 0.5;
@@ -113,9 +99,9 @@ if length(varargin)>1
     switch(lower(varargin{n}))
         case 'boxratios'
            r = varargin{n+1}(:);
-           model.xdata = [model.xdata(1) r(1) * (model.xdata(2)-model.xdata(1)) + model.xdata(1)];
-           model.ydata = [model.ydata(1) r(2) * (model.ydata(2)-model.ydata(1)) + model.ydata(1)];   
-           model.zdata = [model.zdata(1) r(3) * (model.zdata(2)-model.zdata(1)) + model.zdata(1)];
+           model.xdata = [model.xdata(1), r(1) * (model.xdata(2)-model.xdata(1)) + model.xdata(1)];
+           model.ydata = [model.ydata(1), r(2) * (model.ydata(2)-model.ydata(1)) + model.ydata(1)];   
+           model.zdata = [model.zdata(1), r(3) * (model.zdata(2)-model.zdata(1)) + model.zdata(1)];
     end    
   end
 end
@@ -141,7 +127,7 @@ model.ydata = [];
 model.zdata = [];
 model.parent = [];
 model.handles = [];
-model.texture = '3D';
+model.texture = 'xyz';
 tag = tempname;
 model.tag = ['vol3d_' tag(end-11:end)];
 
@@ -162,6 +148,25 @@ end
 ax = model.parent;
 cam_dir = camtarget(ax) - campos(ax);
 [~,ind] = max(abs(cam_dir));
+
+view = zeros(3,1);
+switch model.texture
+   case 'automatic'
+      view(ind) = 1;
+   case 'all'
+      view = ones(3,1);
+   otherwise
+      if ~isempty(strfind(model.texture, 'x'))
+         view(1) = 1;
+      end
+      if ~isempty(strfind(model.texture, 'y'))
+         view(2) = 1;
+      end
+      if ~isempty(strfind(model.texture, 'z'))
+         view(3) = 1;
+      end
+end
+
 
 opts = {'Parent',ax,'cdatamapping',[],'alphadatamapping',[],'facecolor','texturemap','edgealpha',0,'facealpha','texturemap','tag',model.tag};
 
@@ -196,11 +201,10 @@ for n = 1:length(h)
   end
 end
 
-is3DTexture = strcmpi(model.texture,'3D');
 handle_ind = 1;
 
 % Create z-slice
-if(ind==3 || is3DTexture )    
+if (view(3))    
   x = [model.xdata(1), model.xdata(2); model.xdata(1), model.xdata(2)];
   y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
   z = [model.zdata(1), model.zdata(1); model.zdata(1), model.zdata(1)];
@@ -217,10 +221,9 @@ if(ind==3 || is3DTexture )
 
 end
 
-%{
 
 % Create x-slice
-if (ind==1 || is3DTexture ) 
+if (view(1)) 
   x = [model.xdata(1), model.xdata(1); model.xdata(1), model.xdata(1)];
   y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
   z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
@@ -237,7 +240,7 @@ if (ind==1 || is3DTexture )
 end
 
 % Create y-slice
-if (ind==2 || is3DTexture)
+if (view(2))
   x = [model.xdata(1), model.xdata(1); model.xdata(2), model.xdata(2)];
   y = [model.ydata(1), model.ydata(1); model.ydata(1), model.ydata(1)];
   z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
@@ -252,9 +255,6 @@ if (ind==2 || is3DTexture)
    handle_ind = handle_ind + 1;
   end
 end
-
-end
-%}
 
 model.handles = h;
 

@@ -1,12 +1,12 @@
-function h = immontage(stack, varargin)
+function h = immontage(stack, normalize, varargin)
 %
-% image = immontage(stack, varargin)
+% image = immontage(stack, normalize, varargin)
 %
 % description:
 %     montage on image stack
 %
 % input:
-%     stack      h x w x z stack of h x w images
+%     stack      image stack
 %     varargin   inputs to montage
 %
 % output:
@@ -14,10 +14,16 @@ function h = immontage(stack, varargin)
 %
 % See also: montage
 
-if ndims(stack) ~= 3
-   error('immontage: expect stack of grayscale images')
+if nargin < 2 || isempty(normalize)
+   normalize = 1;
 end
 
-h = montage(imgray3d(stack), varargin{:});
+im = imhwlreshape(stack, [], 'matlab');
+if normalize
+   im = double(im);
+   im = im / max(im(:));
+end
+  
+h = montage(im, varargin{:});
 
 end

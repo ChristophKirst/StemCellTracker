@@ -7,7 +7,7 @@ function ijquit()
 %
 % See also: ijstart, ijinstance
 
-mij = ijinstance(0);
+mij = ijinstance();
 
 if ~isempty(mij)
    mij.quit();

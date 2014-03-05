@@ -4,7 +4,7 @@ function profile = imray(image, startp, endp, n)
 %
 % description:
 %    returns n profile points along the ray from start point to end point
-%    using pixerl coorindates
+%    using pixel coorindates [h,w,l]
 %
 % input:
 %    image     2d or 3d gray scale image
@@ -14,7 +14,6 @@ function profile = imray(image, startp, endp, n)
 %
 % output:
 %    profile   n intensity points along ray [i1; i2; ...]
-%
 %
 % See also: interp3, improfile
 

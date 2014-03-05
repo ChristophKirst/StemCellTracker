@@ -12,8 +12,6 @@ classdef Object < handle
       id = [];        % id ([] forn none)
       
       type = [];      % data that identifies the object type ([] for none)
-      
-      %source = [];   % reference to Image class to which this object belongs ([] for none)
    end
    
    %properties (Dependent)
@@ -23,7 +21,7 @@ classdef Object < handle
    methods
       function obj = Object(data, d, varargin)
          %
-         % Object(id, time, r, size, intensity, type)
+         % Object(id, time, r, volume, intensity, type)
          % Object(data, dim)
          %
          % input: id, r, time,...   class field entries 
@@ -101,8 +99,7 @@ classdef Object < handle
          if ~isempty(obj)
             d = size(obj(1).r, 1);
          else
-            obj
-            error('sadsad');
+            error('Object: internal error!');
          end
       end
       

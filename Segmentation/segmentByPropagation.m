@@ -3,10 +3,10 @@ function [segments, distances] = segmentByPropagation(image, label, mask, lambda
 % [segments, distances] = segmentByPropagation(label, image, mask, lambda)
 %
 % description: 
-%     segments image using propagation algorithm to 8 nearest neighbours
-%     neighbours are included if distance is small enough
-%     distance is calucalted as relative intensity change to make algorithm
-%     robust against differently illuminated objects
+%    segments image using propagation algorithm to neighbouring pixels
+%    neighbours are included if distance is small enough
+%    distance is calucalted as relative intensity change to make algorithm
+%    robust against differently illuminated objects
 %
 % input:
 %    image           instensity image to be segmented
@@ -25,6 +25,7 @@ function [segments, distances] = segmentByPropagation(image, label, mask, lambda
 if nargin < 3
    mask = ones(size(image));
 end
+mask = mask > 0;
 
 if nargin < 4
    lambda = 1.0;
@@ -33,7 +34,7 @@ end
 if nargin < 5
    ksize = 3;
 end
-radius =round(ksize(1) -1) /2;
+radius = round(ksize(1) -1) /2;
 
 if nargin < 6
    intensity_refs = [];
@@ -65,12 +66,17 @@ end
 
 intensity_refs = [0; intensity_refs(:)];
 
+%figure(98)
+%plot(intensity_refs)
 
-figure(98)
-plot(intensity_refs)
-
-
-[segments, distances] = segmentByPropagationMEX(image, label, mask, lambda, radius, intensity_refs );
+dim = ndims(image);
+if dim == 2
+   [segments, distances] = segmentByPropagationMEX(image, label, mask, lambda, radius, intensity_refs );
+elseif dim ==3
+   [segments, distances] = segmentByPropagation3DMEX(image, label, mask, lambda, radius, intensity_refs );   
+else
+   error('segmentByPropagation: input image must be 2d or 3d gray scale image')
+end
 
 end
 

@@ -1,6 +1,6 @@
-function threshold = otsuThreshold(image)
+function threshold = thresholdOtsu(image)
 %
-% threshold = otsuThreshold( image )
+% threshold = thresholdOtsu( image )
 %
 % description:
 %    finds Otsu threshold of the image

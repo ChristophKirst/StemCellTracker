@@ -13,25 +13,26 @@ function [ie, rectlow, recthigh] = imextract(image, rectlow, recthigh)
 %     recthigh higher corner
 %
 % output:
-%     ie       cropped image
+%     ie       extracted subimage 
 %
-% See also: imcrop
+% See also: imcrop, imextractbox
+
+d = ndims(image);
 
 if isequal(rectlow, 'BoundingBox')
    [rectlow, recthigh] = imboundingbox(image);
-   d = length(rectlow);
 elseif nargin < 3
-   d = length(rectlow) / 2;
    recthigh = rectlow(d+1:2*d);
    rectlow = rectlow(1:d);
-else 
-   d = length(rectlow);
 end
 
-if d ==2
-   ie = image(rectlow(1):recthigh(1), rectlow(2):recthigh(2));
-else
-   ie = image(rectlow(1):recthigh(1), rectlow(2):recthigh(2), rectlow(3):recthigh(3));
+for i = d:-1:1
+   rect{i} = rectlow(i):recthigh(i);
 end
+
+ie = image(rect{:});
+
+end
+
    
    

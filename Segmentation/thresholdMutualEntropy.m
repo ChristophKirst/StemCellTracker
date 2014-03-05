@@ -1,6 +1,6 @@
-function threshold = mutualEntropyThreshold(image)
+function threshold = thresholdMutualEntropy(image)
 %
-% threshold = mutualEntropyThreshold( image )
+% threshold = thresholdMutualEntropy( image )
 %
 % description:
 %    finds a threshold based on entropies of the image histrogram
@@ -15,10 +15,6 @@ function threshold = mutualEntropyThreshold(image)
 %    Johannsen, Bille, A threshold selection method using information measures
 %    Proceedings 6th Int. conf. Pattern Recognition, 1982
 
-
-if ~ismatrix(image)
-   image = rgb2gray(image);
-end
 image = double(image);
 
 %histrogram

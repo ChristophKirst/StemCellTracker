@@ -8,7 +8,7 @@ function repl = imreplace(image, subimage, coords)
 % input: 
 %    image     original image
 %    subimage  replacement sub image
-%    coords    h,w,l lower left corner
+%    coords    h,w,l corner coordinates from which to start replacement
 %
 % output:
 %    repl      image in which subimage is replaced
@@ -18,11 +18,12 @@ function repl = imreplace(image, subimage, coords)
 isize = size(image);
 ssize = size(subimage);
 
-if length(coords) ~= ndims(image) || length(coords) ~= ndims(subimage)
+if numel(coords) ~= ndims(image) || numel(coords) ~= ndims(subimage)
+   coords
+   ndims(image)
+   ndims(subimage)
    error('imreplace: inconsistent image dimensions!')
 end
-
-ssize + coords - 1
 
 if any(ssize + coords - 1 > isize)
    error('imreplace: subimage to large!')

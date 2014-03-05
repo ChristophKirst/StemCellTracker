@@ -35,7 +35,7 @@ figure(2)
 clf; implot3d(iim)
 
 
-%% check if we get smae 3d pciture in imaris
+%% check if we get smae 3d picture in imaris
 
 imarisput(205 * uint8(obj))
 % ok, works

@@ -3,14 +3,14 @@ function [h,w,l] = imfind3d(image, coords)
 % [h,w,l] = imfind3d(image)
 %
 % descrition:
-%     finds the coordinates of nonzero values in the image
+%     finds the coordinates of nonzero values in a 3d image
 %
 % input:
 %     image      image
 %     coords     (optional) 'hwl' pixel coordinates, 'xyz' space coordinates
 %
 % output:
-%     h,w,l       pixel coordinates
+%     h,w,l       pixel or space coordinates
 
 idx = find(image);
 [h,w,l] = ind2sub(size(image), idx);

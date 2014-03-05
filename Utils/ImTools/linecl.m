@@ -15,4 +15,5 @@ function lc = linecl(x, y, varargin)
 % See also: line
 
    lc = line([x, x(1)], [y y(1)], varargin{:});
+   
 end

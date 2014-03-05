@@ -7,7 +7,7 @@ function derived = imariscast(varargin)
 % 
 % input:
 %   object   Imaris::object object
-%   type     (optional) try tocast to this type ([] = automatic)
+%   type     (optional) try to cast to this type ([] = automatic)
 % 
 % output:
 % 

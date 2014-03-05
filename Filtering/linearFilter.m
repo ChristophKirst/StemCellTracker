@@ -30,6 +30,7 @@ if ischar(ker)
       ksize = 3;
    else
       ksize = varargin{1};
+      varargin = varargin(2:end);
    end
    
    switch dim
@@ -49,7 +50,7 @@ if ndims(ker) ~= dim
    error('linearFilter: image and kernel dimensions do not agree')
 end
 if dim == 3 && size(image,3) == 3
-   error('linearFilter: image must gray scale image')
+   error('linearFilter: image must be gray scale image')
 end
 
 if nargin > paddoff && ischar(varargin{end})

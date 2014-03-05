@@ -18,7 +18,7 @@ if ~ischar(type)
 end
 type = lower(type);
 
-if nargin < 2
+if nargin < 2  || isempty(ksize)
    ksize = 3;
 end
 if length(ksize) < 2
@@ -26,6 +26,7 @@ if length(ksize) < 2
 else
    ksize = ksize(1:2);
 end
+
 [ol,or] = filteroffsets(ksize);
 mo = max([ol; or]);
 
@@ -37,7 +38,7 @@ switch type
         
    case 'gaussian'         
        
-      if nargin < 3
+      if nargin < 3  || isempty(varargin{1})
          sigma = ksize / 2 / sqrt(2 * log(2));
       else
          sigma = varargin{1};
@@ -49,13 +50,17 @@ switch type
       end
 
       [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
+      add = mod(ksize + 1,2)/2;
+      x = x + add(1); y= y + add(2);
+      
       ker = exp(-(x.*x/2/sigma(1)^2 + y.*y/2/sigma(2)^2));
       ker = ker/sum(ker(:));
   
    case 'sphere'
-      
-      if nargin < 3
-         radius = mo;
+
+      add = mod(ksize + 1,2)/2;
+      if nargin < 3  || isempty(varargin{1})
+         radius = mo - add + 0.5;
       else
          radius = varargin{1};
       end
@@ -65,17 +70,16 @@ switch type
          radius = radius(1:2);
       end
       
-
       [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
-      x = x+0.5; y = y + 0.5;
-
+      x = x + add(1); y= y + add(2);
+      
       ker = 1 - (x.^2 / radius(1)^2 + y.^2 / radius(2)^2);
       ker(ker < 0) = 0;
       ker = ker / sum(ker(:));
 
    case 'disk'
        
-      if nargin < 3
+      if nargin < 3  || isempty(varargin{1})
          ring_width = 0;
       else
          ring_width = varargin{1};
@@ -86,23 +90,24 @@ switch type
          ring_width = ring_width(1:2);
       end
 
-      if nargin < 4
+      if nargin < 4  || isempty(varargin{2})
          w_disk = 1;
       else
          w_disk = varargin{2};
       end
-      if nargin < 5
+      if nargin < 5  || isempty(varargin{3})
          w_ring = -1;
       else
          w_ring = varargin{3};
       end
 
-      radius_in = max(0, mo - ring_width);
-      radius_out = min(mo, radius_in + ring_width);
-
+      add = mod(ksize + 1,2)/2;
+      radius_out = max(1.5, mo + add) + 10 * eps;
+      radius_in = max(1.5, mo + add - ring_width) + 10 * eps;
+      
       [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
-      x = x+0.5; y = y + 0.5;
-
+      x = x + add(1); y = y + add(2);      
+      
       ker = 1 - (x.^2 / radius_out(1)^2 + y.^2 / radius_out(2)^2);
       ker(ker < 0) = 0;
       ker(ker > 0) = w_ring;
@@ -113,13 +118,14 @@ switch type
 
       ker = ker + ker2;
 
-      if (w_ring == 0) || isequal(ring_width, [0, 0])
+
+      if isequal(ring_width, [0, 0])
          ker = ker / sum(ker(:));
       end
     
    case 'laplacian'
       
-      if nargin < 3
+      if nargin < 3  || isempty(varargin{1})
          alpha = 0;
       else
          alpha = varargin{1};
@@ -130,7 +136,7 @@ switch type
       
    case 'log'
        
-       if nargin < 3
+       if nargin < 3 || isempty(varargin{1})
           sigma = ksize / 4 / sqrt(2 * log(2));
        else
           sigma = varargin{1};
@@ -142,6 +148,10 @@ switch type
        end
 
        [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
+       add = mod(ksize + 1,2)/2;
+       x = x + add(1); y= y + add(2);
+       
+       
        ker = exp(-(x.*x/2/sigma(1)^2 + y.*y/2/sigma(2)^2));
        ker = ker/sum(ker(:));
        arg = (x.*x/sigma(1)^4 + y.*y/sigma(2)^4 -(1/sigma(1)^2 + 1/sigma(2)^2));
@@ -173,6 +183,9 @@ switch type
       end
       
       [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
+      add = mod(ksize + 1,2)/2;
+      x = x + add(1); y= y + add(2);
+      
       ker = exp(-(x.*x/2/sigma_in(1)^2 + y.*y/2/sigma_in(2)^2));
       ker = ker/sum(ker(:));
       

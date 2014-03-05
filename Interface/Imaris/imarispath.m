@@ -60,6 +60,8 @@ if ispc()
    ipath = 'C:\Program Files\Bitplane\';
 elseif ismac()
    ipath = '/Applications';
+else
+   error('imarispath: imaris requires Windows or Mac');
 end
 
 ipath = findrootpath(ipath);

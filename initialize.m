@@ -13,6 +13,8 @@ setPath();
 % figure output on first screen
 set(0, 'DefaultFigurePosition',  [1   705   560   420]);
 
+
+% compile code
 if nargin < 1
    comp = 0;
 end
