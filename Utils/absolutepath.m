@@ -9,23 +9,8 @@ function apath = absolutepath(name)
 % output:
 %    apath   path to file/folder name
 
-
-if isunix()
-   [status, apath] = system(['readlink -f ' name]);
-   apath = strtrim(apath);
-   if status
-      error('absolutepath: could not determine absolute path!')
-   end
-
-   if ~isdir([apath filesep])
-      apath = fileparts(apath);
-      if ~isdir(apath)
-         error('absolutepath: could not determine absolute path!')
-      end
-   end
-
-else % windows / mac -> slow
-
+if ismac() || ispc()
+   
    curdir = cd;
    
    if isdir(name)
@@ -42,8 +27,24 @@ else % windows / mac -> slow
    end
    
    apath = pwd;
-   cd(curdir);
-   
+   cd(curdir); 
+    
+elseif isunix()
+   [status, apath] = system(['readlink -f ' name]);
+   apath = strtrim(apath);
+   if status
+      error('absolutepath: could not determine absolute path!')
+   end
+
+   if ~isdir([apath filesep])
+      apath = fileparts(apath);
+      if ~isdir(apath)
+         error('absolutepath: could not determine absolute path!')
+      end
+   end
+
+else % windows / mac -> slow
+    error('absolutepath: unsupported os')
 end
 
 end

@@ -27,14 +27,14 @@ end
 
 %edjucated guessing
 if ~found
-   if isunix()
+   if ismac()
+      hintpath = '/Applications/ImageJ/';
+   elseif isunix()
       hintpath = '/usr/share/imagej/';
    elseif ispc()
       hintpath = 'C:\Program Files\ImageJ';
-   elseif ismac()
-      error('TODO: path for mac');
    else
-      error('ijinitialize: ImageJ runs on Linux, Max or Windows only!');
+      error('ijpath: operating system not supported, modify ijpath.m!');
    end
    
    [ipath, ijjar, viewer3djar] = findij(hintpath);
@@ -44,7 +44,7 @@ if ~found
 end
 
 %edjucated guessing 2
-if ~found && isunix()
+if ~found && isunix && ~ismac()
    hintpath = '~/programs/ImageJ/';  
    [ipath, ijjar, viewer3djar] = findij(hintpath);
    if ~isempty(ipath)
@@ -93,8 +93,18 @@ function [ijjar, viewer3djar] = ijfilepatterns(ipath, version)
    %Fiji or ImageJ
    switch version
       case 'ImageJ'
-         ijjar = fullfile(ipath, 'i*j.jar');
+         if ismac()
+            cp = computer();
+            if strcmp(cp(end-1:end),'64')
+               ijjar = fullfile(ipath, 'ImageJ64.app/Contents/Resources/Java/i*j.jar');
+            else
+               ijjar = fullfile(ipath, 'ImageJ.app/Contents/Resources/Java/i*j.jar');
+            end
+         else
+            ijjar = fullfile(ipath, 'i*j.jar');
+         end
          viewer3djar =  fullfile(ipath, 'plugins', '3D', 'ImageJ_3D_Viewer.jar');
+         
       case 'Fiji'
          ijjar = fullfile(ipath, 'jars', 'ij-*.jar');
          viewer3djar = fullfile(ipath, 'plugins', '3D_Viewer.jar');
@@ -129,7 +139,7 @@ function [ijar, v3djar] = checkpath(ijpath)
       vfns = dir(viewer3djar);
       if ~isempty(vfns)
          ijar = fullfile(absolutepath(ijjar), ijfns(1).name);
-         v3djar = fullfile(absolutepath(ijpath), vfns(1).name);
+         v3djar = fullfile(absolutepath(viewer3djar), vfns(1).name);
       end
    end
    
