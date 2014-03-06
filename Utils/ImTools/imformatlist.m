@@ -1,6 +1,6 @@
-function formats = imformats()
+function formats = imformatlist()
 %
-% formats = imformats()
+% formats = imformatlist()
 %
 % description:
 %     returns possible image formats

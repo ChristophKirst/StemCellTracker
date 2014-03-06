@@ -18,7 +18,7 @@ if ~isa(ijplus, 'ij.ImagePlus')
    error('ijimage2mat: expect ij.ImagePlusclass as input image, got: %s!', class(ijplus));
 end
    
-siz = ijplus.getDimensions()';
+siz = ijplus.getDimensions()'
 data = zeros(siz);
 
 imgs = ijplus.getImageStack.getImageArray;

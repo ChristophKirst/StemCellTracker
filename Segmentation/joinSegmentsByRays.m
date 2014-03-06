@@ -1,4 +1,4 @@
-function reduced = joinLabel(image, gradient, label, param)
+function reduced = joinSegmentsByRays(image, gradient, label, param)
 %
 % reduced = joinLabel(image, label, param)
 %
@@ -12,14 +12,14 @@ function reduced = joinLabel(image, gradient, label, param)
 %    gradient gradient of the original image
 %    label    label of objects
 %    param    parameter struct with entries
-%             .threshold.background    % below this intensity objects end definately
-%             .threshold.change        % maximal rel change in intensitiy above objects are assumed to be different
-%             .threshold.gradient      % maximal absolute gradient change above objects are joint 
-%             .cutoff.distance         % maximal distance between labels (= 20)
-%             .averaging.ksize         % ksize to calculate reference mean intensity (=3)
+%             .threshold.background    below this intensity objects end definately
+%             .threshold.change        maximal rel change in intensitiy above objects are assumed to be different
+%             .threshold.gradient      maximal absolute gradient change above objects are joint 
+%             .cutoff.distance         maximal distance between labels (= 20)
+%             .averaging.ksize         ksize to calculate reference mean intensity (=3)
 %
 % output:
-%    reduced  reduced labels, labels that 
+%    reduced  reduced labels
 %
 % See also: findPeaks
 
@@ -32,7 +32,7 @@ end
 
 %%
 
-image = median(imgraw,3);
+%image = median(imgraw,3);
 gradient = imgradient(image);
 
 label =  bwmorph(imgmax,'shrink',inf);

@@ -21,6 +21,8 @@ end
 
 if ndims(image) == 2 %#ok<ISMAT>
    image = label2rgb(image, colmap, 'k', 'shuffle');
+   image = double(image) / double(max(image(:)));
 else
    image = label2rgb3d(image, colmap, 'k', 'shuffle');
+   image = double(image) / double(max(image(:)));
 end

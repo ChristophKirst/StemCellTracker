@@ -15,6 +15,7 @@ function iol = imoverlaylabel(img, label)
 % See also: imcolorize, imoverlay
 
 iol = gray2rgb(img);
+iol = iol / max(iol(:));
 iol = reshape(iol, [],3);
 imgcl = imcolorize(label);
 imgcl = reshape(imgcl, [],3);

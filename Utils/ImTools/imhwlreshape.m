@@ -28,9 +28,9 @@ end
 if strcmp(out_format, 'matlab')
    out_format = 'hwclt';
 end
-if length(in_format) ~= ndims(image)
-   error('imhwlreshape: input image and format inconsistent!')
-end
+%if length(in_format) ~= ndims(image) % matlab is inconssitent if last dimension is 1 
+%   error('imhwlreshape: input image and format inconsistent!')
+%end
 if length(unique(in_format)) ~= length(in_format)
    error('imhwlreshape: labels appear more than one in input format: %s', in_format)
 end

@@ -10,11 +10,13 @@ function [frames, matches, trajs] = runTracker(indir, outdir, param)
 %
 % input:
 %    indir    directory of files to load object data from
-%    outdir   directory of files to save data to
+%    outdir   for param.save = 1 the directory to save files to
+%             for param.save = 2 the filename to save trajectory data to
 %    param    parameter structure containing parameter used by the various functions
 %             see beginning of code for optional parameters and behavior with reduced
 %             number of arguments
-%             .save                save the result to folder outdir (1)
+%             .save                save the results: for 1 add trajectories to each input files and save to outdir
+%                                                    for 2 save trajectories with data into single file (2)                                        
 %             .min_time            start matching from this time onward ([])
 %             .max_time            last possible time in trajectory of matched cells ([])
 %             .max_frames          maximal number of frames to match for testing ([])
@@ -45,7 +47,7 @@ if nargin < 3
    end
 end
 
-sav = getParameter(param, {'save'}, 1);
+sav = getParameter(param, {'save'}, 2);
 
 min_time  = getParameter(param, {'min_time'}, []);
 max_time  = getParameter(param, {'max_time'}, []);
@@ -72,8 +74,6 @@ end
 if ~isempty(max_frames)
    frames = frames(1: min(length(frames), max_frames));
 end
-
-
 
 
 %% match frames
@@ -123,6 +123,13 @@ end
 
 %% save data
 
-if sav
-   saveEmbryoData(outdir, frames, trajs, param);
+switch sav
+   case 1
+      saveEmbryoData(outdir, frames, trajs, param);
+   case 2
+      saveEmbryoTrajectoryData(outdir, frames, trajs, param);
+   otherwise
+      fprinf('runTracker: did not save data!\nUse save = 1 for adding trajectories to files or save = 2 to save trajectory data into single file');
+end
+
 end

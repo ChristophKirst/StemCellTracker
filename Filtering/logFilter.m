@@ -1,6 +1,6 @@
 function out = logFilter(image, varargin)
 %
-% out = logFilter(img, radius, padding)
+% out = logFilter(img, ksize, sigma, padding)
 %
 % description:
 %    apply Laplacian of Gaussian filter to image 
