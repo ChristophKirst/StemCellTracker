@@ -88,6 +88,12 @@ if verbose
 end
 
 
+%%
+
+figure(16)
+clf
+implottiling( lifdataf(:,:,:,1,1) )
+
 
 %% Segmentation
 

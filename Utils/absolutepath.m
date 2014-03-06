@@ -9,7 +9,7 @@ function apath = absolutepath(name)
 % output:
 %    apath   path to file/folder name
 
-if ismac() || ispc()
+if ismac() || ispc() % windows / mac
    
    curdir = cd;
    
@@ -43,7 +43,7 @@ elseif isunix()
       end
    end
 
-else % windows / mac -> slow
+else 
     error('absolutepath: unsupported os')
 end
 

@@ -56,17 +56,17 @@ class MImageJ {
     */
    public static ImagePlus createImage(String title, String format, Object object) {
       ImagePlus img;
-      switch (format) {
-         case "hw":   img = createImageGray2D(title, object);
-                      break;
-         case "hwl":  img = createImageGray3D(title, object);
-                      break;
-         case "hwc":  img = createImageRGB2D(title, object);
-                      break;
-         case "hwlc": img = createImageRGB3D(title, object);
-                      break;
-         default:     System.out.println("MImageI: error: unknown image format: " + format);
-                      return null;
+      if (format.equals("hw")) {
+         img = createImageGray2D(title, object);
+      } else if (format.equals("hwl")) {
+         img = createImageGray3D(title, object);
+      } else if (format.equals("hwc")) {
+         img = createImageRGB2D(title, object);
+      } else if (format.equals("hwlc")) {
+         img = createImageRGB3D(title, object);
+      } else{
+         System.out.println("MImageI: error: unknown image format: " + format);
+         return null;
       }
       
       return img;

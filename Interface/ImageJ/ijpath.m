@@ -95,7 +95,8 @@ function [ijjar, viewer3djar] = ijfilepatterns(ipath, version)
       case 'ImageJ'
          if ismac()
             cp = computer();
-            if strcmp(cp(end-1:end),'64')
+            cp = cp(end-1: end);
+            if strcmp(cp,'64')
                ijjar = fullfile(ipath, 'ImageJ64.app/Contents/Resources/Java/i*j.jar');
             else
                ijjar = fullfile(ipath, 'ImageJ.app/Contents/Resources/Java/i*j.jar');
@@ -139,7 +140,7 @@ function [ijar, v3djar] = checkpath(ijpath)
       vfns = dir(viewer3djar);
       if ~isempty(vfns)
          ijar = fullfile(absolutepath(ijjar), ijfns(1).name);
-         v3djar = fullfile(absolutepath(viewer3djar), vfns(1).name);
+         v3djar = fullfile(absolutepath(ijpath), vfns(1).name);
       end
    end
    

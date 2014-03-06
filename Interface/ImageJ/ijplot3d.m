@@ -44,7 +44,7 @@ end
 
 image = cast(255 * image / max(image(:)), 'uint8');
 
-imp = MImageJ.createImage(name, 'hwlc', image);
+imp = MImageJ.createImage(name, 'hwlc', image)
 
 % pixel depth
 calibration = ij.measure.Calibration();
