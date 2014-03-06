@@ -1,6 +1,6 @@
 function [] = initialize(comp)
 %
-% [] = initialize()
+% [] = initialize()   % ck correct docs for comp
 %
 % description:
 %     sets all necessary paths and starts up interfaces

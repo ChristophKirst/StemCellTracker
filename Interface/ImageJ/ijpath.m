@@ -32,7 +32,7 @@ if ~found
    elseif ispc()
       hintpath = 'C:\Program Files\ImageJ';
    elseif ismac()
-      error('TODO: path for mac');
+       hintpath = '/Applications/ImageJ/ImageJ64.app/Contents/Resources/Java/';
    else
       error('ijinitialize: ImageJ runs on Linux, Max or Windows only!');
    end
