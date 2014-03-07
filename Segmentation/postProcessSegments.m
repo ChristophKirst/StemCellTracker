@@ -11,6 +11,7 @@ function [postlabel, stats] = postProcessSegments(label, param)
 %             .intensity.max     maximal mean intensity to keep (Inf)
 %             .boundaries        clear objects on x,y boundaries (false)
 %             .fillholes         fill holes in each z slice after processing segments (true)
+%             .relabel           relabel from 1:nlabelnew (true)
 %             .smooth            smooth -- todo e.g. using vtk denoising library/ java interface
 % 
 % output:
@@ -30,8 +31,8 @@ intensity_min = getParameter(param, {'intensity', 'min'}, -Inf);
 intensity_max = getParameter(param, {'intensity', 'max'}, Inf);
 
 boundaries = getParameter(param, {'boundaries'}, false);
-
 fillholes  = getParameter(param, {'fillholes'}, true);
+relabel    = getParameter(param, {'relabel'}, true);
 
 postlabel = label;
 
@@ -92,6 +93,10 @@ if boundaries
    else
       postlabel = imclearborder(postlabel);
    end
+end
+
+if relabel
+   postlabel = imrelabel(postlabel);
 end
 
 end

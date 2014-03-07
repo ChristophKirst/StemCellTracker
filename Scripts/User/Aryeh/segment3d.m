@@ -28,16 +28,27 @@ end
 
 if false
    %%
-   filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
-   %lifdata = imread_bf(filename);
-   
-   lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', [], 'x', [1, 1024], 'y', [1,1024]));
+   filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
+   %lifdata = imread_bf(filename, struct('series', 21, 'channel', 1));
+  
+   lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 1, 'y', 1000 + [0, 512]));
    %lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
    lifdata = imzinvert(lifdata);
    
    img = lifdata(:,:,:,1,1);
+   
+   clear lifdata
 else
    filename = '';
+end
+
+
+%%
+if verbose
+   figure(8)
+   clf
+   imgres = img(1:5:end, 1:5:end, 1:2:end);
+   implot3d(imgres)
 end
 
 
@@ -154,7 +165,7 @@ end
 imgf = mat2gray(imgf);
 
 
-if verbose 
+if verbose
    figure(17)
    clf
    imsubplot(1,2,1)
@@ -244,14 +255,142 @@ if verbose
    %%
    figure(11)
    clf
-   implot3d(imgseg);
-   %imsurfaceplot3d(imgseg);
+   %implot3d(imgseg);
+   imsurfaceplot3d(imgseg)
 end
 
-%
+
+%%
+if verbose
+   %%
+   figure(23)
+   clf
+   implotlabeloutline(img, imgseg)
+end
+
+
+%%
 if true
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 5);
 end
+
+
+%%
+
+
+%% save the result
+
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2.mat', 'imgseg')
+
+%load('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation.mat')
+
+
+
+%% 
+stats = statisticsSegments(img, imgseg);
+
+%%
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch1.mat', 'stats')
+
+%%
+ 
+lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 2, 'y', 1000 + [0, 512]));
+%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
+lifdata = imzinvert(lifdata);
+lifdata = squeeze(lifdata);
+
+%% 
+stats2 = statisticsSegments(lifdata, imgseg);
+
+%%
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch2.mat', 'stats2')
+
+
+%%
+ 
+lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 3, 'y', 1000 + [0, 512]));
+%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
+lifdata = imzinvert(lifdata);
+lifdata = squeeze(lifdata);
+
+%% 
+stats3 = statisticsSegments(lifdata, imgseg);
+
+%%
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch3.mat', 'stats3')
+
+%%
+ 
+lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 4, 'y', 1000 + [0, 512]));
+%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
+lifdata = imzinvert(lifdata);
+lifdata = squeeze(lifdata);
+
+%% 
+stats4 = statisticsSegments(lifdata, imgseg);
+
+%%
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch4.mat', 'stats4')
+
+
+
+%%
+if verbose
+   %%
+   figure(11)
+   clf
+   %implot3d(imgseg);
+   %cdata = [stats.Centroid];
+   %cdata = cdata(3,:);
+   
+   %cdata = [stats.MeanIntensity];
+   cdata = [stats.MaxIntensity];
+   cdata = [stats.Volume];
+   
+  
+   param.color.data = cdata;
+   imsurfaceplot3d(imgseg(1:512, 1:512, :), param)
+end
+
+%%
+if verbose
+   
+   xmeasure = 'Volume';
+   
+   figure(45)
+   clf
+   
+   ymeasures = {'MeanIntensity', 'MinIntensity','MaxIntensity', 'MedianIntensity'};
+   for i = 1:4
+      ax(i) = subplot(2,2,i);
+      plot([stats.(xmeasure)], [stats.(ymeasures{i})], '*');
+      xlabel(xmeasure); ylabel(ymeasures{i});
+   end
+  
+   linkaxes(ax, 'x')
+end
+
+
+%%
+if verbose
+   
+   xmeasure = 'z';
+   xdata = [stats.Centroid];
+   xdata = xdata(3,:);
+   
+   figure(45)
+   clf
+   ymeasures = {'MeanIntensity', 'MinIntensity','MaxIntensity', 'MedianIntensity'};
+   for i = 1:4
+      ax(i) = subplot(2,2,i);
+      plot(xdata, [stats.(ymeasures{i})], '*');
+      xlabel(xmeasure); ylabel(ymeasures{i});
+   end
+  
+   linkaxes(ax, 'x')
+   
+end
+
 
 
 end

@@ -1,7 +1,7 @@
-function imsurfaceplot3d(vertices, faces, normals)
+function imsurfaceplot3d(vertices, faces, normals, param)
 %
-% h = imsurfaceplot3d(vertices, faces, normals)
-% h = imsurfaceplot3d(labeledimage)
+% h = imsurfaceplot3d(vertices, faces, normals, param)
+% h = imsurfaceplot3d(labeledimage, param)
 %
 % description:
 %    plots the surfaces obtained with imsurface
@@ -12,13 +12,28 @@ function imsurfaceplot3d(vertices, faces, normals)
 %    faces          facesangulation faces of surface as cell array
 %    normals        normals
 %    labeledimage   surfaces are infered form the labeled image
+%    param          (optional)    parameter struct with entries
+%                   .boundary     'hwl' to close surfaces in specified directions
+%                   .color.data   color according to this data ([] = random)
+%                   .color.map    use this colormap (colormap)
+%                   .color.scale  scale color data
 %
 % See also: imsurface
 
 
-if nargin == 1
+if (nargin ==2 && isstruct(faces)) 
+   param = faces;
+elseif  (nargin ==3 && isstruct(normals)) 
+   param = normals;
+elseif nargin < 4
+   param = [];
+end
+
+bd = getParameter(param, {'boundary'}, 'hwl');
+
+if nargin ==1 || (nargin ==2 && isstruct(faces))
    isize = size(vertices);
-   [vertices, faces, normals] = imsurface(vertices);
+   [vertices, faces, normals] = imsurface(vertices, bd);
 else
    isize = [];
 end
@@ -35,7 +50,7 @@ if nlabel ~= length(faces)
    error('imsurfaceplot3d: inconsistent input sizes');
 end
 
-if nargin < 3
+if ~exist('normals', 'var')
    normals = cell(1,nlabel);
 else
    if ~iscell(normals)
@@ -46,18 +61,15 @@ else
    end   
 end
 
-
 %plot the surfaces 
 
 hold on
-cm = colormap;
-ncm = length(cm);
+cm = imlabelcolormap(nlabel, param);
 
 for i = 1:nlabel
-   
    fv.vertices = vertices{i};
    fv.faces = faces{i};
-   col = cm(round((i-1)/nlabel * (ncm-1))+1, :); 
+   col = cm(i, :); 
    if isempty(normals{i})
       patch(fv, 'FaceColor', col ,'EdgeColor','none');
    else

@@ -513,10 +513,4 @@ class MImageJ {
 
 		return imp;
 	}
-   
-   
-   
-   
-   
-  
 }

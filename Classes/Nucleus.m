@@ -4,14 +4,9 @@ classdef Nucleus < Object
 %
 % See also: Object, Trajectory, Frame
    properties
-      r = [0; 0];    % spatial position
-      time = 0;      % time
       
-      volume = [];    % area or volume ([] for none)
-      intensity = []; % intensity ([] for none)
-      id = [];        % id ([] forn none)
       
-      type = [];      % data that identifies the object type ([] for none)
+      
       
       %source = [];   % reference to Image class to which this object belongs ([] for none)
    end

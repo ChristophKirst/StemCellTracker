@@ -1,13 +1,14 @@
-function [vertices, faces, normals] = imsurface(labeledimage)
+function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %
-% [vertices, facesangles, normals] = imisosurface(labeledimage)
+% [vertices, faces, normals] = imisosurface(labeledimage, boundary)
 %
 % description:
-%    calculates surfaces (vertices, facesangles) and surface normals for objects
+%    calculates surfaces (vertices, faces) and surface normals for objects
 %    in a labeled image
 %
 % input:
 %    labeledimage   labeled object's image
+%    boundary       close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
 %
 % output:
 %    vertices         vertices of each object surface as cell array
@@ -15,6 +16,24 @@ function [vertices, faces, normals] = imsurface(labeledimage)
 %    normals          normals
 %
 % See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
+
+if nargin < 2
+   boundary = zeros(1, ndims(labeledimage));
+end
+if length(boundary) == 1
+   boundary = boundary * ones(1,ndims(labeledimage));
+end
+if ischar(boundary)
+   if strcmp(boundary, 'all')   
+      boundary = 'hwl';
+   end
+   bd = boundary;
+   boundary = zeros(1,3);
+   boundary(1) = ~isempty(strfind(bd, 'h'));
+   boundary(2) = ~isempty(strfind(bd, 'w'));
+   boundary(3) = ~isempty(strfind(bd, 'l'));
+end
+labeledimage = padarray(labeledimage, boundary);
 
 label = imlabel(labeledimage);
 isize = size(labeledimage);

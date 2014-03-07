@@ -216,10 +216,10 @@ else
    yrange = getParameter(param, {'w'}, []);
 end
 if isempty(yrange)
-   y = 1; w = sizeX;
+   y = 1; w = sizeY;
 elseif length(yrange) == 1
-   y = yrange(1); w = sizeX - yrange(1) + 1;
-elseif length(xrange) ==2
+   y = yrange(1); w = sizeY - yrange(1) + 1;
+elseif length(yrange) ==2
    y = yrange(1); w = yrange(2) - yrange(1) + 1;
 else
    error('imread_bf: x/h should be of the form min or [min, max]');
@@ -333,7 +333,8 @@ for i = 1:numImages
    
    if ~isempty(z) && ~isempty(c) && ~isempty(t)
       %fprintf('%g %g %g\n', z, c, t);
-      data(:,:,z,c,t) = bfgetplane(r, i, x, y, h, w);
+      %size( bfgetplane(r, i, x, y, h, w))
+      data(:,:,z,c,t) = bfgetplane(r, i, x, y, h, w)';
    end
    
 end
