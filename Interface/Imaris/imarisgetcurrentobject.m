@@ -26,7 +26,6 @@ end
 
 if nargin == 1
     if isempty(selection) || ~isimaristype(selection, type)
-
        error('imarisgetcurrentobject: current object is not of type %s', type)
     end
 end
