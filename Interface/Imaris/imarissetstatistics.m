@@ -1,30 +1,77 @@
 function istat = imarissetstatistics(varargin)
 %
-% istat = imarissetstatistics()
+% istat = imarissetstatistics(name, values)
 % istat = imarissetsurface(objectname, ...)
 % istat = imarissetsurface(object, ...)
 % istat = imarissetsurface(imaris, ...)
 %
 % description:
-%    set surface in Imaris.
+%    set statistic values in Imaris
 %
 % input:
-%    vetices, faces, normals  surface triangulation data
-%    timepoint      (optional) timepoint to put data (0)
-%
-%    objectname     name of Imaris surface
-%    object         Imarise ISurface surface
-%    imaris         Imaris application instance
-%
-% note: the triangulation is assumed tobe in matlab index format
-%       and in pixel coordinates
-%
+% 
 % output:
-%    surface        ISurface surface reference
+%    istat   statistics
 %
 % See also: imarisset
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
+
+%%
+
+obj = imarisgetcurrentobject();
+istat = obj.GetStatistics();
+
+nstats = obj.GetNumberOfSurfaces();
+
+
+
+%%
+
+data = ones(1,nstats);
+
+vSize = nstats;
+
+vfac = {'Surface', '', '', '1'}';
+vFactorNames = {'Category', 'Channel', 'Collection', 'Time'}';
+
+aSimilarityNames   = cell(vSize, 1);
+aSimilarityUnits   = cell(vSize, 1);
+aSimilarityFactors = cell(size(vfac, 1), vSize);
+aSimilarityIds     = 1:vSize;
+for j = 1:vSize
+    aSimilarityNames{j}      = ['Test Statistics'];
+    aSimilarityUnits{j}      = 'um';
+    aSimilarityFactors(:, j) = vfac;
+    aSimilarityIds(j)        = j;
+end
+
+aSimilarityValues  = data;
+ 
+
+%%
+obj.AddStatistics(aSimilarityNames, aSimilarityValues, ...
+      aSimilarityUnits, aSimilarityFactors, vFactorNames, aSimilarityIds);
+
+
+%%
+
+try
+obj.AddStatistics(aSimilarityNames, aSimilarityValues, ...
+      aSimilarityUnits, {}, {}, aSimilarityIds);
+catch
+    disp oops
+end
+  
+  
+  %%
+
+
+
+
+
+
+
 
 if nargin < 3 || nargin > 5
    error('imarissetvolume: expect 3-6 input arguments');

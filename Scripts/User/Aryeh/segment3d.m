@@ -293,7 +293,7 @@ size(imlabel(imgseg))
 
 %% calculate surfaces and move to imaris
 
-[surf, fac, norm] = imsurface(imgseg);
+[surf, fac, norm] = imsurface(imgseg, 'all');
 
 %%
 sf = {surf, fac, norm};
@@ -301,8 +301,8 @@ sf = {surf, fac, norm};
 
 %% save this stuff
 
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'sf')
+%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
+%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'sf')
 
 
 %% push stufff to imaris
@@ -321,7 +321,7 @@ imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
 
 %% save the result
 
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2.mat', 'imgseg')
+%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2.mat', 'imgseg')
 
 %load('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation.mat')
 
