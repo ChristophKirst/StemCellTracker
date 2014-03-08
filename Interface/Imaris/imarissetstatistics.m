@@ -35,7 +35,7 @@ if ischar(varargin{1}) && nargin > 1 && ischar(varargin{2})
    if isempty(surface)
       surface = imariscreatesurface(imaris, surfacename);
       %add = 1;
-   end 
+   end
    varargin = varargin(2:end);
    %nargin = length(varargin);
 elseif isimaristype(imaris, varargin{1}, 'Surfaces')
@@ -50,121 +50,92 @@ else % try to get selected surface
 end
 
 if isempty(surface)
-    error('imarissetstatistics: cannot determine surfaces object!')
+   error('imarissetstatistics: cannot determine surfaces object!')
 end
 
-try 
-    nsurfaces = surface.GetNumberOfSurfaces();
-    istat = surface.GetStatistics();
+try
+   nsurfaces = surface.GetNumberOfSurfaces();
+   istat = surface.GetStatistics();
 catch %#ok<CTCH>
-    error('imarissetstatistics: error in setting statistics')
+   error('imarissetstatistics: error in retrieving current statistics!')
 end
 
-if nargin == 1 && isstruct(varargin{1})
-    stats = varargin{1};
-    if length(stats) ~= nsurfaces
-        error('imarissetstatistics: inconsistent size of statisticas and number of surfaces!')
-    end
-    
-        
-    names = fieldnames(stats);
-    for n = 1:length(fieldnames)
-        if 
-    
-        end
-    end
-    
-elseif nargin == 2
-    names = varargin{1};
-    if ischar(names)
-        names = {names};
-    end
-    if ~iscellstr(names)
-        error('imarissetstatistics: expects name or cell array of names!')
-    end
-    
-    values = varargin{2};
-    if ~iscell(values)
-        values = {values};
-    end 
+if nsufraces == 0
+   error('imarissetstatistics: error no surfaces to set statistics!')
+   return
 end
-    
+
+
+if nargin == 1 && isstruct(varargin{1}) % statistics struct
+   stats = varargin{1};
+   if length(stats) ~= nsurfaces
+      error('imarissetstatistics: inconsistent size of statisticas and number of surfaces!')
+   end
+   
+   allnames = fieldnames(stats);
+   names = {};
+   values = {};
+   for n = 1:length(fieldnames)
+      if isscalar(stats(1).(allnames{n}))
+         names = [names, allnames(n)]; %#ok<AGROW>
+         values = [values, {stats.(allnames{n})}]; %#ok<AGROW>
+      end
+   end
+   
+elseif nargin == 2 % names value paris
+   names = varargin{1};
+   if ischar(names)
+      names = {names};
+   end
+   if ~iscellstr(names)
+      error('imarissetstatistics: expects name or cell array of names!')
+   end
+   
+   values = varargin{2};
+   if ~iscell(values)
+      values = {values};
+   end
+end
+
 
 nstats = length(names);
 if nstats ~= length(values)
-    error('imarissetstatistics: nunmber of names does not match number of statitics!')
+   error('imarissetstatistics: nunmber of names does not match number of statitics!')
 end
-    
+
 for i = 1:nstats
-    if ndims(values{i}) ~= 1 || length(values{i}) ~= nsurfaces
-       error('imarissetstatistics: nunmber of names does not match number of statitics!')
-
-    
-    
+   if ndims(values{i}) ~= 1 || length(values{i}) ~= nsurfaces
+      error('imarissetstatistics: nunmber of names does not match number of statitics!')
+   end
 end
-    
-statsname = varargin{1};
+      
 
-stats = varargin{2};
-if length(
-
-if isstruct(stats)
-    % add the statistics of all the scalar fields
-    
-    
-
-    
    
+for s = 1:nstats
+
+   % its not clear what these factors do
+   vfac = {'Surface', '', '', '1'}';
+   vFactorNames = {'Category', 'Channel', 'Collection', 'Time'}';
+
+   aSimilarityNames   = cell(vSize, 1);
+   aSimilarityUnits   = cell(vSize, 1);
+   aSimilarityFactors = cell(size(vfac, 1), vSize);
+   aSimilarityIds     = 1:vSize;
+   for j = 1:vSize
+      aSimilarityNames{j}      = ['Test Statistics'];
+      aSimilarityUnits{j}      = 'um';
+      aSimilarityFactors(:, j) = vfac;
+      aSimilarityIds(j)        = j;
+   end
+
+   aSimilarityValues  = data;  
+      
+      
+
+
+
+
 end
-
-if nargin < 3
-   error('imarissetvolume: expect 3-6 input arguments');
-end
-vertices = varargin{1};
-faces = varargin{2};
-normals = varargin{3};
-
-if ~iscell(vertices)
-   vertices = {vertices};
-end
-if ~iscell(faces)
-   faces = {faces};
-end
-if ~iscell(normals)
-   normals = {normals};
-end
-
-nsurfaces = length(vertices);
-if nsurfaces ~= length(faces) 
-   error('imarisput: surface parameter sizes do not agree');
-end
-if nsurfaces ~= length(normals) 
-   error('imarisput: surface parameter sizes do not agree');
-end
-
-if nargin < 4
-   timepoint = 0;
-else
-   timepoint = varargin{5};
-end
-
-psize = imarisgetsize(imaris);
-extend = imarisgetextend(imaris);
-fac = (extend(2,:) - extend(1,:)) ./ psize;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -181,25 +152,7 @@ fac = (extend(2,:) - extend(1,:)) ./ psize;
 
 %%
 
-data = ones(1,nstats);
 
-vSize = nstats;
-
-vfac = {'Surface', '', '', '1'}';
-vFactorNames = {'Category', 'Channel', 'Collection', 'Time'}';
-
-aSimilarityNames   = cell(vSize, 1);
-aSimilarityUnits   = cell(vSize, 1);
-aSimilarityFactors = cell(size(vfac, 1), vSize);
-aSimilarityIds     = 1:vSize;
-for j = 1:vSize
-    aSimilarityNames{j}      = ['Test Statistics'];
-    aSimilarityUnits{j}      = 'um';
-    aSimilarityFactors(:, j) = vfac;
-    aSimilarityIds(j)        = j;
-end
-
-aSimilarityValues  = data;
  
 
 %%

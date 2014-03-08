@@ -16,6 +16,7 @@ function bfinitialize(bfpath)
 
 % note: modifed from bfmatlab
 
+status = false;
 if javacheckclasspath('loci_tools.jar')
    status = true;
 end
@@ -31,11 +32,11 @@ end
 
 % automatic detection: check this path
 if ~status
-    loci = fullfile(fileparts(mfilename('fullpath')), 'loci_tools.jar');
-    if exist(loci, 'file')
+   loci = findloci(mfilename('fullpath'));
+   if ~isempty(loci)
       javaaddjar(loci);
       status = true;
-    end
+   end
 end
 
 % still not found, search in imagej folder
@@ -61,25 +62,27 @@ end
 
 
 function loci = findloci(bfpath)
-   if bfpath(end) ~= filesep
-      bfpath = [bfpath filesep];
-   end
-   bfpath = fileparts(bfpath);
+   %if bfpath(end) ~= filesep
+   %   bfpath = [bfpath filesep];
+   %end
+   %bfpath = fileparts(bfpath);
 
-   loci = [bfpath 'loci_tools.jar'];
+   loci = fullfile(bfpath, 'loci_tools.jar');
    
-   if exist(lfile, 'file')
+   if exist(loci, 'file')
       return
    end
    
    d = dir(bfpath);
+   
    for i=1:length(d)
-      if d(i).isdir
-         loci = findloci(fullfile(bfpath, d(i).name));
+      if d(i).isdir && ~any(strcmp(d(i).name, {'.', '..'}))
+         loci = findloci(fullfile(bfpath, d(i).name));        
+         if ~isempty(loci)
+            return
+         end
       end
-      if ~isempty(loci)
-         return
-      end
+
    end
    
    loci = '';

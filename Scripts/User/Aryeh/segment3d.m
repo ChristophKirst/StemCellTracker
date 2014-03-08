@@ -1,65 +1,85 @@
 function imgseg = segment3d(img, verbose)
-% 3d segmentation for Wnt data
+%
+% 3d segmentation for geometrically confined stemm cell colonies
+% 
 
-%% Init
-
+%% Initialize Segmenter
 if false
    %%
    close all
    clear all
    clc
    set(0, 'DefaultFigurePosition', [1   705   560   420]);
-   
-   initialize()
-   
-   %ijinitialize();
-   
-   %%
-   imarisinitialize();
 end
 
+
+%% Init
+
 if nargin < 2
-   %%
-   verbose = true;
-   
-   %%
    verbose = false;
 end
 
-%% get some test data
+useimaris = false;
+savefile = '';
+verbose = true;
 
+%%
 if false
+   %% Init for Testing
+   
+   initialize()
+   
    %%
+   ijinitialize();
+   bfinitialize();
+   
+   
+   %%
+   if useimaris
+      imarisinitialize();
+   end
+
+   %% Data form disk
+
    filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
+   
    %lifdata = imread_bf(filename, struct('series', 21, 'channel', 1));
-  
-   lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 1, 'y', 1000 + [0, 512]));
-   %lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
-   lifdata = imzinvert(lifdata);
+   %lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 1, 'y', 1000 + [0, 512]));
+   %img = lifdata(:,:,:,1,1);
+   %clear lifdata
    
-   img = lifdata(:,:,:,1,1);
+   xr = [1, 126];  % use [] for all
+   yr = [1, 126];
+   cr = 1;
+   se = 2;
+   ti = 1;
+   img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
+   img = imzinvert(squeeze(img));
+
    
-   clear lifdata
+   %% Data from imaris
+
+   if useimaris
+      %%
+      imarisstart();
+      
+      %%
+      img = imarisget('Volume', 0,0); 
+   end
+   
+   
 else
+ 
    filename = '';
 end
 
-%% Data from imaris
 
-if false
-    %% 
-    imarisstart();
-    
-    %%
-    img = imarisget('Volume', 0,0); 
-end
-
-
-%%
+%% Plot low resolution 
 if verbose
-   figure(8)
+   figure(1)
    clf
-   imgres = img(1:5:end, 1:5:end, 1:2:end);
+   downsamplexy = 1;
+   imgres = img(1:downsamplexy:end, 1:downsamplexy:end, 1:1:end);
    implot3d(imgres)
 end
 
@@ -75,7 +95,7 @@ imgd = mat2gray(imgd);
 %imglogvals(imglogvals > 0) = 0;
 
 if verbose
-   figure(1)
+   figure(2)
    clf
    set(gcf, 'Name', ['Raw Stack: ' filename ' channel: 1']);
    implot3d(imgd);
@@ -180,8 +200,8 @@ imgf = mat2gray(imgf);
 if verbose
    figure(17)
    clf
-   imsubplot(1,2,1)
-   implot3d(imgf)
+   imsubplot(1,2,1);
+   implot3d(imgf);
 end
 
 %param.filter.logsize = [10,10,10];
@@ -191,10 +211,10 @@ imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
 
 
 if verbose 
-   imsubplot(1,2,2)
+   imsubplot(1,2,2);
    imgs = imgf;
    imgs(imgs< 0) = 0;
-   implot3d(mat2gray(imgs))
+   implot3d(mat2gray(imgs));
 end
 
 
@@ -268,7 +288,7 @@ if verbose
    figure(11)
    clf
    %implot3d(imgseg);
-   imsurfaceplot3d(imgseg)
+   imsurfaceplot3d(imgseg);
 end
 
 
@@ -277,7 +297,7 @@ if verbose
    %%
    figure(23)
    clf
-   implotlabeloutline(img, imgseg)
+   implotlabeloutline(img, imgseg);
 end
 
 
@@ -286,96 +306,68 @@ if true
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 5);
 end
 
-
 %%
-
 size(imlabel(imgseg))
 
-%% calculate surfaces and move to imaris
 
-[surf, fac, norm] = imsurface(imgseg, 'all');
+
+%% Calcualte Statistics 
+
+stats = cell(4,1);
+stats{1} = statisticsSegments(double(img), imgseg);
 
 %%
-sf = {surf, fac, norm};
+for ch = 2:4
 
+   img2 = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
+   img2 = imzinvert(squeeze(img2));
+   
+   stats{ch} = statisticsSegments(img2, imgseg);
+end
+
+
+
+
+%% Calculate Surfaces
+
+[surf, fac, norm] = imsurface(imgseg, 'all');
+surfaces = {surf, fac, norm};
 
 %% save this stuff
 
-%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
-%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'sf')
-
-
-%% push stufff to imaris
-
-nset = size(surf);
-sfset = surf(1:nset);
-fcset = fac(1:nset);
-nmset = norm(1:nset);
-
-imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
+if ~isempty(savefile)
+   %%
+   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
+   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'surfaces')
+   
+   %%
+   save(savefile, 'img', 'imgseg', 'stats', 'surfaces')
+end
 
 
 
 
-%% 
-
-%% save the result
-
-%save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2.mat', 'imgseg')
-
-%load('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation.mat')
 
 
-
-%% 
-stats = statisticsSegments(double(img), imgseg);
-
-%%
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch1.mat', 'stats')
-
-%%
- 
-lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 2, 'y', 1000 + [0, 512]));
-%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
-lifdata = imzinvert(lifdata);
-lifdata = squeeze(lifdata);
-
-%% 
-stats2 = statisticsSegments(lifdata, imgseg);
-
-%%
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch2.mat', 'stats2')
+%% Visualization / Plotting Statistics etc
 
 
-%%
- 
-lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 3, 'y', 1000 + [0, 512]));
-%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
-lifdata = imzinvert(lifdata);
-lifdata = squeeze(lifdata);
+%% Push Surfaces to imaris
 
-%% 
-stats3 = statisticsSegments(lifdata, imgseg);
+if useimaris
+   %%
+   %nset = 10;
+   nset = size(surf);
+   sfset = surf(1:nset);
+   fcset = fac(1:nset);
+   nmset = norm(1:nset);
 
-%%
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch3.mat', 'stats3')
-
-%%
- 
-lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 4, 'y', 1000 + [0, 512]));
-%lifdata = imread_bf(filename, struct('series', 2, 'time', 1, 'channel', [], 'x', [1, 126], 'y', [1,126]));
-lifdata = imzinvert(lifdata);
-lifdata = squeeze(lifdata);
-
-%% 
-stats4 = statisticsSegments(lifdata, imgseg);
-
-%%
-save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch4.mat', 'stats4')
+   imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
+end
 
 
+%% Plotting Statistics as Colored Surfaces
 
-%%
 if verbose
    %%
    figure(11)
@@ -385,30 +377,32 @@ if verbose
    %cdata = cdata(3,:);
    
    %cdata = [stats.MeanIntensity];
-   cdata = [stats.MaxIntensity];
-   cdata = [stats.Volume];
+   cdata = [stats{2}.MedianIntensity];
+   %cdata = [stats{2}.Volume];
    
   
    param.color.data = cdata;
-   imsurfaceplot3d(imgseg(1:512, 1:512, :), param)
+   imsurfaceplot3d(imgseg, param)
 end
 
-%%
+%% Plotting Statistics as Scatter Plots
 if verbose
    
    xmeasure = 'Volume';
-   
-   figure(45)
-   clf
-   
    ymeasures = {'MeanIntensity', 'MinIntensity','MaxIntensity', 'MedianIntensity'};
-   for i = 1:4
-      ax(i) = subplot(2,2,i);
-      plot([stats.(xmeasure)], [stats.(ymeasures{i})], '*');
-      xlabel(xmeasure); ylabel(ymeasures{i});
-   end
-  
-   linkaxes(ax, 'x')
+   cccol = {'b', 'g', 'r', 'k'};
+   
+   for cc = 1:4
+      figure(60+cc)
+      clf
+      set(gcf, 'Name', ['channel: ' num2str(cc)]);
+      for i = 1:4
+         ax(i) = subplot(2,2,i);
+         plot([stats{cc}.(xmeasure)], [stats{cc}.(ymeasures{i})], ['*' cccol{cc}]);
+         xlabel(xmeasure); ylabel(ymeasures{i});
+      end
+      linkaxes(ax, 'x')
+   end  
 end
 
 
@@ -416,22 +410,26 @@ end
 if verbose
    
    xmeasure = 'z';
-   xdata = [stats.Centroid];
+   xdata = [stats{1}.Centroid];
    xdata = xdata(3,:);
-   
-   figure(45)
-   clf
+
    ymeasures = {'MeanIntensity', 'MinIntensity','MaxIntensity', 'MedianIntensity'};
-   for i = 1:4
-      ax(i) = subplot(2,2,i);
-      plot(xdata, [stats.(ymeasures{i})], '*');
-      xlabel(xmeasure); ylabel(ymeasures{i});
-   end
-  
-   linkaxes(ax, 'x')
+   cccol = {'b', 'g', 'r', 'k'};
+
+   
+   for cc = 1:4
+      figure(70+cc)
+      clf
+      set(gcf, 'Name', ['channel: ' num2str(cc)]);
+      for i = 1:4
+         ax(i) = subplot(2,2,i);
+         plot(xdata, [stats{cc}.(ymeasures{i})], ['*' cccol{cc}]);
+         xlabel(xmeasure); ylabel(ymeasures{i});
+      end
+      linkaxes(ax, 'x')
+   end  
    
 end
-
 
 
 end

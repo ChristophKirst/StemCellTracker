@@ -31,6 +31,8 @@ if ~isequal(search, 'all')  % search for single file
    if exist(jarname) == 2    %#ok<EXIST>
       javaaddjarcheck(jarname, cpath);
       success = true;
+   else
+      warning('javaaddjar: could not add %s', jarname)
    end
    
 else   % search recursive
@@ -65,7 +67,6 @@ else   % search recursive
       end
    end
    
-   
 %    fns = dir(fullfile(directory, '*.class'));
 %    for i = 1:length(fns)
 %       if ~fns(i).isdir
@@ -73,8 +74,7 @@ else   % search recursive
 %          javaaddjar(fullfile(directory, fns(i).name));
 %       end
 %    end
-   
-   
+      
 end
 
 end

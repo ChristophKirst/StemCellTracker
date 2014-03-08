@@ -51,6 +51,9 @@ if nargout > 1
    mimagej = MImageJ();
 end
 
+fprintf('ijinitialize: ImageJ interface installed using: %s\n', ijpath);
+
+
 end
 
 %%% old Fiji version

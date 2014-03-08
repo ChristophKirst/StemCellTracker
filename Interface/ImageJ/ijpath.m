@@ -175,7 +175,7 @@ function [rpath, ijar, v3djar] = findij(ipath)
         
    [ijar, v3djar] = checkpath(ipath);
    if ~isempty(ijar)
-      rpath = ipath;
+      rpath = absolutepath(ipath);
       return;
    end
    
@@ -188,7 +188,7 @@ function [rpath, ijar, v3djar] = findij(ipath)
       ipath = fullfile(ipathcomp{1:l});
       [ijar, v3djar] = checkpath(ipath);
       if ~isempty(ijar)
-         rpath = ipath;
+         rpath = absolutepath(ipath);
          return;
       end
    end

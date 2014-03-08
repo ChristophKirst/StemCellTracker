@@ -28,10 +28,8 @@ function dataset = imarissetdataset(varargin)
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin ~= 6 && nargin ~= 10
-    % The this parameter is hidden
     error('imariscreatedataset: 6 or 10 input parameters expected.');
 end
-
 
 datatype = varargin{1};
 sizeX    = varargin{2};
@@ -40,7 +38,7 @@ sizeZ    = varargin{4};
 sizeC    = varargin{5};
 sizeT    = varargin{6};
 
-if nargin == 7
+if nargin == 6
     voxelSizeX = 1;
     voxelSizeY = 1;
     voxelSizeZ = 1;

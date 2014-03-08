@@ -25,7 +25,7 @@ end
 
 if isstruct(nlabel)
    param = nlabel;
-   nlabel = legnth(param.color.data);
+   nlabel = length(param.color.data);
 end
 
 cdata  = getParameter(param, {'color', 'data'}, []);
@@ -37,6 +37,7 @@ if isempty(cdata)
 elseif nlabel ~= length(cdata)
    error('imlabelcolormap: inconsistent color data size!')
 end
+cdata = double(cdata);
 
 if ~isempty(cscale) && cscale
    minc = min(cdata);
@@ -48,7 +49,7 @@ if ~isempty(cscale) && cscale
    end
 end
 
-ncm = length(cmap);
+ncm = size(cmap,1);
 colmap = cmap(min(round(cdata * (ncm-1)+1),ncm), :);
 
 if nargout > 1
