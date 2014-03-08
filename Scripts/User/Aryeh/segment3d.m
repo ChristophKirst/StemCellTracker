@@ -8,12 +8,14 @@ if false
    close all
    clear all
    clc
-   
    set(0, 'DefaultFigurePosition', [1   705   560   420]);
    
    initialize()
    
-   ijinitialize();
+   %ijinitialize();
+   
+   %%
+   imarisinitialize();
 end
 
 if nargin < 2
@@ -40,6 +42,16 @@ if false
    clear lifdata
 else
    filename = '';
+end
+
+%% Data from imaris
+
+if false
+    %% 
+    imarisstart();
+    
+    %%
+    img = imarisget('Volume', 0,0); 
 end
 
 
@@ -110,11 +122,11 @@ end
 %% thresholding / masking 
 
 %th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9);
-th = thresholdMixtureOfGaussians(imgmedf, 0.5);
+%th = thresholdMixtureOfGaussians(imgmedf, 0.5)
 %th = thresholdEntropy(imgmed);
 %th = thresholdMutualEntropy(imgmed);
 %th = thresholdOtsu(imgmed);
-
+th = 0.175;
 
 imgth = imgmedf;
 imgth(imgth < th) = 0;
@@ -136,7 +148,7 @@ if verbose
    %set(gcf, 'Name', ['Mask: ' filename ' channel: 1']);
    %imsurfaceplot3d(imgmask);
    
-   ijplot3d(imgth, 'PixelDepth', 5)
+   %ijplot3d(imgth, 'PixelDepth', 5)
    
 end
 
@@ -277,6 +289,35 @@ end
 
 %%
 
+size(imlabel(imgseg))
+
+%% calculate surfaces and move to imaris
+
+[surf, fac, norm] = imsurface(imgseg);
+
+%%
+sf = {surf, fac, norm};
+
+
+%% save this stuff
+
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
+save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'sf')
+
+
+%% push stufff to imaris
+
+nset = size(surf);
+sfset = surf(1:nset);
+fcset = fac(1:nset);
+nmset = norm(1:nset);
+
+imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
+
+
+
+
+%% 
 
 %% save the result
 
@@ -287,7 +328,7 @@ save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetatio
 
 
 %% 
-stats = statisticsSegments(img, imgseg);
+stats = statisticsSegments(double(img), imgseg);
 
 %%
 save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_2_stats_ch1.mat', 'stats')

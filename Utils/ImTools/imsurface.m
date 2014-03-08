@@ -8,12 +8,12 @@ function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %
 % input:
 %    labeledimage   labeled object's image
-%    boundary       close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
+%    boundary       (optional) close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
 %
 % output:
 %    vertices         vertices of each object surface as cell array
 %    faces            faces
-%    normals          normals
+%    normals          (optional) normals
 %
 % See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
 
@@ -39,10 +39,10 @@ label = imlabel(labeledimage);
 isize = size(labeledimage);
 nlabel = length(label);
 
-vertices = cell(nlabel);
-faces = cell(nlabel);
+vertices = cell(nlabel, 1);
+faces = cell(nlabel, 1);
 if nargout == 3
-   normals = cell(nlabel);
+   normals = cell(nlabel, 1);
 end
 
 for i = 1:nlabel

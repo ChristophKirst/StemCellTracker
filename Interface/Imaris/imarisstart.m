@@ -32,7 +32,7 @@ end
 
 
 % check if server is running
-if ~isimarisserverrunning()
+if isimarisserverrunning()
    return;
 end
 
@@ -70,6 +70,8 @@ end
 
 % give it some time
 pause(1);
+
+imaris = [];
 
 try
    for trial = 1 : 200

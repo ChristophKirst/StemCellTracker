@@ -15,8 +15,16 @@ function [mij, mimagej] = ijinitialize(varargin)
 
 if ~exist('ij.ImageJ', 'class')
    % add imagej to java path
-   ipath = ijpath(varargin{:});
-   javaaddjar(ipath, 'all');
+   [ipath, ijar, view3djar] = ijpath(varargin{:}); %#ok<ASGLU>
+   
+   if ~javacheckclasspath(ijar)
+        javaaddpath(ijar, '-end');
+   end
+   if ~javacheckclasspath(view3djar)
+        javaaddpath(view3djar, '-end');
+   end
+   
+   %javaaddjar(ipath, 'all');
 end
 
 if ~exist('ij.ImageJ', 'class')
@@ -33,7 +41,7 @@ mij = ijinstance();
 if isempty(mij)
    try
       mij = ij.ImageJ([], 2);
-   catch
+   catch %#ok<CTCH>
       error('ijinitialize: error while initializing ImageJ classes')
    end
    %ijinfo();

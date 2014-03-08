@@ -55,23 +55,39 @@ end
 
 % guessing for Fiji
 if ~found
-   if isunix()
+   if ismac()
+      hintpath = '/Applications/Fiji.app';
+   elseif isunix()
       hintpath = '/usr/share/Fiji.app/';
    elseif ispc()
       hintpath = 'C:\Program Files\Fiji.app';
-   elseif ismac()
-      error('TODO: Fiji path for mac');
    else
       error('ijinitialize: ImageJ runs on Linux, Max or Windows only!');
    end
    
    [ipath, ijjar, viewer3djar] = findij(hintpath);
 
-   if isempty(ipath)
-      error('ijpath: cannot find valid ImageJ installation.')
+   if ~isempty(ipath)
+      found = 1;
    end
 end
 
+% more guessing
+if ~found
+   if ispc()
+      hintpath = 'C:\Fiji.app';
+      
+      [ipath, ijjar, viewer3djar] = findij(hintpath);
+
+      if ~isempty(ipath)
+        found = 1;
+      end
+   end
+end
+
+if ~found
+    error('ijpath: cannot find ImageJ installation, try passing a path')
+end
 
 if nargout > 1
    varargout{1} = ijjar;
@@ -140,7 +156,7 @@ function [ijar, v3djar] = checkpath(ijpath)
       vfns = dir(viewer3djar);
       if ~isempty(vfns)
          ijar = fullfile(absolutepath(ijjar), ijfns(1).name);
-         v3djar = fullfile(absolutepath(ijpath), vfns(1).name);
+         v3djar = fullfile(absolutepath(viewer3djar), vfns(1).name);
       end
    end
    

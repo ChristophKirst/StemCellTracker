@@ -22,10 +22,7 @@ function data = imarisget(varargin)
 %
 % See also: imarisput
 
-[mImarisApplication, var] = imarisvarargin(varargin);
-nargin = length(varargin);
-varargin = var{:};
-
+[mImarisApplication, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin < 1 
    type = 'Volume';

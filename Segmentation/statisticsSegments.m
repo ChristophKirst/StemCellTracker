@@ -13,7 +13,7 @@ function stats = statisticsSegments(image, label, props)
 % output:
 %      stats   struct array with results
 %
-% note: many regionprops properties do not work in 3D, forst two coordinates are interchanged
+% note: many regionprops properties do not work in 3D, first two coordinates are interchanged
 %
 % See also: regionprops
 
