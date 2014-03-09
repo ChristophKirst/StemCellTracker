@@ -10,7 +10,7 @@ function [hull, xyz] = bwconvhull3d( mask )
 %
 % output:
 %    hull   convex hull as mask
-%    xzy    coordinates for indices in hull
+%    xyz    pixel coordinates of hull
 %
 % See also: bwconvhull convhulln
 

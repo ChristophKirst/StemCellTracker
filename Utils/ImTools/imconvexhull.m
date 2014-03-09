@@ -3,7 +3,7 @@ function [xyz,tri] = imconvexhull(labelimage)
 % [xyz,tri] = imconvexhull(labelimage)
 %
 % description:
-%     calculates convexhull for each label in labeld image labelimage.
+%     calculates convexhull for each label in labeld image labelimage in pixel coordinates
 % 
 % input:
 %     labelimage   the labeled image

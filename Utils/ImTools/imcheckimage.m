@@ -3,7 +3,7 @@ function bad = imcheckimage(img, warn, err)
 % bad = imcheckimages(img, warn, err)
 %
 % description:
-%     checks image for non-zero 2d subimages in image
+%     checks image for zero 2d subimages in image
 %
 % input:
 %     img    image to check

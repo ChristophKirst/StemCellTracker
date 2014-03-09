@@ -4,13 +4,13 @@ function [ie, rectlow, recthigh] = imextract(image, rectlow, recthigh)
 % ie = imextract(image, rectlow, recthigh)
 %
 % description: 
-%     extracts the region specified by rect in the image
+%     extracts the region specified by rect in the image using pixel coordinates
 %
 % input:
 %     image    the image
 %     rect     rectangle in pixel coordinates [rectlow recthigh] or 'BoundingBox'
-%     rectlow  lower corner
-%     recthigh higher corner
+%     rectlow  lower corner (in p,q,(l) coordinates)
+%     recthigh higher corner (in p,q,(l) coordinates)
 %
 % output:
 %     ie       extracted subimage 

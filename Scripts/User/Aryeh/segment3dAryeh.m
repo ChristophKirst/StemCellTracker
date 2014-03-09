@@ -21,7 +21,7 @@ end
 
 useimaris = false;
 savefile = '';
-verbose = true;
+verbose = false;
 
 %%
 if false
@@ -48,13 +48,13 @@ if false
    %img = lifdata(:,:,:,1,1);
    %clear lifdata
    
-   xr = [1, 126];  % use [] for all
-   yr = [1, 126];
+   xr = [1, 512];  % use [] for all
+   yr = [1, 512];
    cr = 1;
    se = 2;
    ti = 1;
    img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
-   img = imzinvert(squeeze(img));
+   img = imzreverse(squeeze(img));
 
    
    %% Data from imaris
@@ -76,11 +76,12 @@ end
 
 %% Plot low resolution 
 if verbose
+   %%
    figure(1)
    clf
-   downsamplexy = 1;
+   downsamplexy = 5;
    imgres = img(1:downsamplexy:end, 1:downsamplexy:end, 1:1:end);
-   implot3d(imgres)
+   implot3d(mat2gray(imgres))
 end
 
 
@@ -166,7 +167,7 @@ if verbose
    %figure(5)
    %clf
    %set(gcf, 'Name', ['Mask: ' filename ' channel: 1']);
-   %imsurfaceplot3d(imgmask);
+   %imsurfaceplot3d(imgmask);   lnew = lnew + 1;
    
    %ijplot3d(imgth, 'PixelDepth', 5)
    

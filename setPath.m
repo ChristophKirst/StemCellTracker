@@ -18,7 +18,9 @@ addpath('./Classes', ...
         './Utils/ImTools',...
         './Scripts');
      
-
+addpath('./Test');
+       
+     
 % compability to matlab previous versions
 v = version('-release');
 if length(v) >= 4
@@ -27,6 +29,9 @@ if length(v) >= 4
       addpath('./Utils/External/Matlab2012');
    end
 end
+
+
+
       
 end
 

@@ -29,7 +29,7 @@ elseif nargin < 4
    param = [];
 end
 
-bd = getParameter(param, {'boundary'}, 'hwl');
+bd = getParameter(param, {'boundary'}, 'pql');
 
 if nargin ==1 || (nargin ==2 && isstruct(faces))
    isize = size(vertices);
@@ -86,7 +86,7 @@ if ~isempty(isize)
 end
 
 camlight
-xlabel('h'); ylabel('w'); zlabel('l');
+xlabel('p'); ylabel('q'); zlabel('l');
 
 end
 

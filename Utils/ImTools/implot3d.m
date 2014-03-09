@@ -1,87 +1,66 @@
-function [model] = implot3d(varargin)
+function model = implot3d(image, param)
 %
-% [model] = implot3d(varargin)
+% model = implot3d(image, param)
 %
 % description:
-%    implot3d visualizes 3d volumetirc data in pixel coordinates using semi transparent slicing
+%    implot3d visualizes 3d volumetirc grayscale or color data in pixel coordinates 
+%    using semi transparent slicing
 %
 % input:
-% imshow3d('CData',data)       Create volume render object from input 
-%                              3-D data.
+%    image     3d grayscale or color image
+%    param     (optional) parameter struct with entries
+%              .color.scale    color data scale [cmin, cmax] ([] = automatic = [min(cdata), max(cdata)])
+%              .color.alpha    alpha data (image intensity)
+%              .renderslice    set the slices to render ('z')
+%              .range.h        1x2 p-axis bounds. ( [1 size(data,1)] )
+%              .range.w        1x2 q-axis bounds. ( [1 size(data,2)] )
+%              .range.l        1x2 l-axis bounds. ( [1 size(data,3)] )
+%              .boxratios      1x3 ratio array to scale the axes individually ([1 1 1])
+%              .parent         parent axes (gca)
 %
-% imshow3d(...,'Alpha',alpha)  XxYxZ array of alpha values for each voxel, in
-%                              range [0,1]. Default: data (interpreted as
-%                              scaled alphamap indices).
-%
-% imshow3d(...,'Parent',axH)   Specify parent axes. Default: gca.
-%
-% imshow3d(...,'HRange',h)     1x2 h-axis bounds. Default: [1 size(data, 1)].
-% imshow3d(...,'WRange',w)     1x2 w-axis bounds. Default: [1 size(data, 2)].
-% imshow3d(...,'LRange',l)     1x2 z-axis bounds. Default: [1 size(data, 3)].
-% imshow3d(...,'Range', r)     1x6 bounds short version of HRange, WRange, LRange
-% imshow3d(...,'BoxRatios', r) 1x3 ratio array: coordinate ranges are [1 r(1)*size(data,1)], [1 r(2)*size(data,1)]...
-%
-%
-% imshow3d(...,'texture','z')  
-%
-% imshow3d(H)                  Refresh view. Updates rendering of texture planes 
-%                              to reduce visual aliasing when using the 'texture'='2D' option.
+% output:
+%    model     refernece to the 3d model
 %
 % note:
-% Use interp3 on input date to increase/decrease resolution of data
+%    use interp3 on input date to increase/decrease resolution of data
 %
 % See also alphamap, colormap, opengl, isosurface
 
 % based on code by Joe Conti, 2004
-% modified by C. Kirst 2014 to use pixel coordinates, 
-%                           correct for similar appearance as in montage, and using data ranges and box ratios 
+% modified by C. Kirst 2014 to fit into imtools
+%                           in particular assuming pixel coordinates for the data!
 
-if isstruct(varargin{1})
-    model = varargin{1};
-    if length(varargin) > 1
-       varargin = {varargin{2:end}}; %#ok<CCAT1>
-    end
+if nargin < 2
+   param = [];
+end
+
+if isstruct(image)
+    model = image;
 else
-    model = localGetDefaultModel;
+    model = localGetDefaultModel; 
 end
 
-if ~ischar(varargin{1})
-   varargin = {'cdata', varargin{:}}; %#ok<CCAT>
+model.cdata = image;
+
+model.parent = getParameter(param, {'parent'}, model.parent);
+model.alpha = getParameter(param, {'color', 'alpha'}, model.alpha);
+model.cscale = getParameter(param, {'color', 'scale'}, model.cscale);
+model.texture = getParameter(param, {'texture'}, model.texture);
+model.xdata = getParameter(param, {'range', 'x'}, model.xdata);
+model.xdata = getParameter(param, {'range', 'h'}, model.xdata);
+model.ydata = getParameter(param, {'range', 'y'}, model.ydata);
+model.ydata = getParameter(param, {'range', 'w'}, model.ydata);
+model.zdata = getParameter(param, {'range', 'y'}, model.zdata);
+model.zdata = getParameter(param, {'range', 'l'}, model.zdata);
+
+rr  = getParameter(param, {'range'}, []);
+if ~isempty(rr)
+   model.xdata = rr(1:2);         
+   model.ydata = rr(3:4);         
+   model.zdata = rr(5:6);
 end
 
-if length(varargin)>1
-  for n = 1:2:length(varargin)
-    switch(lower(varargin{n}))
-        case 'cdata'
-           model.cdata = varargin{n+1};
-        case 'parent'
-           model.parent = varargin{n+1};
-        case 'texture'
-           model.texture = varargin{n+1};
-        case 'alpha'
-           model.alpha = varargin{n+1};
-        case 'xrange'
-           model.xdata = varargin{n+1}([1 end]);
-        case 'yrange'
-           model.ydata = varargin{n+1}([1 end]);
-       case 'zrange'
-           model.zdata = varargin{n+1}([1 end]);
-       case 'hrange'
-           model.xdata = varargin{n+1}([1 end]);
-       case 'wrange'
-           model.ydata = varargin{n+1}([1 end]);
-       case 'lrange'
-           model.zdata = varargin{n+1}([1 end]);
-        case 'range'  % assume pixel coordinates
-           r = varargin{n+1}(:);
-           model.xdata = r(1:2);         
-           model.ydata = r(3:4);         
-           model.zdata = r(5:6);
-    end
-  end
-end
-
-% Define [x,y,z]data
+% define [x,y,z]data
 siz = size(model.cdata);
 if isempty(model.xdata)
     model.xdata = [0 siz(1)] + 0.5;  % we use pixel coordinates
@@ -94,16 +73,11 @@ if isempty(model.zdata)
 end
 
 
-if length(varargin)>1
-  for n = 1:2:length(varargin)
-    switch(lower(varargin{n}))
-        case 'boxratios'
-           r = varargin{n+1}(:);
-           model.xdata = [model.xdata(1), r(1) * (model.xdata(2)-model.xdata(1)) + model.xdata(1)];
-           model.ydata = [model.ydata(1), r(2) * (model.ydata(2)-model.ydata(1)) + model.ydata(1)];   
-           model.zdata = [model.zdata(1), r(3) * (model.zdata(2)-model.zdata(1)) + model.zdata(1)];
-    end    
-  end
+boxratios = getParameter(param, {'BoxRatios'}, [1 1 1]);
+if ~isempty(boxratios) 
+   model.xdata = [model.xdata(1), boxratios(1) * (model.xdata(2)-model.xdata(1)) + model.xdata(1)];
+   model.ydata = [model.ydata(1), boxratios(2) * (model.ydata(2)-model.ydata(1)) + model.ydata(1)];
+   model.zdata = [model.zdata(1), boxratios(3) * (model.zdata(2)-model.zdata(1)) + model.zdata(1)];
 end
 
 if isempty(model.parent)
@@ -128,6 +102,7 @@ model.zdata = [];
 model.parent = [];
 model.handles = [];
 model.texture = 'xyz';
+model.cscale = [];
 tag = tempname;
 model.tag = ['vol3d_' tag(end-11:end)];
 
@@ -137,8 +112,12 @@ end
 function [model,ax] = local_draw(model)
 
 cdata = model.cdata;
-cdata = permute(cdata, [2 1 3]);
-siz = size(cdata);
+if ndims(cdata) == 3
+   cdata = permute(cdata, [2 1 3]);
+else
+   cdata = permute(cdata, [2 1 3 4]);
+end
+csiz = size(cdata);
 
 try
    delete(model.handles);
@@ -146,13 +125,14 @@ catch
 end
 
 ax = model.parent;
-cam_dir = camtarget(ax) - campos(ax);
-[~,ind] = max(abs(cam_dir));
+%cam_dir = camtarget(ax) - campos(ax);
+%[~,ind] = max(abs(cam_dir));
 
 view = zeros(3,1);
 switch model.texture
    case 'automatic'
-      view(ind) = 1;
+      %view(ind) = 1;
+      view(3) = 1; % data is from z stacks
    case 'all'
       view = ones(3,1);
    otherwise
@@ -173,21 +153,31 @@ opts = {'Parent',ax,'cdatamapping',[],'alphadatamapping',[],'facecolor','texture
 if ndims(cdata) > 3
     opts{4} = 'direct';
 else
-    cdata = double(cdata);
-    opts{4} = 'scaled';
+    if isempty(model.cscale)
+       cdata = cdata - min(cdata(:));
+       cdata = cdata / max(cdata(:));
+       caxis(ax, [min(cdata(:)), max(cdata(:))]);
+    else
+       cdata = cdata - model.cscale(1);
+       cdata(cdata < 0) = 0;
+       cdata = cdata / (model.cscale(2) - model.cscale(1));
+       cdata(cdata> 1) = 1;
+       caxis(ax, model.cscale)
+    end
+    opts{4} = 'scale';
 end
 
-if isempty(model.alpha)
+if isempty(model.alpha) 
     alpha = cdata;
-    if ndims(model.cdata) > 3
+    if ndims(alpha) > 3
         alpha = sqrt(sum(double(alpha).^2, 4));
         alpha = alpha - min(alpha(:));
-        alpha = 1 - alpha / max(alpha(:));
+        alpha = alpha / max(alpha(:));
     end
-    opts{6} = 'scaled';
+    opts{6} = 'none';
 else
     alpha = model.alpha;
-    if ~isequal(siz(1:3), size(alpha))
+    if ~isequal(csiz(1:3), size(alpha))
         error('imshow3d: Incorrect size of alpha!');
     end
     opts{6} = 'none';
@@ -209,8 +199,8 @@ if (view(3))
   y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
   z = [model.zdata(1), model.zdata(1); model.zdata(1), model.zdata(1)];
   diff = model.zdata(2)-model.zdata(1);
-  delta = diff/size(cdata,3);
-  for n = 1:size(cdata,3)
+  delta = diff/csiz(3);
+  for n = 1:csiz(3)
 
    cslice = squeeze(cdata(:,:,n,:));
    aslice = double(squeeze(alpha(:,:,n)));
@@ -228,8 +218,8 @@ if (view(1))
   y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
   z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
   diff = model.xdata(2)-model.xdata(1);
-  delta = diff/size(cdata,2);
-  for n = 1:size(cdata,2)
+  delta = diff/csiz(2);
+  for n = 1:csiz(2)
 
    cslice = squeeze(cdata(:,n,:,:));
    aslice = double(squeeze(alpha(:,n,:)));
@@ -245,8 +235,8 @@ if (view(2))
   y = [model.ydata(1), model.ydata(1); model.ydata(1), model.ydata(1)];
   z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
   diff = model.ydata(2)-model.ydata(1);
-  delta = diff/size(cdata,1);
-  for n = 1:size(cdata,1)
+  delta = diff/csiz(1);
+  for n = 1:csiz(1)
 
    cslice = squeeze(cdata(n,:,:,:));
    aslice = double(squeeze(alpha(n,:,:)));
@@ -259,16 +249,3 @@ end
 model.handles = h;
 
 end
-
-
-% function demo_imshow3d
-% figure;
-% load mri.mat
-% vol3d('cdata', squeeze(D), 'xdata', [0 1], 'ydata', [0 1], 'zdata', [0 0.7]);
-% colormap(bone(256));
-% alphamap([0 linspace(0.1, 0, 255)]);
-% axis equal off
-% set(gcf, 'color', 'w');
-% view(3);
-% 
-% end

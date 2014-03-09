@@ -9,7 +9,7 @@ function coords = immask2coords(mask)
 %    mask          bw mask
 %
 % output:
-%    coords        pixel coordinates in the form [h, w (, l)] 
+%    coords        pixel coordinates in the form [p, q (, l)] 
 %
 %
 % See also: imcoords2mask, imsub2ind, poly2mask

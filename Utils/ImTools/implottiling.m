@@ -16,11 +16,11 @@ function implottiling(images, tiling, titles)
 if ~iscell(images)
    % check if we have 3d stack
    switch imformat(images)
-      case 'hwl'
+      case 'pql'
          images = mat2cell(images, size(images,1), size(images,2), ones(size(images,3),1));
-      case 'hwlc'
+      case 'pqlc'
          images = mat2cell(images, size(images,1), size(images,2), ones(size(images,3),1), size(images,4));
-      case 'hwcl'
+      case 'pqcl'
          images = mat2cell(images, size(images,1), size(images,2), size(images,3), ones(size(images,4),1));  
       otherwise
          images = {images};  

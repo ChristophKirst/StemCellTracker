@@ -18,9 +18,11 @@ if ~exist('ij.ImageJ', 'class')
    [ipath, ijar, view3djar] = ijpath(varargin{:}); %#ok<ASGLU>
    
    if ~javacheckclasspath(ijar)
+        fprintf('ijinitialize: installing %s\n', ijar);
         javaaddpath(ijar, '-end');
    end
    if ~javacheckclasspath(view3djar)
+        fprintf('ijinitialize: installing %s\n', view3djar);
         javaaddpath(view3djar, '-end');
    end
    

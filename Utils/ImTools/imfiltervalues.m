@@ -10,7 +10,7 @@ function values = imfiltervalues(image, mask, filter)
 %     image    the image
 %     mask     binariy image indicating the pixels to aclulate means for
 %              or list of pixel indices [i1, i2, ...]
-%              or list of pixel coordinates [x1, x2, ...; y1, y2, ...;(z1, z2 ,...)]        
+%              or list of pixel coordinates [p1, p2, ...; q1, q2, ...;(l1, l2 ,...)]        
 %     filter   the kernel matrix for the filter
 %
 % output:

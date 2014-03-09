@@ -1,80 +1,130 @@
-function out = imoverlay(in, mask, color)
-%IMOVERLAY Create a mask-based image overlay.
-%   OUT = IMOVERLAY(IN, MASK, COLOR) takes an input image, IN, and a binary
-%   image, MASK, and produces an output image whose pixels in the MASK
-%   locations have the specified COLOR.
+function out = imoverlay(in, mask, color, intensity, rescale)
 %
-%   IN should be a grayscale or an RGB image of class uint8, uint16, int16,
-%   logical, double, or single.  If IN is double or single, it should be in
-%   the range [0, 1].  If it is not in that range, you might want to use
-%   mat2gray to scale it into that range.
+% out = imoverlay(in, mask, color)
 %
-%   MASK should be a two-dimensional logical matrix.
+% description:
+%    replace pixels in image specifed by mask with specified color
+%    if intesnity flag is true the intensity in the new color matches the old one
 %
-%   COLOR should be a 1-by-3 vector of values in the range [0, 1].  [0 0 0]
-%   is black, and [1 1 1] is white.
+% input:
+%    in        input image, 2d, 3d, gray or color in form pq, pqc, pql or pqlc
+%    mask      mask where pixels should be changed
+%    intensity (optional) make maksed pixels intensity the one of the old pixels (false)
+%    rescale   (optional) rescale original image intensitites (true)
 %
-%   OUT is a uint8 RGB image.
+% output:
+%    out      overlayed image
 %
-%   Examples
-%   --------
-%   Overlay edge detection result in green over the original image.
-%       
-%       I = imread('cameraman.tif');
-%       bw = edge(I, 'canny');
-%       rgb = imoverlay(I, bw, [0 1 0]);
-%       imshow(rgb)
-%
-%   Treating the output of peaks as an image, overlay the values greater than
-%   7 in red.  The output of peaks is not in the usual grayscale image range
-%   of [0, 1], so use mat2gray to scale it.
-%
-%       I = peaks;
-%       mask = I > 7;
-%       rgb = imoverlay(mat2gray(I), mask, [1 0 0]);
-%       imshow(rgb, 'InitialMagnification', 'fit')
 
-%   Steven L. Eddins
-%   Copyright 2006-2012 The MathWorks, Inc.
-%   C. Kirst: changed to work with 3d images
+% based on imoverlay by Steven L. Eddins, The MathWorks, Inc.
 
-% If the user doesn't specify the color, use white.
-DEFAULT_COLOR = [1 0 0];
-if nargin < 3
-    color = DEFAULT_COLOR;
+if nargin < 3 || isempty(color)
+    color = [1 0 0];
+end
+if nargin < 4
+   intensity = false;
+end
+if nargin < 5
+   rescale = false;
 end
 
-% Force the 2nd input to be logical.
 mask = (mask ~= 0);
 
-% Make the uint8 the working data class.  The output is also uint8.
-in_uint8 = im2uint8(in);
-color_uint8 = im2uint8(color);
+dim = ndims(mask);
+idim = ndims(in);
 
-dim = ndims(in);
-% Initialize the red, green, and blue output channels.
-if (dim == 3 && size(in,3) ~= 3) || dim == 2
-    % Input is grayscale.  Initialize all output channels the same.
-    out_red   = in_uint8;
-    out_green = in_uint8;
-    out_blue  = in_uint8;
+% image class unit8 or unit16
+if intensity
+   if rescale
+      in = im2uint16(double(in) / max(in(:))) / 256; 
+   else
+      in = im2uint16(in) / 256;
+   end
+   col = im2uint16(color) / 256;
 else
-    % Input is RGB truecolor.
-    out_red   = in_uint8(:,:,1,:);
-    out_green = in_uint8(:,:,2,:);
-    out_blue  = in_uint8(:,:,3,:);
+   if rescale
+      in = im2uint8(double(in) / max(in(:))); 
+   else
+      in = im2uint8(in); 
+   end
+   col = im2uint8(color);
 end
 
-% Replace output channel values in the mask locations with the appropriate
-% color value.
-out_red(mask)   = color_uint8(1);
-out_green(mask) = color_uint8(2);
-out_blue(mask)  = color_uint8(3);
 
-% Form an RGB truecolor image by concatenating the channel matrices along
-% the third dimension.
-if ndims(out_red) == 2
+% Initialize the red, green, and blue output channels.
+if dim == 2
+   if idim == 2
+      % Input is grayscale.  Initialize all output channels the same.
+      out_red   = in;
+      out_green = in;
+      out_blue  = in;
+   elseif idim == 3
+      % Input is RGB truecolor.
+      out_red   = in(:,:,1);
+      out_green = in(:,:,2);
+      out_blue  = in(:,:,3);
+   else
+      error('imoverlay: input image has inconsistent dimension');
+   end
+   
+elseif dim ==3
+    if idim == 3
+      % Input is grayscale.  Initialize all output channels the same.
+      out_red   = in;
+      out_green = in;
+      out_blue  = in;
+      
+    elseif idim == 4
+      % Input is RGB truecolor.
+      out_red   = in(:,:,:,1);
+      out_green = in(:,:,:,2);
+      out_blue  = in(:,:,:,3);
+   else
+      error('imoverlay: input image has inconsistent dimension');
+   end
+   
+else
+   error('imoverlay: input mask has inconsistent dimension');
+end
+
+% replace masked pixels
+if intensity
+   if dim == 2
+      if idim == 2
+         inm = in(mask);
+      else  % idim == 3
+         inm = sqrt(sum(double(in(mask)).^2, 3));
+      end
+   else % dim == 3
+      if idim == 3
+         inm = in(mask);
+      else % idim == 4
+         inm = sqrt(sum(double(in(mask)).^2, 4));
+      end
+   end
+   
+   out_red(mask)   = inm * col(1);
+   out_green(mask) = inm * col(2);
+   out_blue(mask)  = inm * col(3);
+   
+   out_red(~mask)   = out_red(~mask) * 256;
+   out_green(~mask) = out_green(~mask) * 256;
+   out_blue(~mask)  = out_blue(~mask) * 256;
+   
+   out_red   = im2uint8(out_red);
+   out_green = im2uint8(out_green); 
+   out_blue  = im2uint8(out_blue); 
+   
+else  % intensity == false
+   out_red(mask)   = col(1);
+   out_green(mask) = col(2);
+   out_blue(mask)  = col(3);
+end
+
+
+% combine colors to pqlc format
+if dim == 2
    out = cat(3, out_red, out_green, out_blue);
 else
-   out = permute(cat(4, out_red, out_green, out_blue), [1 2 4 3]);
+   out = cat(4, out_red, out_green, out_blue);
 end

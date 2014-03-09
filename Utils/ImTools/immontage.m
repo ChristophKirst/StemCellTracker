@@ -3,7 +3,7 @@ function h = immontage(stack, normalize, varargin)
 % image = immontage(stack, normalize, varargin)
 %
 % description:
-%     montage on image stack
+%     montage of a image stack
 %
 % input:
 %     stack      image stack
@@ -18,7 +18,7 @@ if nargin < 2 || isempty(normalize)
    normalize = 1;
 end
 
-im = imhwlreshape(stack, [], 'matlab');
+im = impqlreshape(stack, [], 'matlab');
 if normalize
    im = double(im);
    im = im / max(im(:));

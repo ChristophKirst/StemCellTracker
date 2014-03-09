@@ -7,24 +7,24 @@ function d = imdim(image, dim)
 %
 % input: 
 %     image    the image
-%     dim      the dimension 'h', 'w', 'l' = 'z', 'c', 't'
+%     dim      the dimension 'p'='x', 'q'='y', 'l' = 'z', 'c', 't'
 %
 % output:
 %     d        position of the dimension
 %
 % See also: imformat
 
-if ~ischar(dim) || isempty(strfind('hwlzct', dim))
-   error('imdim: dim must be: h, w, l, z, c, t')
+if ~ischar(dim) || isempty(strfind('pxqylzct', dim))
+   error('imdim: dim must be: p, q, l, x, y, z, c, t')
 end
 
 switch dim
    case 'z'
       dim = 'l';
    case 'x'    % have to check this for consistency
-      dim = 'h';
+      dim = 'p';
    case 'y'
-      dim = 'w';
+      dim = 'q';
 end
 
 

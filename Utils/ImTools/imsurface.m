@@ -1,6 +1,6 @@
 function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %
-% [vertices, faces, normals] = imisosurface(labeledimage, boundary)
+% [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %
 % description:
 %    calculates surfaces (vertices, faces) and surface normals for objects
@@ -25,12 +25,12 @@ if length(boundary) == 1
 end
 if ischar(boundary)
    if strcmp(boundary, 'all')   
-      boundary = 'hwl';
+      boundary = 'pql';
    end
    bd = boundary;
    boundary = zeros(1,3);
-   boundary(1) = ~isempty(strfind(bd, 'h'));
-   boundary(2) = ~isempty(strfind(bd, 'w'));
+   boundary(1) = ~isempty(strfind(bd, 'p'));
+   boundary(2) = ~isempty(strfind(bd, 'q'));
    boundary(3) = ~isempty(strfind(bd, 'l'));
 end
 labeledimage = padarray(labeledimage, boundary);

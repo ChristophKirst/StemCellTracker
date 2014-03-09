@@ -3,13 +3,13 @@ function box = imextractbox(image, center, ksize, padding)
 % ie = imextractbox(image, pos, ksize, padding)
 %
 % description: 
-%     extracts the region specified by rect in the image
+%     extracts box of size ksize centerered around the center pixel 
 %
 % input:
 %     image    the image
-%     pos      center pixel coordinates
-%     ksize    box size (h x w (x l)
-%     padding  (optional) '
+%     pos      center pixel coordinates p, q (,l)
+%     ksize    box size w, h (, d))
+%     padding  (optional) if ksize is too large image is padded with this value ('none' = box is cropped)
 %
 % output:
 %     box       sub image

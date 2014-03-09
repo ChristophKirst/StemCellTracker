@@ -1,9 +1,9 @@
-function stack = imzinvert(stackin)
+function stack = imzreverse(stackin)
 %
-% stack = imzinvert(stack)
+% stack = imzreverse(stack)
 %
 % description:
-%    inverst the z axis in the stack data
+%    reverses the z axis in the stack data
 %
 % input:
 %    stackin    input stack

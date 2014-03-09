@@ -7,7 +7,7 @@ function mask = imcoords2mask(imagesize, coords)
 %
 % input:
 %    imagesize     image size of return mask
-%    coords        pixel coordinates in the form [h, w (, l)] 
+%    coords        pixel coordinates in the form [p, q (, l)] 
 %
 % output:
 %    mask          bw mask

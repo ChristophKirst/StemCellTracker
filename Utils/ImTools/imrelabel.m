@@ -13,13 +13,12 @@ function relabel = imrelabel(label)
 %
 % See also: imlabelseparate
 
-labs = imlabel(label);
-relabel = label;
+idx = regionprops(label, 'PixelIdxList');
+idx = {idx.PixelIdxList};
 
-lnew = 1;
-for lold = labs
-   relabel(label == lold) = lnew;
-   lnew = lnew + 1;
+relabel = label;
+for i = 1:length(idx)
+   relabel(idx{i}) = i;
 end
 
 end

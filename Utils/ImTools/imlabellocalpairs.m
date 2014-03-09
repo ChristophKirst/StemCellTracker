@@ -8,7 +8,7 @@ function [pairs, distances] = imlabellocalpairs(label, ksize, method)
 %
 % input:
 %      label     labeled image
-%      ksize     h x w ( x l) box to search for neighbours, or maximal distance when using method 'distance'
+%      ksize     p x q ( x l) box to search for neighbours, or maximal distance when using method 'distance'
 %      method    (optional) either 'box' or 'distance' ('box')
 % 
 % output:

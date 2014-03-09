@@ -4,12 +4,12 @@ function profile = imray(image, startp, endp, n)
 %
 % description:
 %    returns n profile points along the ray from start point to end point
-%    using pixel coorindates [h,w,l]
+%    using pixel coorindates [p,q,l]
 %
 % input:
 %    image     2d or 3d gray scale image
-%    startp    starting point in pixel coordinates [h; w(; l), ...]
-%    endp      end point in pixel coordinates  [h; w(; l), ...]
+%    startp    starting point in pixel coordinates [p; q(; l), ...]
+%    endp      end point in pixel coordinates  [p; q(; l), ...]
 %    n         number of points
 %
 % output:
@@ -36,7 +36,7 @@ profile = zeros(n,k);
 for i=k:-1:1
    switch d
       case 2
-         profile(:,i) = improfile(image, [startp(2,i) endp(2,i)], [startp(1,i) endp(1,i)], n); % [h,w] = [y,x], [x,y] = [w,h] 
+         profile(:,i) = improfile(image, [startp(2,i) endp(2,i)], [startp(1,i) endp(1,i)], n); % [p,q] = [y,x], [x,y] = [q,p] in matlab improfile !!
       
       case 3
          %create interpolation points

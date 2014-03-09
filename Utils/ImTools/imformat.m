@@ -4,27 +4,27 @@ function format = imformat(data)
 %
 % description:
 %     determines the format of the data
-%     color dimensions are detected as having size 3
+%     channel dimension is detected as dimensions having size <= 5
 % 
 % input:
 %     data    image data
 %
 % output:
 %     format:
-%     'hw'   = h x w matrix = 'hw' (2D grayscale)
-%     'hwc'  = h x w x c matrix (2D multi channel )
-%     'hwl'  = h x w x l matrix (3D)
-%     'hwcl' = h x w x c x l matrix (3D multi channel image, matlab ordering)
-%     'hwlc' = h x w x l x c matrix (3D multi channel image)
-%     'hwlt'  = h x w x l x t matrix (4D grayscale)
-%     'hwclt' = h x w x c x l x t matrix (4D multi channel image, matlab ordering)
-%     'hwlct' = h x w x l x c x t matrix (4D multi channel image, time last)
-%     'hwlct' = h x w x l x t x c matrix (4D multi channel image, channel last)
+%     'pq'   = p x q matrix = 'pq' (2D grayscale)
+%     'pqwc'  = p x q x c matrix (2D multi channel )
+%     'pql'  = p x q x l matrix (3D)
+%     'pqcl' = p x q x c x l matrix (3D multi channel image, matlab ordering)
+%     'pqlc' = p x q x l x c matrix (3D multi channel image)
+%     'pqlt'  = p x q x l x t matrix (4D grayscale)
+%     'pqclt' = p x q x c x l x t matrix (4D multi channel image, matlab ordering)
+%     'pqlct' = p x q x l x c x t matrix (4D multi channel image, time last)
+%     'pqlct' = p x q x l x t x c matrix (4D multi channel image, channel last)
 %     ''  = not supported format
-%     h = height, w = width, l = length, c = color, t = time
+%     p = x pixel coordinate, q = z pixel coordinate, l = z pixel coordinate, c = color, t = time
 %
 % note:
-%     'hwl' = 'hwt', 'hwcl' = 'hwct', 'hwlc' = 'hwtc'
+%     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'
 
 cmaxsize = 4;  % max size for channel dimension
 
@@ -38,30 +38,30 @@ end
 
 switch dim
    case 2
-      format = 'hw';
+      format = 'pq';
    case 3
       if size(data,3) <= cmaxsize
-         format = 'hwc';
+         format = 'pqc';
       else
-         format = 'hwl';
+         format = 'pql';
       end
    case 4
       if size(data,3) <= cmaxsize
-         format = 'hwcl';
+         format = 'pqcl';
       elseif size(data,4) <= cmaxsize
-         format = 'hwlc';
+         format = 'pqlc';
       else
-         format = 'hwlt';
+         format = 'pqlt';
       end
    case 5
       if size(data,3) <= cmaxsize
-         format = 'hwclt';
+         format = 'pqclt';
       elseif size(data,4) <= cmaxsize
-         format = 'hwlct';
+         format = 'pqlct';
       elseif size(data,5) <= cmaxsize
-         format = 'hwltc';
+         format = 'pqltc';
       else
-         format = 'hwlct';
+         format = 'pqlct';
       end     
 end
 

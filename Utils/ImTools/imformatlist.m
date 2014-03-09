@@ -7,22 +7,22 @@ function formats = imformatlist()
 % 
 % output:
 %     format:
-%     'hw'   = h x w matrix = 'hw' (2D grayscale)
-%     'hwc'  = h x w x c matrix (2D multi channel )
-%     'hwl'  = h x w x l matrix (3D)
-%     'hwcl' = h x w x c x l matrix (3D multi channel image, matlab ordering)
-%     'hwlc' = h x w x l x c matrix (3D multi channel image)
-%     'hwlt'  = h x w x l x t matrix (4D grayscale)
-%     'hwclt' = h x w x c x l x t matrix (4D multi channel image, matlab ordering)
-%     'hwlct' = h x w x l x c x t matrix (4D multi channel image, time last)
-%     'hwlct' = h x w x l x t x c matrix (4D multi channel image, channel last)
+%     'pq'   = p x q matrix = 'pq' (2D grayscale)
+%     'pqwc'  = p x q x c matrix (2D multi channel )
+%     'pql'  = p x q x l matrix (3D)
+%     'pqcl' = p x q x c x l matrix (3D multi channel image, matlab ordering)
+%     'pqlc' = p x q x l x c matrix (3D multi channel image)
+%     'pqlt'  = p x q x l x t matrix (4D grayscale)
+%     'pqclt' = p x q x c x l x t matrix (4D multi channel image, matlab ordering)
+%     'pqlct' = p x q x l x c x t matrix (4D multi channel image, time last)
+%     'pqlct' = p x q x l x t x c matrix (4D multi channel image, channel last)
 %     ''  = not supported format
-%     h = height, w = width, l = length, c = color, t = time
+%     p = x pixel coordinate, q = z pixel coordinate, l = z pixel coordinate, c = color, t = time
 %
 % note:
-%     'hwl' = 'hwt', 'hwcl' = 'hwct', 'hwlc' = 'hwtc'
+%     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'
 
-formats = {'hw', 'hwc', 'hwl', 'hwcl', 'hwlc', 'hwlt', 'hwclt', 'hwlct', 'hwltc'};
+formats = {'pq', 'pqc', 'pql', 'pqcl', 'pqlc', 'pqlt', 'pqclt', 'pqlct', 'pqltc'};
 
 end
    
