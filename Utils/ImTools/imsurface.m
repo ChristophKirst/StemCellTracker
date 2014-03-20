@@ -3,17 +3,17 @@ function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 % [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %
 % description:
-%    calculates surfaces (vertices, faces) and surface normals for objects
-%    in a labeled image
+% calculates surfaces (vertices, faces) and surface normals for objects
+% in a labeled image
 %
 % input:
-%    labeledimage   labeled object's image
-%    boundary       (optional) close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
+% labeledimage labeled object's image
+% boundary (optional) close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
 %
 % output:
-%    vertices         vertices of each object surface as cell array
-%    faces            faces
-%    normals          (optional) normals
+% vertices vertices of each object surface as cell array
+% faces faces
+% normals (optional) normals
 %
 % See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
 
@@ -24,7 +24,7 @@ if length(boundary) == 1
    boundary = boundary * ones(1,ndims(labeledimage));
 end
 if ischar(boundary)
-   if strcmp(boundary, 'all')   
+   if strcmp(boundary, 'all')
       boundary = 'pql';
    end
    bd = boundary;
@@ -66,7 +66,7 @@ for l = 1:nlabel
    end
    
    % correct for x,y exchange and assign outputs
-   v = v(:, [2 1 3]);  
+   v = v(:, [2 1 3]);
    vertices{l} = v + repmat(bmin, size(v,1), 1) - 1;
    faces{l} = f;
    
