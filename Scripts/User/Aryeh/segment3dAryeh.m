@@ -26,15 +26,9 @@ verbose = false;
 %%
 if false
    %% Init for Testing
-   
-   initialize()
-   
-   %%
-
-   ijinitialize();
-
    bfinitialize();   
-   
+   initialize();
+
    %%
    if useimaris
       imarisinitialize();

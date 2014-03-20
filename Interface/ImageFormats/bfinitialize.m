@@ -30,16 +30,8 @@ if ~status && nargin > 0
    end
 end
 
-% automatic detection: check this path
-if ~status
-   loci = findloci(mfilename('fullpath'));
-   if ~isempty(loci)
-      javaaddjar(loci);
-      status = true;
-   end
-end
 
-% still not found, search in imagej folder
+%  automatic detection: check imagej's jars path
 if ~status
     bfpath = ijpath;
     if ~isempty(bfpath)
@@ -51,11 +43,28 @@ if ~status
     end
 end
 
+
+%still not found, search in bfinitialize's folder
+if ~status
+   loci = findloci(mfilename('fullpath'));
+   if ~isempty(loci)
+      javaaddjar(loci);
+      status = true;
+   end
+end
+
+
 if ~status
    error('bfinitialize: could not find loci_tools.jar!')
 else
-   v = eval('loci.formats.FormatTools.VERSION');
-   fprintf('bfinitialize: loci_tools.jar installed: version: %s\n', char(v))
+
+   try 
+      v = bfversion();
+      fprintf('bfinitialize: loci_tools.jar installed: version: %s\n', v)
+   catch
+      error('bfinitialize: error while trying to run bf loci_tools.jar')
+   end
+
 end
 
 end
