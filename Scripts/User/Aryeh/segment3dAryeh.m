@@ -43,6 +43,7 @@ if false
    %img = lifdata(:,:,:,1,1);
    %clear lifdata
    
+   %% samle tile
    xr = [1, 512];  % use [] for all
    yr = [1, 512];
    cr = 1;
@@ -52,10 +53,10 @@ if false
    img = imzreverse(squeeze(img));
    
    
-   
    %%  figure aryeh
    xr = [1000, 1300];  % use [] for all
    yr = [1300, 1600];
+
    cr = 1;
    se = 21;
    ti = 1;
@@ -85,7 +86,7 @@ if verbose
    %%
    figure(1)
    clf
-   downsamplexy = 5;
+   downsamplexy = 50;
    imgres = img(1:downsamplexy:end, 1:downsamplexy:end, 1:1:end);
    implot3d(mat2gray(imgres))
 end
@@ -198,9 +199,9 @@ end
 
 zsize = size(imgmedf,3);
 imgf = mat2gray(imgmedf);
-for z = zsize:-1:1
-   imgf(:,:,z) = imgf(:,:,z) - 0.0 * mat2gray(imgradient(imgf(:,:,z)));
-end
+%for z = zsize:-1:1
+%   imgf(:,:,z) = imgf(:,:,z) - 0.0 * mat2gray(imgradient(imgf(:,:,z)));
+%end
 imgf = mat2gray(imgf);
 
 
@@ -345,7 +346,11 @@ surfaces = {surf, fac, norm};
 if ~isempty(savefile)
    %%
    %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
+
    save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_figure.mat', 'surfaces')
+
+   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'surfaces')
+   %save('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_large.mat', 'surfaces')
    
    %%
    save(savefile, 'img', 'imgseg', 'stats', 'surfaces')

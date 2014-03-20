@@ -30,6 +30,15 @@ if ~status && nargin > 0
    end
 end
 
+%still not found, search in bfinitialize's folder
+if ~status
+   loci = findloci(fileparts(mfilename('fullpath')));
+   if ~isempty(loci)
+      javaaddjar(loci);
+      status = true;
+   end
+end
+
 
 %  automatic detection: check imagej's jars path
 if ~status
@@ -43,15 +52,6 @@ if ~status
     end
 end
 
-
-%still not found, search in bfinitialize's folder
-if ~status
-   loci = findloci(mfilename('fullpath'));
-   if ~isempty(loci)
-      javaaddjar(loci);
-      status = true;
-   end
-end
 
 
 if ~status
