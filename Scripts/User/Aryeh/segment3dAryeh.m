@@ -11,7 +11,7 @@ if false
    clc
    set(0, 'DefaultFigurePosition', [1   705   560   420]);
 end
-
+initialize
 
 %% Init
 
@@ -47,6 +47,17 @@ if false
    yr = [1, 512];
    cr = 1;
    se = 2;
+   ti = 1;
+   img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
+   img = imzreverse(squeeze(img));
+   
+   
+   
+   %%  figure aryeh
+   xr = [1000, 1300];  % use [] for all
+   yr = [1300, 1600];
+   cr = 1;
+   se = 21;
    ti = 1;
    img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
    img = imzreverse(squeeze(img));
@@ -304,8 +315,8 @@ end
 
 %%
 size(imlabel(imgseg))
-
-
+imgseg = imrelabel(imgseg);
+size(imlabel(imgseg))
 
 %% Calcualte Statistics 
 
@@ -316,7 +327,7 @@ stats{1} = statisticsSegments(double(img), imgseg);
 for ch = 2:4
 
    img2 = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
-   img2 = imzinvert(squeeze(img2));
+   img2 = imzreverse(squeeze(img2));
    
    stats{ch} = statisticsSegments(img2, imgseg);
 end
@@ -334,7 +345,7 @@ surfaces = {surf, fac, norm};
 if ~isempty(savefile)
    %%
    %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
-   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'surfaces')
+   save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_figure.mat', 'surfaces')
    
    %%
    save(savefile, 'img', 'imgseg', 'stats', 'surfaces')
@@ -373,7 +384,10 @@ if verbose
    %cdata = cdata(3,:);
    
    %cdata = [stats.MeanIntensity];
-   cdata = [stats{2}.MedianIntensity];
+   cdata = [stats{3}.MeanIntensity];
+   
+   
+   
    %cdata = [stats{2}.Volume];
    
   

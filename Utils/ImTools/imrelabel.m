@@ -17,8 +17,12 @@ idx = regionprops(label, 'PixelIdxList');
 idx = {idx.PixelIdxList};
 
 relabel = label;
+k = 1;
 for i = 1:length(idx)
-   relabel(idx{i}) = i;
+   if ~isempty(idx{i})
+      relabel(idx{i}) = k;
+      k = k + 1;
+   end
 end
 
 end
