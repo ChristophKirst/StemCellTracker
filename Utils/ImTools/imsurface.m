@@ -35,29 +35,25 @@ if ischar(boundary)
 end
 labeledimage = padarray(labeledimage, boundary);
 
-
+label = imlabel(labeledimage);
 isize = size(labeledimage);
-nlabel = max(labeledimage(:));
+nlabel = length(label);
 
 vertices = cell(nlabel, 1);
 faces = cell(nlabel, 1);
 if nargout == 3
    normals = cell(nlabel, 1);
 end
-         
-bb = imlabelboundingboxes(labeledimage);
 
-for l = 1:nlabel
-   fprintf('imsurface: calculating surface: %g/%g\n', l, nlabel);
-
+for i = 1:nlabel
+   l = label(i);
+   obj = labeledimage == l;
+   
    % reduce calculation to bounding box
-   bmin = bb(l, 1:3);
-   bmax = bb(l, 4:6);
-
+   [bmin, bmax] = imboundingbox(obj);
    bmin = max(bmin - 1, 1);
    bmax = min(bmax + 1, isize);
-   obj = imextract(labeledimage, bmin, bmax);
-   obj = (obj == l);
+   obj = imextract(obj, bmin, bmax);
    
    % call isosurface / isonormals
    [f,v] = isosurface(obj, 0.5);
@@ -67,14 +63,13 @@ for l = 1:nlabel
    
    % correct for x,y exchange and assign outputs
    v = v(:, [2 1 3]);  
-   vertices{l} = v + repmat(bmin, size(v,1), 1) - 1;
-   faces{l} = f;
+   vertices{i} = v + repmat(bmin, size(v,1), 1) - 1;
+   faces{i} = f;
    
    if nargout == 3
-      normals{l} = n(:,[2 1 3]);
+      normals{i} = n(:,[2 1 3]);
    end
    
 end
-
 
 end
