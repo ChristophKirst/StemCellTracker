@@ -1,6 +1,6 @@
 %function imgseg = segment3d(img, verbose)
 %
-% 3d segmentation for geometrically confined stemm cell colonies
+% 3d segmentation Histone marker
 % 
 
 %% Initialize Segmenter
@@ -30,10 +30,12 @@ if false
    initialize()
    
    %%
-
+   bfinitialize();      
+   
+   %%
    ijinitialize();
 
-   bfinitialize();   
+
    
    %%
    if useimaris
@@ -42,21 +44,25 @@ if false
 
    %% Data form disk
 
-   filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
+   filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Fred/Citrine_H2B_live/Experiment.lif';
+   
+   img = imread_bf(filename, struct('series', 1));
    
    %lifdata = imread_bf(filename, struct('series', 21, 'channel', 1));
    %lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 1, 'y', 1000 + [0, 512]));
    %img = lifdata(:,:,:,1,1);
    %clear lifdata
    
-   xr = [1, 512];  % use [] for all
-   yr = [1, 512];
-   cr = 1;
-   se = 2;
-   ti = 1;
-   img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
-   img = imzreverse(squeeze(img));
+   %xr = [] %[1, 512];  % use [] for all
+   %yr = [] % 1, 512];
+   %cr = 1;
+   %se = 2;
+   %ti = 1;
+   %img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
+   %img = imzreverse(squeeze(img));
 
+   
+   
    
    %% Data from imaris
 
@@ -80,7 +86,7 @@ if verbose
    %%
    figure(1)
    clf
-   downsamplexy = 5;
+   downsamplexy = 2;
    imgres = img(1:downsamplexy:end, 1:downsamplexy:end, 1:1:end);
    implot3d(mat2gray(imgres))
 end
@@ -111,7 +117,7 @@ end
 
 
 %% filter 
-param.filter.median.ksize = [3, 3, 3]; %3;
+param.filter.median.ksize = [4, 4, 3]; %3;
 imgmed = mat2gray(medianFilter(imgd, param.filter.median.ksize));
 %imgmed = meanShiftFilter(imgmed, 4, 0.1);
 
@@ -143,19 +149,21 @@ end
 
 %% thresholding / masking 
 
-%th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9);
+imglogvals = log2(imgmedf + eps);
+imglogvals(imglogvals < -6) = -6;
+th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9);
 %th = thresholdMixtureOfGaussians(imgmedf, 0.5)
 %th = thresholdEntropy(imgmed);
 %th = thresholdMutualEntropy(imgmed);
 %th = thresholdOtsu(imgmed);
-th = 0.175;
+%th = 0.175;
 
 imgth = imgmedf;
 imgth(imgth < th) = 0;
 
 imgmask = imgth > 0;
 % remove small fragments and small isolated minima with imopen
-imgmask = imopen(imgmask, strel('disk', 3));
+imgmask = imopen(imgmask, strel('disk', 2));
 
 
 if verbose
@@ -163,14 +171,27 @@ if verbose
    figure(4)
    clf
    set(gcf, 'Name', ['Thresholded Stack: ' filename ' channel: 1']);
-   implot3d(imgth);
+   %implot3d(imgth);
    
-   %figure(5)
-   %clf
-   %set(gcf, 'Name', ['Mask: ' filename ' channel: 1']);
+   implottiling(imgth)
+   
+   
+   figure(5)
+   clf
+   set(gcf, 'Name', ['Mask: ' filename ' channel: 1']);
    %imsurfaceplot3d(imgmask);   lnew = lnew + 1;
+   implottiling(imgmask)
    
    %ijplot3d(imgth, 'PixelDepth', 5)
+   
+   
+   figure(6)
+   hist(imglogvals(:), 256)
+   
+   
+   figure(7)
+   clf
+   implottiling(imoverlay(imgd, imgmask))
    
 end
 
@@ -209,7 +230,7 @@ end
 %param.filter.logsize = [10,10,10];
 %imgf = logFilter(max(imgf(:)) - imgf, param.filter.logsize, [], 0);
 
-imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
+imgf = dogFilter(imgf, [10, 10, 7], [] ,[], 0);
 
 
 if verbose 

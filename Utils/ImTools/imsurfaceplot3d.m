@@ -13,12 +13,12 @@ function imsurfaceplot3d(vertices, faces, normals, param)
 %    normals        normals
 %    labeledimage   surfaces are infered form the labeled image
 %    param          (optional)    parameter struct with entries
-%                   .boundary     'hwl' to close surfaces in specified directions
+%                   .boundary     'pql' to close surfaces in specified directions ('pql')
 %                   .color.data   color according to this data ([] = random)
 %                   .color.map    use this colormap (colormap)
 %                   .color.scale  scale color data
 %
-% See also: imsurface
+% See also: imsurface, imlabelcolormap
 
 
 if (nargin ==2 && isstruct(faces)) 

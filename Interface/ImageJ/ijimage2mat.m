@@ -29,6 +29,6 @@ end
 
 %imagej usually stores data as
 %h,w,c,l,t
-data = imhwlreshape(data, 'hwclt', 'hwlct');
+data = impqlreshape(data, 'pqclt', 'pqlct');
 
 end

@@ -9,15 +9,15 @@ function [colmap, coldata] = imlabelcolormap(nlabel, param)
 % input:
 %     nlabel    labeled image
 %     param     (optional) parameter struct with entries
-%               .color.data   color according to this data ([] = random)
-%               .color.map    use this colormap (colormap)
-%               .color.scale  scale color data (true)
+%               .color.data    color according to this data ([] = random)
+%               .color.map     use this colormap (colormap)
+%               .color.scale   scale color data (true)
 %
 % output:
 %     colmap    the color map such that cmap(l,:) = colormap(colordata(l))
 %     coldata   (optional) color data
 %
-% See also: colormap, imcolorize, imsurfaceplot
+% See also: colormap, imcolorize, imsurfaceplot3d
 
 if nargin < 2
    param = [];
@@ -33,7 +33,11 @@ cmap   = getParameter(param, {'color', 'map'}, colormap);
 cscale = getParameter(param, {'color', 'scale'}, true);
 
 if isempty(cdata)
-   cdata = 1:nlabel;
+   %cdata = 1:nlabel;
+   
+   % shuffle the data
+   cdata = randperm(nlabel);
+   
 elseif nlabel ~= length(cdata)
    error('imlabelcolormap: inconsistent color data size!')
 end
