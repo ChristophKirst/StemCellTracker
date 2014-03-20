@@ -12,12 +12,12 @@ norm = surfaces{3};
 
 %%
    
-nset = 10;
-%nset = size(surf)
+%nset = 500;
+nset = size(surf)
 sfset = surf(1:nset);
 fcset = fac(1:nset);
 nmset = norm(1:nset);
 
    
 %%  
-imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
+imarissetsurface('test', sfset, fcset, nmset);

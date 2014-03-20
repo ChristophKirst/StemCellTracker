@@ -84,20 +84,36 @@ psize = imarisgetsize(imaris);
 extend = imarisgetextend(imaris);
 fac = (extend(2,:) - extend(1,:)) ./ psize;
 
-
 surface.RemoveAllSurfaces
-for i = 1:nsurfaces
-  %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
-  
-  % convert vertices to space coordinates
-  % vertices{i} = imarispixel2space(imaris, vertices{i});
-  verts = impixel2space(psize, extend, vertices{i});
-  
-  nrmls = normals{i};
-  nrmls = nrmls .* repmat(fac, size(nrmls,1),1);
 
-  surface.AddSurface(verts, faces{i}-1, nrmls , timepoint);
-end
+% join data to list
+nverts = cellfun(@length, vertices);
+nfaces = cellfun(@length, faces);
+nsurfaces = length(vertices);
+
+vertices = cell2mat(vertices);
+faces    = cell2mat(faces) - 1;
+normals  = cell2mat(normals);
+
+vertices =  impixel2space(psize, extend, vertices);
+normals = normals .* repmat(fac, size(normals,1),1);
+timepoint = timepoint * ones(1, nsurfaces);
+
+surface.AddSurfacesList(vertices, nverts, faces, nfaces, normals, timepoint);
+
+% for i = 1:nsurfaces
+%   %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
+%   
+%   % convert vertices to space coordinates
+%   % vertices{i} = imarispixel2space(imaris, vertices{i});
+%   verts = impixel2space(psize, extend, vertices{i});
+%   
+%   nrmls = normals{i};
+%   nrmls = nrmls .* repmat(fac, size(nrmls,1),1);
+% 
+%   surface.AddSurface(verts, faces{i}-1, nrmls , timepoint);
+%   %surface.AddSurface(verts, faces{i}-1, nrmls);
+% end
 
 %surface.SetColorRGBA(xxx);
 
