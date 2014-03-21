@@ -23,20 +23,23 @@ useimaris = false;
 savefile = '';
 verbose = false;
 
+initialize();
+
 %%
 if false
    %% Init for Testing
    bfinitialize();   
-   initialize();
 
    %%
    if useimaris
+      %%
       imarisinitialize();
    end
 
    %% Data form disk
 
-   filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
+   %filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
+   filename = '\\tracking-pc.rockefeller.edu\DATA\Aryeh\hESC\Cytoo_IF\Expt24_Snail_Bra_Sox2_timecourse\140305_RUES2_36hBMP4_Bra_Snail_Sox2.lif';
    
    %lifdata = imread_bf(filename, struct('series', 21, 'channel', 1));
    %lifdata = imread_bf(filename, struct('series', 21, 'time', 1, 'channel', 1, 'y', 1000 + [0, 512]));
@@ -72,6 +75,11 @@ if false
       
       %%
       img = imarisget('Volume', 0,0); 
+      
+      %%
+      
+      imarissetvolume(uint8(img))
+      
    end
    
    
@@ -86,7 +94,7 @@ if verbose
    %%
    figure(1)
    clf
-   downsamplexy = 50;
+   downsamplexy = 5;
    imgres = img(1:downsamplexy:end, 1:downsamplexy:end, 1:1:end);
    implot3d(mat2gray(imgres))
 end
@@ -149,12 +157,15 @@ end
 
 %% thresholding / masking 
 
-%th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9);
+imglogvals = log2(imgmedf + eps);
+imglogvals(imglogvals < -6) = -6;
+
+%th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9)
 %th = thresholdMixtureOfGaussians(imgmedf, 0.5)
-%th = thresholdEntropy(imgmed);
-%th = thresholdMutualEntropy(imgmed);
+%th = thresholdEntropy(imgmed)
+%th = thresholdMutualEntropy(imgmed)
 %th = thresholdOtsu(imgmed);
-th = 0.175;
+th = 0.1;
 
 imgth = imgmedf;
 imgth(imgth < th) = 0;
@@ -178,6 +189,16 @@ if verbose
    
    %ijplot3d(imgth, 'PixelDepth', 5)
    
+   
+   
+   %%
+   figure(5)
+   
+   subplot(1,2,1)
+   hist(imglogvals(:), 256/8)
+   
+   subplot(1,2,2);
+   hist(imgmedf(:), 256/8);
 end
 
 
@@ -278,8 +299,8 @@ imgseg = immask(imgws, imgmask);
 imgseg = imlabelseparate(imgseg);
 stats = regionprops(imgseg, 'Area', 'PixelIdxList');
 
-min_area = 40;
-keep = [stats.Area] >= min_area;
+min_vol = 100;
+keep = [stats.Area] >= min_vol;
 for i = find(~keep)
    imgseg(stats(i).PixelIdxList) = 0;
 end
@@ -316,8 +337,7 @@ end
 
 %%
 size(imlabel(imgseg))
-imgseg = imrelabel(imgseg);
-size(imlabel(imgseg))
+max(imgseg(:))
 
 %% Calcualte Statistics 
 
@@ -347,10 +367,10 @@ if ~isempty(savefile)
    %%
    %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_segmetation_imaris.mat', 'imgseg')
 
-   save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_figure.mat', 'surfaces')
+   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_figure.mat', 'surfaces')
 
-   %save('./Test/Images/Develop/Aryeh/140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris.mat', 'surfaces')
-   %save('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_large.mat', 'surfaces')
+   save('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_snail_sox2.mat', 'imgseg')
+   save('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_surfaces_imaris_snail_sox2.mat', 'surfaces')
    
    %%
    save(savefile, 'img', 'imgseg', 'stats', 'surfaces')
@@ -368,13 +388,13 @@ end
 
 if useimaris
    %%
-   %nset = 10;
+   %nset = 3;
    nset = size(surf);
    sfset = surf(1:nset);
    fcset = fac(1:nset);
    nmset = norm(1:nset);
 
-   imarissetsurface('Aryeh Segments', sfset, fcset, nmset);
+   imarissetsurface('Segmentation', sfset, fcset, nmset);
 end
 
 
@@ -390,9 +410,7 @@ if verbose
    
    %cdata = [stats.MeanIntensity];
    cdata = [stats{3}.MeanIntensity];
-   
-   
-   
+
    %cdata = [stats{2}.Volume];
    
   
@@ -447,5 +465,166 @@ if verbose
 end
 
 
+%% Plot Statistics in Imaris
+
+zsl = 3:size(img,3);
+
+sz= size(img(:,:,zsl));
+nch = 4;
+
+dset = imarissetdataset('uint8', sz(1), sz(2), sz(3), nch, 1);
+
+imarissetvolume(dset, uint8(img(:,:,zsl)),0)
+
+for ch = 2:4
+
+   img2 = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
+   img2 = imzreverse(squeeze(img2));
+   
+   imarissetvolume(dset, uint8(img2(:,:,zsl)),ch-1)
+end
+
+
+%% set colors
+
+vRed = 0.0;
+vGreen = 0.0;
+vBlue = 1.0;
+vAlpha = 0;
+vRGBA = [vRed, vGreen, vBlue, vAlpha];
+vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
+vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+dset.SetChannelColorRGBA(0, vRGBA);
+
+vRed = 1.0;
+vGreen = 1.0;
+vBlue = 1.0;
+vAlpha = 0;
+vRGBA = [vRed, vGreen, vBlue, vAlpha];
+vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
+vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+dset.SetChannelColorRGBA(1, vRGBA);
+
+vRed = 1.0;
+vGreen = 0.0;
+vBlue = 0.0;
+vAlpha = 0;
+vRGBA = [vRed, vGreen, vBlue, vAlpha];
+vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
+vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+dset.SetChannelColorRGBA(2, vRGBA);
+
+vRed = 0.0;
+vGreen = 1.0;
+vBlue = 0.0;
+vAlpha = 0;
+vRGBA = [vRed, vGreen, vBlue, vAlpha];
+vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
+vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+dset.SetChannelColorRGBA(3, vRGBA);
+
+
+%% threshold in sox2 / snail intensity
+
+figure(120)
+subplot(1,2,1)
+hist([stats{3}.MedianIntensity], 255)
+xlabel('Snail')
+
+subplot(1,2,2)
+hist([stats{4}.MedianIntensity], 255)
+xlabel('Sox2')
+
+
+%%
+
+figure(120)
+subplot(1,2,1)
+hist([stats{3}.MeanIntensity], 255)
+xlabel('Snail')
+
+subplot(1,2,2)
+hist([stats{4}.MeanIntensity], 255)
+xlabel('Sox2')
+
+
+
+%%
+%nset = 3;
+nset = size(surf);
+sfset = surf(1:nset);
+fcset = fac(1:nset);
+nmset = norm(1:nset);
+
+imarissetsurface('Segmentation', sfset, fcset, nmset);
+
+
+%% 
+
+thsnail = 8.61;
+thsox2 = 23.3;
+
+
+snail = [stats{3}.MeanIntensity];
+sox2   = [stats{4}.MeanIntensity];
+ncells = length(snail);
+snailsox2 = zeros(1, ncells);
+snailsox2(sox2 > thsox2) = 2;
+snailsox2(snail > thsnail) = 3;
+snailsox2(and(snail > thsnail, sox2 > thsox2)) = 1;
+
+imarissetstatistics('snailsox', snailsox2);
+
+
+%%
+
+% create separate surfaces for different 
+
+ids = find(and(sox2 >= thsox2, snail < thsnail));
+
+nset = size(ids);
+sfset = surf(ids);
+fcset = fac(ids);
+nmset = norm(ids);
+
+imarissetsurface('Sox2', sfset, fcset, nmset);
+
+
+%%
+
+ids = find(and(snail >= thsnail, sox2 < thsox2));
+nset = size(ids);
+sfset = surf(ids);
+fcset = fac(ids);
+nmset = norm(ids);
+
+imarissetsurface('Snail', sfset, fcset, nmset);
+
+
+%%
+ids = find(and(snail >= thsnail, sox2 >= thsox2));
+nset = size(ids);
+sfset = surf(ids);
+fcset = fac(ids);
+nmset = norm(ids);
+
+imarissetsurface('SnailSox2', sfset, fcset, nmset);
+
+%%
+ids = find(and(snail < thsnail, sox2 < thsox2));
+nset = size(ids);
+sfset = surf(ids);
+fcset = fac(ids);
+nmset = norm(ids);
+
+imarissetsurface('None', sfset, fcset, nmset);
+
+
+
 %end
 
+
+
+%%
+
+save('Z:\aryeh_sox2_snail.mat')

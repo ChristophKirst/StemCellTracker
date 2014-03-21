@@ -52,7 +52,7 @@ if isempty(dataset)
 
 end
 
-% transform stack if not using hwl coordinates
+% transform stack if not using pql coordinates
 % stack = permute(stack, [2 1 3]); 
 
 

@@ -77,7 +77,7 @@ end
 if nargin < 4
    timepoint = 0;
 else
-   timepoint = varargin{5};
+   timepoint = varargin{4};
 end
 
 psize = imarisgetsize(imaris);
