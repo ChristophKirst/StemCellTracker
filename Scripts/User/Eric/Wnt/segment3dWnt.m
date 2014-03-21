@@ -107,7 +107,7 @@ imgmask = imopen(imgmask, strel('disk', 3));
 
 if verbose
    %%
-   figure(4)
+   figure(10)
    clf
    set(gcf, 'Name', ['Thresholded Stack: ' filename ' channel: 1']);
    implot3d(imgth);
@@ -184,10 +184,10 @@ imgseg = immask(imgws, imgmask);
 
 % %% Clean up segmentation and alternative diagnositcs
 % 
-imgseg = imlabelseparate(imgseg);
+imgseg = imlabelseparate(imgseg); % CK impose mask before watershed.
 stats = regionprops(imgseg, 'Area', 'PixelIdxList');
 
-min_area = 40;
+min_area = 40;  % its actually volume use length(pixel...list)
 keep = [stats.Area] >= min_area;
 for i = find(~keep)
    imgseg(stats(i).PixelIdxList) = 0;
