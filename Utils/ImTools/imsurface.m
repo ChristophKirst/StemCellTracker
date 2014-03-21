@@ -58,7 +58,7 @@ for l = 1:nlabel
    bmax = min(bmax + 1, isize);
    obj = imextract(labeledimage, bmin, bmax);
    obj = (obj == l);
-   
+     
    % call isosurface / isonormals
    [f,v] = isosurface(obj, 0.5);
    if nargout == 3

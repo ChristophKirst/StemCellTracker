@@ -20,6 +20,13 @@ function istat = imarissetstatistics(varargin)
 % output:
 %    istat   statistics
 %
+% note: 
+%    standard Factors used by Imaris and here:
+%        'Category'   = 'Surface'
+%        'Channel'    = ''
+%        'Collection' = ''
+%        'Time'       = '1'
+%
 % See also: imarisset
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
@@ -31,19 +38,19 @@ end
 %add = 0;
 if ischar(varargin{1}) && nargin > 1 && ischar(varargin{2})
    surfacename = varargin{1};
-   surface = imarisgetobject(imaris, surfacename, 'Surfaces');
-   if isempty(surface)
-      surface = imariscreatesurface(imaris, surfacename);
+   isurface = imarisgetobject(imaris, surfacename, 'Surfaces');
+   if isempty(isurface)
+      isurface = imariscreatesurface(imaris, surfacename);
       %add = 1;
    end
    varargin = varargin(2:end);
    %nargin = length(varargin);
 elseif isimaristype(imaris, varargin{1}, 'Surfaces')
-   surface = varargin{1};
+   isurface = varargin{1};
    varargin = varargin(2:end);
    %nargin = length(varargin);
 else % try to get selected surface
-   surface = imarisgetcurrentobject('Surfaces');
+   isurface = imarisgetcurrentobject('Surfaces');
    if isempty(surface)
       error('imarissetstatistics: select a valid surfaces object!')
    end
@@ -54,15 +61,14 @@ if isempty(surface)
 end
 
 try
-   nsurfaces = surface.GetNumberOfSurfaces();
-   istat = surface.GetStatistics();
+   nsurfaces = isurface.GetNumberOfSurfaces();
+   istat = isurface.GetStatistics();
 catch %#ok<CTCH>
    error('imarissetstatistics: error in retrieving current statistics!')
 end
 
-if nsufraces == 0
+if nsurfaces == 0
    error('imarissetstatistics: error no surfaces to set statistics!')
-   return
 end
 
 
@@ -75,7 +81,7 @@ if nargin == 1 && isstruct(varargin{1}) % statistics struct
    allnames = fieldnames(stats);
    names = {};
    values = {};
-   for n = 1:length(fieldnames)
+   for n = 1:length(allnames)
       if isscalar(stats(1).(allnames{n}))
          names = [names, allnames(n)]; %#ok<AGROW>
          values = [values, {stats.(allnames{n})}]; %#ok<AGROW>
@@ -93,7 +99,7 @@ elseif nargin == 2 % names value paris
    
    values = varargin{2};
    if ~iscell(values)
-      values = {values};
+      values = {values(:)};
    end
 end
 
@@ -104,38 +110,36 @@ if nstats ~= length(values)
 end
 
 for i = 1:nstats
-   if ndims(values{i}) ~= 1 || length(values{i}) ~= nsurfaces
-      error('imarissetstatistics: nunmber of names does not match number of statitics!')
+   if ~isvector(values{i}) || length(values{i}) ~= nsurfaces
+      error('imarissetstatistics: dimension mistmatch!')
    end
 end
       
 
-   
-for s = 1:nstats
+%  factors
+vFactorNames = {'Category', 'Channel', 'Collection', 'Time'}';
+vFactors = {'Surface', '', '', '1'}';
 
-   % its not clear what these factors do
-   vfac = {'Surface', '', '', '1'}';
-   vFactorNames = {'Category', 'Channel', 'Collection', 'Time'}';
-
-   aSimilarityNames   = cell(vSize, 1);
-   aSimilarityUnits   = cell(vSize, 1);
-   aSimilarityFactors = cell(size(vfac, 1), vSize);
-   aSimilarityIds     = 1:vSize;
-   for j = 1:vSize
-      aSimilarityNames{j}      = ['Test Statistics'];
-      aSimilarityUnits{j}      = 'um';
-      aSimilarityFactors(:, j) = vfac;
-      aSimilarityIds(j)        = j;
-   end
-
-   aSimilarityValues  = data;  
-      
-      
-
-
-
-
-end
+ for s = 1:nstats
+    statNames   = cell(nsurfaces, 1);
+    statUnits   = cell(nsurfaces, 1);
+    statFactors = cell(size(vFactors, 1), nsurfaces);
+    statIds     = 0:(nsurfaces-1);
+    %statIds     = 1:nsurfaces;
+    for j = 1:nsurfaces
+       statNames{j}      = names{s};
+       statUnits{j}      = 'um';
+       statFactors(:, j) = vFactors;
+       %statIds(j)        = j;
+    end
+    statValues  = values{s};
+    
+    try
+       isurface.AddStatistics(statNames, statValues, statUnits, statFactors, vFactorNames, statIds');
+    catch %#ok<CTCH>
+       error('imsetstatistics: error while setting the statistics!')
+    end
+ end
 
 
 
@@ -150,121 +154,3 @@ end
 
 
 
-%%
-
-
- 
-
-%%
-obj.AddStatistics(aSimilarityNames, aSimilarityValues, ...
-      aSimilarityUnits, aSimilarityFactors, vFactorNames, aSimilarityIds);
-
-
-%%
-
-try
-obj.AddStatistics(aSimilarityNames, aSimilarityValues, ...
-      aSimilarityUnits, {}, {}, aSimilarityIds);
-catch
-    disp oops
-end
-  
-  
-  %%
-
-
-
-
-
-
-
-
-if nargin < 3 || nargin > 5
-   error('imarissetvolume: expect 3-6 input arguments');
-end
-
-add = 0;
-if ischar(varargin{1})
-   surfacename = varargin{1};
-   surface = imarisgetobject(imaris, surfacename, 'Surfaces');
-   if isempty(surface)
-      surface = imariscreatesurface(imaris, surfacename);
-      add = 1;
-   end 
-   varargin = varargin(2:end);
-   nargin = length(varargin);
-elseif isimaristype(imaris, varargin{1}, 'Surfaces')
-   surface = varargin{1};
-   varargin = varargin(2:end);
-   nargin = length(varargin);
-else
-   surface = imariscreatesurface(imaris, 'MSurface');
-   add = 1;
-end
-
-if nargin < 3
-   error('imarissetvolume: expect 3-6 input arguments');
-end
-vertices = varargin{1};
-faces = varargin{2};
-normals = varargin{3};
-
-if ~iscell(vertices)
-   vertices = {vertices};
-end
-if ~iscell(faces)
-   faces = {faces};
-end
-if ~iscell(normals)
-   normals = {normals};
-end
-
-nsurfaces = length(vertices);
-if nsurfaces ~= length(faces) 
-   error('imarisput: surface parameter sizes do not agree');
-end
-if nsurfaces ~= length(normals) 
-   error('imarisput: surface parameter sizes do not agree');
-end
-
-if nargin < 4
-   timepoint = 0;
-else
-   timepoint = varargin{5};
-end
-
-psize = imarisgetsize(imaris);
-extend = imarisgetextend(imaris);
-fac = (extend(2,:) - extend(1,:)) ./ psize;
-
-
-surface.RemoveAllSurfaces
-for i = 1:nsurfaces
-  %vSurfaceHull.AddSurface(xyz{i}(:,[2, 1, 3])-1, tri{i}-1,  nrm{i}(:,[2, 1, 3]), timepoint);
-  
-  % convert vertices to space coordinates
-  % vertices{i} = imarispixel2space(imaris, vertices{i});
-  verts = impixel2space(psize, extend, vertices{i});
-  
-  nrmls = normals{i};
-  nrmls = nrmls .* repmat(fac, size(nrmls,1),1);
-
-  surface.AddSurface(verts, faces{i}-1, nrmls , timepoint);
-end
-
-%surface.SetColorRGBA(xxx);
-
-if add
-   scene = imaris.GetSurpassScene;
-   scene.AddChild(surface, -1);
-end
-
-end
-
-
-% helper
-function surface = imariscreatesurface(imaris, surfacename)
-   factory = imaris.GetFactory;
-   surface = factory.CreateSurfaces;
-   surface.SetName(surfacename);
-end

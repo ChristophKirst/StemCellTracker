@@ -92,7 +92,7 @@ function [L, Map, Zerocolor, Order, Fcnflag] = parse_inputs(varargin)
 % Fcnflag   flag to indicating that Map is a function
 
 
-narginchk(1,4);
+%narginchk(1,4);
 
 % set defaults
 L = varargin{1};

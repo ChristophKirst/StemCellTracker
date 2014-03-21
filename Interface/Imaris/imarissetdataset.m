@@ -60,7 +60,7 @@ switch char(datatype)
     case {'single', 'eTypeFloat'},
         classDataSet = Imaris.tType.eTypeFloat;
     otherwise,
-        error('imariscreatedataset: bad data type %s.', type);
+        error('imariscreatedataset: bad data type.');
 end
 
 % Create the dataset
