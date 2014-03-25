@@ -5,7 +5,7 @@
 % Save this file to ./Skripts/User/ under a descriptive name
 % and modify to find the combination of steps that best segment your image
 %
-% Run this file cell by cell to experiment with segmentation parameters. 
+% Run this file matlab-cell by matlab-cell to experiment with segmentation parameters. 
 % When satisfied comment out the display features and unwanted routines and
 % create your segmentation function for processing all your images
 %
@@ -52,18 +52,18 @@ end
 % appliy some filters to remove noise
 
 % gaussian filter
-%param.filter.ksize = [5, 5];    % size of the filter kernel (h x w box)
+%param.filter.ksize = [5, 5];    % size of the filter kernel (q x p box)
 %param.filter.sigma = []         % std of gaussian [] = param.filter.ksize / 2 / sqrt(2 * log(2)); 
 %img = gaussianFilter(img, param.filter.ksize, param.filter.sigma);
 
 % mean shift filter - edge preserving 
-%param.filter.ksize = 3;              % size of the filter kernel (h x w box)
+%param.filter.ksize = [3 3];              % size of the filter kernel (q x p box)
 %param.filter.intensity_width = 0.1;  % max deviaiton of intensity values to include in mean
 %param.filter.iterations = 1;         % number of iterating the filtering 
 %img = meanShiftFilter(img, param.filter.ksize, param.filter.intensity_width, param.filter.iterations);
 
 % median filter - edge preserving
-param.filter.ksize = 3;               % size of the filter kernel (h x w box) 
+param.filter.ksize = [3, 3];               % size of the filter kernel (q x p box) 
 img = medianFilter(img, param.filter.ksize);
 
 % bilateral filter - edge preserving

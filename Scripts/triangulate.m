@@ -6,7 +6,7 @@
 image = fspecial3('disk', [40,20,15], [1, 2, 2], 1, 0);
 image = padarray(image, [20,10,0], 'pre');
 
-[x,y,z] = imfind3d(image);
+[x,y,z] = imfind(image);
 size(image)
 
 
@@ -42,7 +42,7 @@ imarisput(205 * uint8(obj))
 
 %% imisosurface
 
-[x,y,z] = imfind3d(obj);
+[x,y,z] = imfind(obj);
 tri = delaunayn([x,y,z]);
 
 figure(50)

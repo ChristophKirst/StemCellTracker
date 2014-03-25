@@ -7,13 +7,13 @@ function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 % in a labeled image
 %
 % input:
-% labeledimage labeled object's image
-% boundary (optional) close surface at specified boundaries either sublist of 'hwl' or bool array ([0 0 0])
+%     labeledimage labeled object's image
+%     boundary     (optional) close surface at specified boundaries either sublist of 'pql' or bool array ([0 0 0])
 %
 % output:
-% vertices vertices of each object surface as cell array
-% faces faces
-% normals (optional) normals
+%     vertices     vertices of each object surface as cell array
+%     faces        faces
+%     normals      (optional) normals
 %
 % See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
 

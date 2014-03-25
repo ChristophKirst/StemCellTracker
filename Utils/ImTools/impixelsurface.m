@@ -1,30 +1,39 @@
-function surface = impixelsurface(labeledimage)
+function [surface, varargout] = impixelsurface(labeledimage, stats)
 %
 % surface = impixelsurface(labeledimage)
+% [surface, stats] = impixelsurface(labeledimage, stats)
 %
 % description: 
 %    returns the surface of the labeld image
 %
 % input:
 %    label    the labeled image
+%    stats    (optional) statistics of labeled image
 %
 % output:
 %    surface  labeled pixels on the surface of the labeled objects
+%    stats    (optional) updated statistics of labeld image
 %
 
-label = imlabel(labeledimage);
+if nargin < 2
+   stats = [];
+end
+
+stats = imstatistics(labeledimage, stats, 'PixelIdxList', 'BoundingBox');
+
 isize = size(labeledimage);
 dim = length(isize);
 if dim < 2 || dim > 3
-   error('impixelsurface: expect 2d or 3d bw image');
+   error('impixelsurface: expect 2d or 3d labeled image');
 end
+
 surface = zeros(isize);
 
-for l = label
+for l = 1:length(stats)
    
-   obj = labeledimage == l;
-   [bmin, bmax] = imboundingbox(obj);
-   obj = imextract(obj, bmin, bmax);
+   bbox = stats(l).BoundingBox;
+   bmin = bbox(1:dim);
+   obj = imextract(obj, bbox);
    objsurf = bwpixelsurface(obj, 'border');
    idxsurf = find(objsurf);
    

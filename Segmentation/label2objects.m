@@ -13,7 +13,7 @@ function objects = label2objects(image, label, time, rescale)
 %    
 %
 % output:
-%    objects   array of Objects each representing one of the labels
+%    objects  array of Objects each representing one of the labels
 %
 % See also: Object
 

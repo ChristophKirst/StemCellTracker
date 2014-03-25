@@ -22,13 +22,13 @@ function model = implot3d(image, param)
 %    model     refernece to the 3d model
 %
 % note:
-%    use interp3 on input date to increase/decrease resolution of data
+%    use interp3 on input data to increase/decrease resolution of data
 %
 % See also alphamap, colormap, opengl, isosurface
 
 % based on code by Joe Conti, 2004
 % modified by C. Kirst 2014 to fit into imtools
-%                           in particular assuming pixel coordinates for the data!
+%                           in particular assuming pixel coordinates for the data
 
 if nargin < 2
    param = [];

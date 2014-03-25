@@ -28,9 +28,9 @@ cmap  = imlabelcolormap(max(label(:)), param);
 
 shuffle = getParameter(param,  {'color', 'shuffle'}, []);
 
-if isempty(shuffle) && isempty(getParameter(param,  {'color', 'data'}, []))
-   shuffle = 'shuffle';
-end
+%if isempty(shuffle) && isempty(getParameter(param,  {'color', 'data'}, []))
+%   shuffle = 'shuffle';
+%end
 
 back = getParameter(param,  {'color', 'background'}, []);
 
@@ -42,6 +42,8 @@ end
 if ~isempty(shuffle)
    opt = [opt, {shuffle}];
 end
+
+opt
 
 if ndims(label) == 2 %#ok<ISMAT>
    image = label2rgb(label, cmap, opt{:});

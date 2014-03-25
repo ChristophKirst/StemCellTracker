@@ -4,12 +4,12 @@ function [colmap, coldata] = imlabelcolormap(nlabel, param)
 % colmap = imlabelcolormap(label, param)
 %
 % description: 
-%     generates color map fromo the parameter struct as passed to several plotting routines
+%     generates a color map from the parameter struct
 %
 % input:
-%     nlabel    labeled image
+%     nlabel    number of lables in labeled image
 %     param     (optional) parameter struct with entries
-%               .color.data    color according to this data ([] = random)
+%               .color.data    color according to this data ([] = randperm(nlabel))
 %               .color.map     use this colormap (colormap)
 %               .color.scale   scale color data (true)
 %
@@ -35,8 +35,10 @@ cscale = getParameter(param, {'color', 'scale'}, true);
 if isempty(cdata)
    %cdata = 1:nlabel;
    
-   % shuffle the data
+   % shuffle the data -> use same seed
+   savedState  = RandStream.setGlobalStream(RandStream('mt19937ar', 'Seed', 1));
    cdata = randperm(nlabel);
+   RandStream.setGlobalStream(savedState);
    
 elseif nlabel ~= length(cdata)
    error('imlabelcolormap: inconsistent color data size!')

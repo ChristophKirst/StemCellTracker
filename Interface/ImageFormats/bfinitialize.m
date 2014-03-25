@@ -39,7 +39,6 @@ if ~status
    end
 end
 
-
 %  automatic detection: check imagej's jars path
 if ~status
     bfpath = ijpath;

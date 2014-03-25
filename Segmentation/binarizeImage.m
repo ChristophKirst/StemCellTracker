@@ -23,9 +23,7 @@ if ~isnumeric(threshold)
    if sum(strcmp({'Otsu' 'Entropy' 'MixtureOfGaussians', 'MutualEntropy'}, threshold)) > 0
       methodName = [lower(threshold(1)) threshold(2:end) 'Threshold'];
       thresFunc = str2func(methodName);
-      
-      threshold = thresFunc(image, varargin{:});
-      
+      threshold = thresFunc(image, varargin{:});      
    else
       error(['binarizeImage: no available method ' threshold ' for thresholding!'])
    end

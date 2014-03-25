@@ -1,6 +1,6 @@
-function [hull, xyz] = bwconvhull3d( mask )
+function [hull, pql] = bwconvhull3d( mask )
 %
-% [hull, xyz] = bwconvhull3d( mask )
+% [hull, pql] = bwconvhull3d( mask )
 %
 % description:
 %    calculates the convex hull of mask as bw mask 
@@ -10,7 +10,7 @@ function [hull, xyz] = bwconvhull3d( mask )
 %
 % output:
 %    hull   convex hull as mask
-%    xyz    pixel coordinates of hull
+%    pql    pixel coordinates of hull
 %
 % See also: bwconvhull convhulln
 
@@ -18,18 +18,18 @@ function [hull, xyz] = bwconvhull3d( mask )
 ind = find(mask);
 siz = size(mask);
 
-[x,y,z] = ind2sub(siz, ind);
-xyz = [x,y,z];
+[p,q,l] = ind2sub(siz, ind);
+pql = [p,q,l];
 
-k = convhulln(xyz);
+k = convhulln(pql);
 
 % linear constrains A x + b <= 0 
-c = mean(xyz(unique(k),:));
-xyz = xyz - repmat(c,[size(xyz,1) 1]);
-A = NaN*zeros(size(k,1),size(xyz,2));
+c = mean(pql(unique(k),:));
+pql = pql - repmat(c,[size(pql,1) 1]);
+A = NaN*zeros(size(k,1),size(pql,2));
 rc=0;
 for ix = 1:size(k,1)
-    F = xyz(k(ix,:),:);
+    F = pql(k(ix,:),:);
     if rank(F,1e-5) == size(F,1)
         rc=rc+1;
         A(rc,:)=F\ones(size(F,1),1);
