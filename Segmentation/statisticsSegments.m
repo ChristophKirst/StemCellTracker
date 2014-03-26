@@ -106,77 +106,78 @@ end
 % todo: speed up code below
 
 %label
-if any(ismember(props, propnames(8:10)))
-   %labs = imlabel(label);
-   labs = 1:max(label(:));
-   bb = imlabelboundingboxes(labeledimage); 
-   
-   ue = any(ismember(props, 'UltimateErosion'));
-   ps = any(ismember(props, 'PixelSurface'));
-   su = any(ismember(props, 'Surface')); 
-   
-   for l = labs
-      % reduce calculation to bounding box
-      bmin = bb(l, 1:3);
-      bmax = bb(l, 4:6);
 
-      bmin = max(bmin - 1, 1);
-      bmax = min(bmax + 1, isize);
-      obj = imextract(labeledimage, bmin, bmax);
-      obj = (obj == l);
-      
-      %UltimateEroison
-      if ue
-         stats(l).UltimateErosion = find(bwulterode(obj)) + bmin - 1;
-      end
-      
-      %PixelSurface
-      if ps
-
-   for l = labs
-      stats(i).PixelSurface = find(pixsurf == l);
-      i = 1 + 1;
-   end
-      end
-
- 
-
-         if ps
-      pixsurf = impixelsurface(label);
-        
-   
-   
-end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   % call isosurface / isonormals
-   [f,v] = isosurface(obj, 0.5);
-   if nargout == 3
-      n = isonormals(obj, v);
-   end
-   
-   % correct for x,y exchange and assign outputs
-   v = v(:, [2 1 3]);
-   vertices{l} = v + repmat(bmin, size(v,1), 1) - 1;
-   faces{l} = f;
-   
-   if nargout == 3
-      normals{l} = n(:,[2 1 3]);
-   end
-
+% if any(ismember(props, propnames(8:10)))
+%    %labs = imlabel(label);
+%    labs = 1:max(label(:));
+%    bb = imlabelboundingboxes(labeledimage); 
+%    
+%    ue = any(ismember(props, 'UltimateErosion'));
+%    ps = any(ismember(props, 'PixelSurface'));
+%    su = any(ismember(props, 'Surface')); 
+%    
+%    for l = labs
+%       % reduce calculation to bounding box
+%       bmin = bb(l, 1:3);
+%       bmax = bb(l, 4:6);
+% 
+%       bmin = max(bmin - 1, 1);
+%       bmax = min(bmax + 1, isize);
+%       obj = imextract(labeledimage, bmin, bmax);
+%       obj = (obj == l);
+%       
+%       %UltimateEroison
+%       if ue
+%          stats(l).UltimateErosion = find(bwulterode(obj)) + bmin - 1;
+%       end
+%       
+%       %PixelSurface
+%       if ps
+% 
+%    for l = labs
+%       stats(i).PixelSurface = find(pixsurf == l);
+%       i = 1 + 1;
+%    end
+%       end
+% 
+%  
+% 
+%          if ps
+%       pixsurf = impixelsurface(label);
+%         
+%    
+%    
+% end
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+%    % call isosurface / isonormals
+%    [f,v] = isosurface(obj, 0.5);
+%    if nargout == 3
+%       n = isonormals(obj, v);
+%    end
+%    
+%    % correct for x,y exchange and assign outputs
+%    v = v(:, [2 1 3]);
+%    vertices{l} = v + repmat(bmin, size(v,1), 1) - 1;
+%    faces{l} = f;
+%    
+%    if nargout == 3
+%       normals{l} = n(:,[2 1 3]);
+%    end
+% 
 
 
 end

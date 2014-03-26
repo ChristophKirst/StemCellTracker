@@ -14,6 +14,7 @@ function [surface, varargout] = impixelsurface(labeledimage, stats)
 %    surface  labeled pixels on the surface of the labeled objects
 %    stats    (optional) updated statistics of labeld image
 %
+% See also: bwpixelsurface
 
 if nargin < 2
    stats = [];
@@ -32,8 +33,23 @@ surface = zeros(isize);
 for l = 1:length(stats)
    
    bbox = stats(l).BoundingBox;
+   
+   %trailling size 1 does not work with matlab !
+   if bbox(dim)==bbox(2*dim)
+       if bbox(2*dim) < isize(dim)
+           bbox(2*dim) = bbox(dim) + 1;
+       else
+           bbox(dim) = bbox(dim) - 1;
+           if bbox(dim) < 1
+               bbox(dim) = 1;
+           end
+       end
+   end
+   
    bmin = bbox(1:dim);
-   obj = imextract(obj, bbox);
+
+   obj = imextract(labeledimage, bbox);
+   obj = (obj ==l);
    objsurf = bwpixelsurface(obj, 'border');
    idxsurf = find(objsurf);
    
@@ -53,6 +69,10 @@ for l = 1:length(stats)
       surface(sub2ind(isize, sx, sy, sz)) = l;
       
    end
+end
+
+if nargout > 1
+    varargout{1} = stats;
 end
 
 end

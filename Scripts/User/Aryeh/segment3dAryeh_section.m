@@ -16,6 +16,7 @@ initialize
 %% Init
 
 if nargin < 2
+    %%
    verbose = false;
 end
 
@@ -55,6 +56,19 @@ if false
    img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
    img = imzreverse(squeeze(img));
    
+   
+   %% test segmentation
+   xr = [275, 275+200]+150;  % use [] for all
+   yr = [825, 825+200]+50;
+   cr = 1;
+   se = 21;
+   ti = 1;
+   img = imread_bf(filename, struct('series', se, 'time', ti, 'channel', cr, 'x', xr, 'y', yr));
+   img = imzreverse(squeeze(img));
+
+   size(img)
+   img = imisostack(img, 1);
+   size(img)
    
    %%  figure aryeh
    xr = [275, 2100];  % use [] for all
@@ -124,7 +138,7 @@ end
 
 
 %% filter 
-param.filter.median.ksize = [3, 3, 3]; %3;
+param.filter.median.ksize = [4, 4, 3]; %3;
 imgmed = mat2gray(medianFilter(imgd, param.filter.median.ksize));
 %imgmed = meanShiftFilter(imgmed, 4, 0.1);
 
@@ -163,8 +177,8 @@ end
 %th = thresholdMixtureOfGaussians(imgmedf, 0.5)
 %th = thresholdEntropy(imgmed)
 %th = thresholdMutualEntropy(imgmed)
-%th = thresholdOtsu(imgmed);
-th = 0.1;
+th = thresholdOtsu(imgmed)
+th = 0.15;
 
 imgth = imgmedf;
 imgth(imgth < th) = 0;
@@ -172,7 +186,6 @@ imgth(imgth < th) = 0;
 imgmask = imgth > 0;
 % remove small fragments and small isolated minima with imopen
 imgmask = imopen(imgmask, strel('disk', 3));
-
 
 if verbose
    %%
@@ -188,17 +201,40 @@ if verbose
    
    %ijplot3d(imgth, 'PixelDepth', 5)
    
+   %%
+   figure(4)
+   clf
+   set(gcf, 'Name', ['Mask Stack: ' filename ' channel: 1']);
+   implot3d(imgmask);
    
    
    %%
    figure(5)
    
    subplot(1,2,1)
-   hist(imglogvals(:), 256/8)
+   %hist(imglogvals(:), 256/8)
    
    subplot(1,2,2);
    hist(imgmedf(:), 256/8);
 end
+
+%% increasing some of the lower intensity regoins 
+
+imgcl = imgth;
+imgcl(imgcl >0 & imgcl > 0.7) = 0.7;
+imgcl = mat2gray(imgcl);
+
+if verbose
+   %%
+   figure(4)
+   clf
+   set(gcf, 'Name', ['Thresholded Clipped Stack: ' filename ' channel: 1']);
+   implot3d(imgcl);
+   
+end
+
+
+
 
 
 %% Filtering / Seeding
@@ -218,14 +254,15 @@ end
 % Laplacian of Gaussians
 
 zsize = size(imgmedf,3);
-imgf = mat2gray(imgmedf);
-%for z = zsize:-1:1
-%   imgf(:,:,z) = imgf(:,:,z) - 0.0 * mat2gray(imgradient(imgf(:,:,z)));
-%end
+imgf = mat2gray(imgcl);
+for z = zsize:-1:1
+   imgf(:,:,z) = imgf(:,:,z) - 0.2 * mat2gray(imgradient(imgf(:,:,z)));
+end
 imgf = mat2gray(imgf);
 
 
 if verbose
+   %%
    figure(17)
    clf
    imsubplot(1,2,1);
@@ -235,8 +272,8 @@ end
 %param.filter.logsize = [10,10,10];
 %imgf = logFilter(max(imgf(:)) - imgf, param.filter.logsize, [], 0);
 
-imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
-
+%imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
+imgf = dogFilter(imgf, [15, 15, 15], [] ,[], 0);
 
 if verbose 
    imsubplot(1,2,2);
@@ -261,7 +298,8 @@ imgf = mat2gray(imgf);
 param.filter.hmax = 0.01;  %0.02;
 %imgmax = imregionalmax(imgf);
 imgmax = imextendedmax(mat2gray(imgf), param.filter.hmax);
-imgmax = imdilate(imgmax, strel('disk',2));
+imgmax = imdilate(imgmax, strel('disk',4));
+imgmax = immask(imgmax, imgmask);
 
 if verbose
    %%
@@ -272,6 +310,17 @@ if verbose
    figure(22)
    clf
    implottiling(imoverlaylabel(mat2gray(imgf), bwlabeln(imgmax)));
+   
+   
+   %%
+   size(imgmax) 
+   size( bwlabeln(imgmax))
+   size(imgf)
+   
+   %%
+   figure(23)
+   clf
+   implotlabeloutline(imgf, bwlabeln(imgmax))
    
 end
 
@@ -284,27 +333,28 @@ imgmaxd = imfill(imgmax, 'holes');
 %imgmaxd = imgmax;
 
 % watershed
-imgmin = imimposemin(max(imgmedf(:)) - imgmedf, imgmaxd);
+%%imgmin = imimposemin(max(imgmedf(:)) - imgmedf, imgmaxd);
+imgmin = imimposemin(max(imgth(:)) - imgth, imgmaxd);
 imgws = watershed(imgmin);
 imgseg = immask(imgws, imgmask);
 
 %propagation
-%imgseg = segmentByPropagation(imgmedf, bwlabeln(imgmaxd), imgmask);
+%imgseg = segmentByPropagation(imgth, bwlabeln(imgmaxd), imgmask);
 
 
 
 % %% Clean up segmentation and alternative diagnositcs
 % 
 imgseg = imlabelseparate(imgseg);
-stats = regionprops(imgseg, 'Area', 'PixelIdxList');
 
-min_vol = 100;
-keep = [stats.Area] >= min_vol;
-for i = find(~keep)
-   imgseg(stats(i).PixelIdxList) = 0;
-end
-imgseg = imfill(imgseg, 'holes');
-imgseg = imrelabel(imgseg);
+param.volume.min = 150; 
+param.volume.max = Inf;
+param.intensity.min = 0.1;
+param.intensity.max = Inf;
+param.boundaries = false;
+param.fillholes = true;
+param.relabel = true;
+imgseg = postProcessSegments(imgseg, imgth, param);
 
 % 
 % [bndry, lbl] = bwboundaries(lbl > 0, 8, 'noholes');
@@ -317,26 +367,43 @@ if verbose
    clf
    %implot3d(imgseg);
    imsurfaceplot3d(imgseg);
-end
 
-
-%%
-if verbose
    %%
    figure(23)
    clf
    implotlabeloutline(img, imgseg);
-end
 
-
-%%
-if true
+   %%
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 5);
 end
+
 
 %%
 size(imlabel(imgseg))
 max(imgseg(:))
+
+
+%% Calculate Surfaces
+
+[surf, fac, norm] = imsurface(imgseg, 'all');
+surfaces = {surf, fac, norm};
+
+
+%% Push Surfaces to imaris
+
+if useimaris
+   %%
+   %nset = 3;
+   nset = size(surf);
+   sfset = surf(1:nset);
+   fcset = fac(1:nset);
+   nmset = norm(1:nset);
+
+   imarissetsurface('Segmentation', sfset, fcset, nmset);
+end
+
+
+
 
 %% Calcualte Statistics 
 
@@ -354,12 +421,6 @@ end
 
 
 
-
-%% Calculate Surfaces
-
-[surf, fac, norm] = imsurface(imgseg, 'all');
-surfaces = {surf, fac, norm};
-
 %% save this stuff
 
 if ~isempty(savefile)
@@ -373,28 +434,21 @@ if ~isempty(savefile)
    
    %%
    save(savefile, 'img', 'imgseg', 'stats', 'surfaces')
+   
+   
+   %%
+   save('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 end
 
+%% load
 
+
+load('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 
 
 
 
 %% Visualization / Plotting Statistics etc
-
-
-%% Push Surfaces to imaris
-
-if useimaris
-   %%
-   %nset = 3;
-   nset = size(surf);
-   sfset = surf(1:nset);
-   fcset = fac(1:nset);
-   nmset = norm(1:nset);
-
-   imarissetsurface('Segmentation', sfset, fcset, nmset);
-end
 
 
 %% Plotting Statistics as Colored Surfaces

@@ -177,14 +177,14 @@ if ~isempty(regprops)
    
    %BoundingBox: correct to imboundingbox standard   
    if isfield(regstats, 'BoundingBox')
+      
       dat = reshape([regstats.BoundingBox], dim * 2, []);
-      dat(1:2, :) = round(dat(2:-1:1,:) + 0.5); % correct for x,y exchange and shift to full pixel
-      if dim == 3
-         dat(3,:) = round(dat(3,:) + 0.5);
-      end
-
-      ee = [2 1 3] + dim;
-      ee = ee(1:dim);
+      ee = [2 1 3]; ee = ee(1:dim);
+      ee = [ee, ee + dim];
+      dat = dat(ee, :);
+      
+      dat(1:dim, :) = round(dat(1:dim,:) + 0.5); % correct for x,y exchange and shift to full pixel
+      ee = (dim+1):(2 * dim);
       dat(ee, :) = dat(1:dim, :) + dat(ee, :) - 1;
     
       dat = num2cell(dat,1);
