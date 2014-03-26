@@ -1,4 +1,15 @@
 function b = isimarisserverrunning()
+%
+% b = isimarisserverrunning()
+%
+% description:
+%     tests if Imaris Server application is running
+%
+% output:
+%     b    true if sever is running
+%
+% See also: imarissart
+
    b = 0;
    if ispc()
       [~, result] = system(...

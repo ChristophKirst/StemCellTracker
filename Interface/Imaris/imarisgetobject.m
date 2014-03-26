@@ -13,12 +13,17 @@ function object = imarisgetobject(varargin)
 % output:
 %   object       the founc object or [] otherwise
 %
-% See also: imarisgetobjects
+% See also: imarisgetobjects, imarisgetcurrentobject
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
-if nargin < 1 || nargin > 3
-    error('imarisgetobjects: 1 to 3 input parameters expected.');
+if nargin > 3
+    error('imarisgetobjects: 0 to 3 input parameters expected.');
+end
+
+if nargin < 1
+   object = imarisgetcurrentobject();
+   return
 end
 
 objectname = varargin{1};

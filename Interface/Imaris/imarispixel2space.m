@@ -9,7 +9,7 @@ function varargout = imarispixel2space(varargin)
 %     maps Imaris pixel coordinates to space coordinates using
 %
 % input:
-%     pixel coordinates as [h,w,l] or h,w,l
+%     pixel coordinates as [p,q,l] or p,q,l
 %
 % output:
 %     space coordinates as [x;y;z] or x,y,z
@@ -31,14 +31,14 @@ end
 
 
 if ~ismember(nargin, [1 3])
-    error('imarispixel2space: expect [h;w;l] or h,w,l coordinates.');
+    error('imarispixel2space: expect [p;q;l] or p,q,l coordinates.');
 end
 
   
 % Check and get the inputs
 if nargin == 1
     if size(varargin{1}, 2) ~= 3
-        error('imarispixel2space: The input is expected to be an (N x 3) matrix.');
+        error('imarispixel2space: The input is expected to be an (n x 3) matrix.');
     end
     uPosX = varargin{1}(:, 1);
     uPosY = varargin{1}(:, 2);

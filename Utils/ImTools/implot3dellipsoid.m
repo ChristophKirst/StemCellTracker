@@ -18,6 +18,10 @@ function implot3dellipsoid(centroids, mainaxes, param)
 %
 % See also: imsurface, imlabelcolormap
 
+if nargin < 3
+   param = [];
+end
+
 [vertices, faces, normals] = imellipsoid2surface(centroids, mainaxes, param);
 implot3dsurface(vertices, faces, normals, param)
 

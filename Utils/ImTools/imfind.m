@@ -27,7 +27,7 @@ else
       [p,q,l] = ind2sub(size(image), idx);
 end
 
-if nargout == 1
+if nargout <= 1
    if dim == 2 
       p = [p, q];
    else

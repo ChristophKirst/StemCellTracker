@@ -1,7 +1,7 @@
 function stack = imarisgetsubvolume(varargin)
 %
-% stack = imarisgetsubvolume(h0, w0, l0, dh, dw, dl, channel, timepoint)
-% stack = imarisgetsubvolume([h0, w0, l0], [dh, dw, dl], channel, timepoint)
+% stack = imarisgetsubvolume(p0, q0, l0, dp, dq, dl, channel, timepoint)
+% stack = imarisgetsubvolume([p0, q0, l0], [dp, dq, dl], channel, timepoint)
 % stack = imarisgetsubvolume(object, ...)
 % stack = imarisgetsubvolume(imaris, ...)
 %
@@ -9,8 +9,8 @@ function stack = imarisgetsubvolume(varargin)
 %   retrieves subset of the volumetric data from Imaris object at a given timpepoint and color channel
 %
 % input:
-%    hwl0           position in pixel coordinates
-%    dhwl           size
+%    pql0           position in pixel coordinates
+%    dpql           size
 %    channel        channel number 
 %    timepoint      timepoint number
 %
@@ -20,9 +20,7 @@ function stack = imarisgetsubvolume(varargin)
 % output:
 %    stack          volumetric data
 %
-% note: The IVolume object in Imaris is just a wrapper, all data is stored in DataSet
-%
-% See also: imarisset
+% See also: imarisgetvolume
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
@@ -49,20 +47,20 @@ if nargin < 2 || nargin > 8
    error('imarisgetsubvolume: expect 2-8 input arguments');
 end
 
-hwl0 = varargin{1};
-if length(hwl0) == 1
+pql0 = varargin{1};
+if length(pql0) == 1
    if nargin < 6 
-      error('imarisgetsubvolume: expect 6 parameters: h0, w0, l0, dh, dw, dl');
+      error('imarisgetsubvolume: expect 6 parameters: p0, q0, l0, dp, dq, dl');
    end
-   hwl0 = [varargin{1:3}];
-   dhwl = [varargin{1:3}];
+   pql0 = [varargin{1:3}];
+   dpql = [varargin{1:3}];
    varargin = varargin(7:end);
    nargin = length(varargin);
    
-elseif length(hwl0) == 3
-   dhwl = [varargin{2}];
-   if length(dhwl) ~=3 
-      error('imarisgetsubvolume: expect parameters: [h0, w0, l0], [dh, dw, dl]');
+elseif length(pql0) == 3
+   dpql = [varargin{2}];
+   if length(dpql) ~=3 
+      error('imarisgetsubvolume: expect parameters: [p0, q0, l0], [dp, dq, dl]');
    end
    
    varargin = varargin(3:end);
@@ -74,19 +72,19 @@ else
 end
 
 % matlab first index = 1, Imaris first index = 0
-hwl0 = hwl0 -1;
-h0 = hwl0(1); w0 = hwl0(2); l0 = hwl0(3);
-dh = dhwl(1); dw = dhwl(2); dl = dhwl(3);
+pql0 = pql0 -1;
+p0 = pql0(1); q0 = pql0(2); l0 = pql0(3);
+dp = dpql(1); dq = dpql(2); dl = dpql(3);
 
-if h0 < 0 || h0 > dataset.GetSizeX() - 1
-   error('imarisget: starting position h0 out of bounds.');
+if p0 < 0 || p0 > dataset.GetSizeX() - 1
+   error('imarisget: starting position p0 out of bounds.');
 end
-h0 = uint32(h0);
+p0 = uint32(p0);
 
-if w0 < 0 || w0 > dataset.GetSizeY() - 1
-   error('imarisgetsubvolume: starting position w0 out of bounds.');
+if q0 < 0 || q0 > dataset.GetSizeY() - 1
+   error('imarisgetsubvolume: starting position q0 out of bounds.');
 end
-w0 = uint32(w0);
+q0 = uint32(q0);
 
 if l0 < 0 || l0 > dataset.GetSizeZ() - 1
    error('imarisgetsubvolume: starting position l0 out of bounds.');
@@ -124,20 +122,20 @@ switch char(dataset.GetType())
 end
 
 % Allocate memory
-stack = zeros([dh, dw, dl], datatype);
+stack = zeros([dp, dq, dl], datatype);
 
 % Get the stack
 switch char(dataset.GetType())
    case 'eTypeUInt8',
       % Java does not have unsigned ints
-      arr = dataset.GetDataSubVolumeAs1DArrayBytes(h0, w0, l0, channel, timepoint, dh, dw, dl);
+      arr = dataset.GetDataSubVolumeAs1DArrayBytes(p0, q0, l0, channel, timepoint, dp, dq, dl);
       stack(:) = typecast(arr, 'uint8');
    case 'eTypeUInt16',
       % Java does not have unsigned ints
-      arr = dataset.GetDataSubVolumeAs1DArrayShorts(h0, w0, l0, channel, timepoint, dh, dw, dl);
+      arr = dataset.GetDataSubVolumeAs1DArrayShorts(p0, q0, l0, channel, timepoint, dp, dq, dl);
       stack(:) = typecast(arr, 'uint16');
    case 'eTypeFloat',
-      stack(:) = dataset.GetDataSubVolumeAs1DArrayFloats(h0, w0, l0, channel, timepoint, dh, dw, dl);
+      stack(:) = dataset.GetDataSubVolumeAs1DArrayFloats(p0, q0, l0, channel, timepoint, dp, dq, dl);
    otherwise,
       error('imarisgetsubvolume: Bad value for dataset.GetType().');
 end

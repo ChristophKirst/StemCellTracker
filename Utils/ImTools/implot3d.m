@@ -12,8 +12,8 @@ function model = implot3d(image, param)
 %              .color.scale    color data scale [cmin, cmax] ([] = automatic = [min(cdata), max(cdata)])
 %              .color.alpha    alpha data (image intensity)
 %              .renderslice    set the slices to render ('z')
-%              .range.h        1x2 p-axis bounds. ( [1 size(data,1)] )
-%              .range.w        1x2 q-axis bounds. ( [1 size(data,2)] )
+%              .range.p        1x2 p-axis bounds. ( [1 size(data,1)] )
+%              .range.q        1x2 q-axis bounds. ( [1 size(data,2)] )
 %              .range.l        1x2 l-axis bounds. ( [1 size(data,3)] )
 %              .boxratios      1x3 ratio array to scale the axes individually ([1 1 1])
 %              .parent         parent axes (gca)
@@ -47,9 +47,9 @@ model.alpha = getParameter(param, {'color', 'alpha'}, model.alpha);
 model.cscale = getParameter(param, {'color', 'scale'}, model.cscale);
 model.texture = getParameter(param, {'texture'}, model.texture);
 model.xdata = getParameter(param, {'range', 'x'}, model.xdata);
-model.xdata = getParameter(param, {'range', 'h'}, model.xdata);
+model.xdata = getParameter(param, {'range', 'p'}, model.xdata);
 model.ydata = getParameter(param, {'range', 'y'}, model.ydata);
-model.ydata = getParameter(param, {'range', 'w'}, model.ydata);
+model.ydata = getParameter(param, {'range', 'q'}, model.ydata);
 model.zdata = getParameter(param, {'range', 'y'}, model.zdata);
 model.zdata = getParameter(param, {'range', 'l'}, model.zdata);
 
@@ -87,7 +87,7 @@ end
 [model] = local_draw(model);
 
 %set(gca,'YDir','Reverse');
-xlabel('h'); ylabel('w'); zlabel('l')
+xlabel('p'); ylabel('q'); zlabel('l')
 
 end
 

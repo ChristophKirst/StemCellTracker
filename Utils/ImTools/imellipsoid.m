@@ -46,14 +46,14 @@ if dim == 2
 
 else % dim == 3
 
-   stats = imstatistics(labeledimage, stats, 'PixelIdxList');
+   stats = imstatistics(labeledimage, stats,  {'Centroid', 'PixelIdxList'});
    nlabels = length(stats);
    centroids = zeros(3, nlabels);
    mainaxes = zeros(3*3, nlabels);
    isize = size(labeledimage);
    
    for i = 1:nlabels
-      [cc, aa] = imellipsoid3d(isize, stats(i).PixelIdxList);
+      [cc, aa] = imellipsoid3d(isize, stats(i).PixelIdxList, stats(i).Centroid);
       centroids(:, i) = cc;
       mainaxes(:,i)  = aa;
    end
@@ -68,7 +68,7 @@ end
 
 
 %%% helper
-function [cent, mainax] = imellipsoid3d(isize, idx)
+function [cent, mainax] = imellipsoid3d(isize, idx, cent)
       
     % extract points of the current particle
     [x, y, z] = ind2sub(isize, idx);
@@ -77,12 +77,10 @@ function [cent, mainax] = imellipsoid3d(isize, idx)
     n = length(idx);
 
     % compute approximate location of ellipsoid center
-    xc = mean(x);
-    yc = mean(y);
-    zc = mean(z);
-
-    cent = [xc yc zc];
-    
+    xc = cent(1);
+    yc = cent(2);
+    zc = cent(3);
+  
     x = (x - xc);
     y = (y - yc);
     z = (z - zc);

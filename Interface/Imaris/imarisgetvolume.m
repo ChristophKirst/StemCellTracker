@@ -19,7 +19,7 @@ function stack = imarisgetvolume(varargin)
 %
 % note: The IVolume object in Imaris is just a wrapper, all data is stored in DataSet
 %
-% See also: imarisset
+% See also: imarisgetsubvolume, imarisgetsurfaces
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

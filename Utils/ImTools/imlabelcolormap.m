@@ -29,7 +29,8 @@ if isstruct(nlabel)
 end
 
 cdata  = getParameter(param, {'color', 'data'}, []);
-cmap   = getParameter(param, {'color', 'map'}, colormap);
+cmap = colormap;
+cmap   = getParameter(param, {'color', 'map'}, cmap);
 cscale = getParameter(param, {'color', 'scale'}, true);
 
 if isempty(cdata)

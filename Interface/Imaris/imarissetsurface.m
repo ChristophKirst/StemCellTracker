@@ -16,13 +16,13 @@ function surface = imarissetsurface(varargin)
 %    object         Imarise ISurface surface
 %    imaris         Imaris application instance
 %
-% note: the triangulation is assumed tobe in matlab index format
-%       and in pixel coordinates
-%
 % output:
 %    surface        ISurface surface reference
 %
-% See also: imarisset
+% note: the triangulation is assumed to be in matlab index format (starting at 1)
+%       and in pixel coordinates
+%
+% See also: imarissetvolume
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

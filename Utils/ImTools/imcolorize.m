@@ -43,8 +43,6 @@ if ~isempty(shuffle)
    opt = [opt, {shuffle}];
 end
 
-opt
-
 if ndims(label) == 2 %#ok<ISMAT>
    image = label2rgb(label, cmap, opt{:});
 else

@@ -12,7 +12,7 @@ function  objects = imarisgetobjects(varargin)
 % output:
 %   objects      cell array of references to objects
 %
-% See also: imarisgetobject
+% See also: imarisgetobject, imarisgetcurrentobject
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

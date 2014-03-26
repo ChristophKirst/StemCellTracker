@@ -18,7 +18,7 @@ function dataset = imarissetvolume(varargin)
 % output:
 %    dataset        IDataSet reference
 %
-% See also: imarisset
+% See also: imarissetsubvolume, imarissetsurface
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

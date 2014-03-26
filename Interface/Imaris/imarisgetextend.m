@@ -1,16 +1,25 @@
 function varargout = imarisgetextend(varargin)
 %
-% varargin = imarisgetextend(varargout)
+% minmax = imarisgetextend(idataset)
+% [min, max] = imarisgetextend(idataset)
+% [xminmax, yminmax, zminmax] = imarisgetextend(idataset)
+% ... = imarisgetextend(imaris, ...)
 %
 % description:
 %    get spacial extend of the image
+%
+% input: 
+%    idataset   Imaris IDataSet 
+%
+% output:
+%    minmax     spatical extend  
 %
 % See also: imarisgetsize
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
 if nargin > 1
-   if isimaristye(varargin{1}, 'DataSet')
+   if isimaristype(varargin{1}, 'DataSet')
       dataset = varargin{1};
    else
       error('imarisgetextend: passed object is not a DataSet.')

@@ -1,9 +1,9 @@
 function coords = immask2coords(mask)
 %
-% coords = index2mask(mask)
+% coords = immask2coords(mask)
 %
 % description:
-%    returns bw image with pixels at points set to white
+%    returns coordinates of the non-zero pixel in mask
 %
 % input:
 %    mask          bw mask

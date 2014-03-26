@@ -22,6 +22,8 @@ function b = isimaristype(varargin)
 % 
 % output:
 %   b           1 if the object is of the type specified, 0 otherwise
+%
+% See also: imariscast
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

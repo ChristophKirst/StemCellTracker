@@ -7,6 +7,11 @@ function id = imarisid(imaris)
 %
 % input:
 %    imaris   (optional) Imaris application reference
+%
+% output:
+%    id       id of Imaris application
+%
+% See also: imarisinstance
 
 
 id = [];

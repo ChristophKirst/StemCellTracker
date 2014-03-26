@@ -419,7 +419,10 @@ for ch = 2:4
    stats{ch} = statisticsSegments(img2, imgseg);
 end
 
-
+cdapi = 1;
+cbra = 2;
+csnail = 3;
+csox2 = 4;
 
 %% save this stuff
 
@@ -448,7 +451,24 @@ load('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 
 
 
+
 %% Visualization / Plotting Statistics etc
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% Color code
+
+% 2 = bra = green
+% 3 = snail = red
+% 4 = sox2 = blue
+
+val = 'MedianIntensity';
+g = [stats{2}.(val)]';
+r = [stats{3}.(val)]';
+b = [stats{3}.(val)]';
+
+c = imarisrgb2color(r,g,b);
+
+imarissetstatistics('color', c);
 
 
 %% Plotting Statistics as Colored Surfaces
@@ -537,43 +557,18 @@ for ch = 2:4
    imarissetvolume(dset, uint8(img2(:,:,zsl)),ch-1)
 end
 
+%set colors
 
-%% set colors
-
-vRed = 0.0;
-vGreen = 0.0;
-vBlue = 1.0;
-vAlpha = 0;
-vRGBA = [vRed, vGreen, vBlue, vAlpha];
-vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
-vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+vRGBA = imarisrgb2color(0, 0, 1);
 dset.SetChannelColorRGBA(0, vRGBA);
 
-vRed = 1.0;
-vGreen = 1.0;
-vBlue = 1.0;
-vAlpha = 0;
-vRGBA = [vRed, vGreen, vBlue, vAlpha];
-vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
-vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+vRGBA = imarisrgb2color(1, 1, 1);
 dset.SetChannelColorRGBA(1, vRGBA);
 
-vRed = 1.0;
-vGreen = 0.0;
-vBlue = 0.0;
-vAlpha = 0;
-vRGBA = [vRed, vGreen, vBlue, vAlpha];
-vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
-vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+vRGBA = imarisrgb2color(1,0,0);
 dset.SetChannelColorRGBA(2, vRGBA);
 
-vRed = 0.0;
-vGreen = 1.0;
-vBlue = 0.0;
-vAlpha = 0;
-vRGBA = [vRed, vGreen, vBlue, vAlpha];
-vRGBA = round(vRGBA * 255); % need integer values scaled to range 0-255
-vRGBA = uint32(vRGBA * [1; 256; 256*256; 256*256*256]); % combine different components (four bytes) into one integer
+vRGBA = imarisrgb2color(0, 1, 0);
 dset.SetChannelColorRGBA(3, vRGBA);
 
 

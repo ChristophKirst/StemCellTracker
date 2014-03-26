@@ -10,8 +10,8 @@ function dataset = imarisgetdataset(varargin)
 %
 % See also: imarissetdatasset
 
-
 imaris = imarisvarargin(varargin);
+
 dataset = imaris.GetDataSet;
 
 end

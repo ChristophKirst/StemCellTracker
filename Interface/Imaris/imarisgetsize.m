@@ -1,8 +1,19 @@
 function varargout = imarisgetsize(varargin)
 %
-% varargout = imarisgetsize(varargin)
+% isize = imarisgetsize(varargin)
+% [ixsize, iysize, izsize, icsize, itsize] = imarisgetsize(varargin)
 %
-% 
+% description:
+%    returns the size of the current IDataSet in Imaris
+%
+% input:
+%    dataset   (optional) IDataSet
+%    'all'     (optional) return full data size (x,y,z,c,t)
+%
+% output:
+%    isize     x,y,z size or x,y,z,c,t size
+%
+% See also: imarisgetextend
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
@@ -20,7 +31,7 @@ if isempty(dataset)
     error('imarisgetvoxelsize: no active data set found.');
 end
 
-if nargout <= 1
+if nargout == 1
    if nargin == 1 && ischar(varargin{1}) && strcmp(varargin{1}, 'all')
       varargout{1} = [ dataset.GetSizeX, ...
                        dataset.GetSizeY, ...

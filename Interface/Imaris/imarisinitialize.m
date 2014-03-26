@@ -9,7 +9,7 @@ function imarisinitialize(ipath)
 % input:
 %    ipath  (optional) path to Imaris ([] = automatic detection)
 %
-%
+% See also: imarisstart, imarisinstance
 
 % Imaris only runs on Windows and Mac OS X
 if ~(ismac() || ispc())

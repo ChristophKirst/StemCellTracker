@@ -7,6 +7,11 @@ function version = imarisversion(varargin)
 %
 % input:
 %    imaris   (optional) Imaris Application instance
+%
+% output:
+%    version   Imaris version
+%
+% See also: imarisstart
 
 imaris = imarisvarargin(varargin);
 version = imaris.GetVersion;

@@ -73,7 +73,7 @@ for i = 1:nlabel
    if isempty(normals{i})
       patch(fv, 'FaceColor', col ,'EdgeColor','none');
    else
-      patch(fv, 'FaceColor', col ,'EdgeColor','none', 'VertexNormals', -normals{i});
+      patch(fv, 'FaceColor', col ,'EdgeColor','none', 'VertexNormals', normals{i});
    end
 
 end

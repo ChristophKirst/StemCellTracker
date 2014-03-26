@@ -6,10 +6,12 @@ function selection = imarisgetcurrentobject(varargin)
 %   returns current surpass selection and optionally checks for type
 % 
 % input:
-%   type   (optional) check for type
+%   type         (optional) check for type
 % 
 % output:
-%   selection : autocasted selected object or error if not correct type
+%   selection    autocasted selected object or error if not correct type
+%
+% See also: imarisgetobject, imarisgetobjects
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 

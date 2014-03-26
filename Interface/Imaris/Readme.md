@@ -22,11 +22,11 @@ see whats there
 
 get/set data
 
-   volume = imarisget(objectname)                     % volumetirc data
-   [vertices, faces, normals] = imarisget(objectname) % surface data
+   volume = imarisgetvolume()                                % volumetirc data
+   [vertices, faces, normals] = imarisgetsurface(objectname) % surface data
 
-   imarisset(volumedata)                              % will find the first availabel volume
-   imarisset(objectname, vertices, faces, normals)
+   imarissetvolume(volumedata)                               
+   imarissetsurface(objectname, vertices, faces, normals)
 
 save
 

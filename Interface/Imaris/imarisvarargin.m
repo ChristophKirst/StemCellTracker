@@ -13,7 +13,7 @@ function [imaris, varout, nin] = imarisvarargin(varin)
 %    varout    remainder of varargin
 %    nin       length of remainder of varargin
 %
-% note: varin is a cell of inputs of length 1
+% note: varin is a cell of inputs
 %
 % See also: imarisinstance
 
@@ -38,4 +38,6 @@ end
 
 if nargout > 2
     nin = length(varout);
+end
+
 end

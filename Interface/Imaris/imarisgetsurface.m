@@ -22,7 +22,7 @@ function [vertices, faces, normals] = imarisgetsurface(varargin)
 %    imaris returns suface in space coordinates, here reverted to double precision pixel coordinates
 %    and convert faces indices to matlab format (+1)
 %
-% See also: imarisget
+% See also: imarisgetvolume
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
