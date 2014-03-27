@@ -51,12 +51,12 @@ elseif isimaristype(imaris, varargin{1}, 'Surfaces')
    %nargin = length(varargin);
 else % try to get selected surface
    isurface = imarisgetcurrentobject('Surfaces');
-   if isempty(surface)
+   if isempty(isurface)
       error('imarissetstatistics: select a valid surfaces object!')
    end
 end
 
-if isempty(surface)
+if isempty(isurface)
    error('imarissetstatistics: cannot determine surfaces object!')
 end
 

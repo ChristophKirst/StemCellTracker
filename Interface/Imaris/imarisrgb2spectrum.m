@@ -1,22 +1,30 @@
-function c = imarisrgb2spectrum(rgb)
+function c = imarisrgb2spectrum(r,g,b)
 %
 % c = imarisrgb2spectrum(rgb)
 %
 % description:
-%     convert a rgb color to closest color on spectrum (ínverse Hue) color
+%     convert a rgb color to closest color on spectrum (inverse Hue) color
 %
 % input:
 %     rgb     rgb values [r,g,b]
-%     ncols   (optional) number of different colors (256)
 %
 % output:
-%    c        color indices fur use with spectrum map
+%    c        color indices for use with 'Spectrum' color map in Imaris
 %
-% See also: imarisrgb2color, hsv, rgb2hsv
+% See also: imarisrgb2color, imarisrgb2statistics
 
-rgb = mat2gray(rgb);
+if nargin > 1
+   rgb = [r,g,b];
+else
+   rgb = r;
+end
+
+%rgb = mat2gray(rgb);
 c = rgb2hsv(rgb);
-c = 1 - c(:,1);
+
+cmax = 14./16.;
+c(c>cmax) = cmax;
+c = (cmax - c(:,1))/cmax;
 
 end
 

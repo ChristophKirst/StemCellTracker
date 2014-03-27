@@ -25,7 +25,7 @@ if nargin == 1
    end
    
 elseif nargin == 3
-   a = zeros(size(rgb,1),1);
+   a = zeros(size(r,1),1);
 elseif nargin == 2
    error('imarisrgb2color: expects r,g,b, (a) or rgb(a) input');
 end

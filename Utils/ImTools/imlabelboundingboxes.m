@@ -18,24 +18,21 @@ function [bboxes, varargout] = imlabelboundingboxes(label)
 
 %%% regionprops version (faster)
 
-dd = ndims(label);
+dim = ndims(label);
 
 bboxes = regionprops(label, 'BoundingBox');
-bboxes = reshape([bboxes.BoundingBox], dd * 2, []);
+bboxes = reshape([bboxes.BoundingBox], dim * 2, []);
 
-bboxes(1:2, :) = round(bboxes(2:-1:1,:) + 0.5); % correct qp to pl and shift to full pixel
-if dd == 3
-   bboxes(3,:) = round(bboxes(3,:) + 0.5);
-end
+ee = [2 1 3]; ee = ee(1:dim);
+bboxes(1:dim, :) = round(bboxes(ee,:) + 0.5); % correct qp to pl and shift to full pixel
 
-ee = [2 1 3] + dd;
-ee = ee(1:dd);
-bboxeshi = bboxes(1:dd, :) + bboxes(ee, :) - 1;
+ee = ee + dim;
+bboxeshi = bboxes(1:dim, :) + bboxes(ee, :) - 1;
 
 if nargout  <= 1
-   bboxes = vertcat(bboxes(1:dd, :), bboxeshi)';
+   bboxes = vertcat(bboxes(1:dim, :), bboxeshi)';
 else
-   bboxes = bboxes(1:dd, :)';
+   bboxes = bboxes(1:dim, :)';
    varargout{1} = bboxeshi';
 end
 

@@ -1,6 +1,6 @@
 function surface = imarissetsurface(varargin)
 %
-% surface = imarissetsurface(vertices, faces, normals, timepoint)
+% surface = imarissetsurface(vertices, faces, normals, timepoint, scale)
 % surface = imarissetsurface(objectname, ...)
 % surface = imarissetsurface(object, ...)
 % surface = imarissetsurface(imaris, ...)
@@ -11,6 +11,7 @@ function surface = imarissetsurface(varargin)
 % input:
 %    vetices, faces, normals  surface triangulation data
 %    timepoint      (optional) timepoint to put data (0)
+%    scale          (optional) scale positions by this factor
 %
 %    objectname     name of Imaris surface
 %    object         Imarise ISurface surface
@@ -26,7 +27,7 @@ function surface = imarissetsurface(varargin)
 
 [imaris, varargin, nargin] = imarisvarargin(varargin);
 
-if nargin < 3 || nargin > 5
+if nargin < 3 || nargin > 6
    error('imarissetvolume: expect 3-6 input arguments');
 end
 
@@ -56,6 +57,7 @@ vertices = varargin{1};
 faces = varargin{2};
 normals = varargin{3};
 
+   
 if ~iscell(vertices)
    vertices = {vertices};
 end
@@ -80,9 +82,17 @@ else
    timepoint = varargin{4};
 end
 
+if nargin < 5
+   scale = ones(1,3);
+else
+   scale = varargin{5};
+   scale = scale(:)';
+end
+
 psize = imarisgetsize(imaris);
 extend = imarisgetextend(imaris);
 fac = (extend(2,:) - extend(1,:)) ./ psize;
+fac = fac .* scale;
 
 surface.RemoveAllSurfaces
 
@@ -95,7 +105,7 @@ vertices = cell2mat(vertices);
 faces    = cell2mat(faces) - 1;
 normals  = cell2mat(normals);
 
-vertices =  impixel2space(psize, extend, vertices);
+vertices =  impixel2space(psize, extend, vertices, scale);
 normals = normals .* repmat(fac, size(normals,1),1);
 timepoint = timepoint * ones(1, nsurfaces);
 

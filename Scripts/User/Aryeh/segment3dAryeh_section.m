@@ -67,7 +67,7 @@ if false
    img = imzreverse(squeeze(img));
 
    size(img)
-   img = imisostack(img, 1);
+   img = imisostack(img, 1, 'min');
    size(img)
    
    %%  figure aryeh
@@ -221,7 +221,7 @@ end
 %% increasing some of the lower intensity regoins 
 
 imgcl = imgth;
-imgcl(imgcl >0 & imgcl > 0.7) = 0.7;
+imgcl(imgcl >0 & imgcl > 0.65) = 0.65;
 imgcl = mat2gray(imgcl);
 
 if verbose
@@ -309,7 +309,7 @@ if verbose
    
    figure(22)
    clf
-   implottiling(imoverlaylabel(mat2gray(imgf), bwlabeln(imgmax)));
+   implottiling(imoverlaylabel(mat2gray(imgcl), bwlabeln(imgmax)));
    
    
    %%
@@ -329,12 +329,12 @@ end
 
 %dilating the maxima can help
 %imgmaxd = imdilate(imgmax, strel('disk', 1));
-imgmaxd = imfill(imgmax, 'holes');
+%imgmaxd = imfill(imgmax, 'holes');
 %imgmaxd = imgmax;
 
 % watershed
 %%imgmin = imimposemin(max(imgmedf(:)) - imgmedf, imgmaxd);
-imgmin = imimposemin(max(imgth(:)) - imgth, imgmaxd);
+imgmin = imimposemin(max(imgcl(:)) - imgcl, imgmax);
 imgws = watershed(imgmin);
 imgseg = immask(imgws, imgmask);
 
@@ -342,10 +342,9 @@ imgseg = immask(imgws, imgmask);
 %imgseg = segmentByPropagation(imgth, bwlabeln(imgmaxd), imgmask);
 
 
-
 % %% Clean up segmentation and alternative diagnositcs
 % 
-imgseg = imlabelseparate(imgseg);
+%imgseg = imlabelseparate(imgseg);
 
 param.volume.min = 150; 
 param.volume.max = Inf;
@@ -369,9 +368,14 @@ if verbose
    imsurfaceplot3d(imgseg);
 
    %%
+   
+   %imgsegs = imlabelseparate(imgseg);
+   %imgegs = bwlabeln(imgseg > 0);
+   imgsegs = imgseg;
+   
    figure(23)
    clf
-   implotlabeloutline(img, imgseg);
+   implotlabeloutline(imgmin, imgsegp);
 
    %%
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 5);
@@ -392,6 +396,10 @@ surfaces = {surf, fac, norm};
 %% Push Surfaces to imaris
 
 if useimaris
+    %%
+    imarisstart
+    
+    
    %%
    %nset = 3;
    nset = size(surf);
@@ -399,7 +407,7 @@ if useimaris
    fcset = fac(1:nset);
    nmset = norm(1:nset);
 
-   imarissetsurface('Segmentation', sfset, fcset, nmset);
+   imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,0.5]);
 end
 
 
@@ -411,12 +419,20 @@ stats = cell(4,1);
 stats{1} = statisticsSegments(double(img), imgseg);
 
 %%
+imgc{1} = imgcl;
+
+%clip = {[42 165], [20, 93], [34, 71], [42, 65]};
+clip = {[0, 255], [24 70], [14, 58], [21, 71]};
+
 for ch = 2:4
 
-   img2 = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
-   img2 = imzreverse(squeeze(img2));
+   imgc{ch} = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
+   imgc{ch} = imzreverse(squeeze(imgc{ch}));
+   imgc{ch} = imisostack(imgc{ch}, 1, 'min');
+   imgc{ch} = imclip(imgc{ch}, clip{ch});
+   imgc{ch} = mat2gray(double(imgc{ch}));
    
-   stats{ch} = statisticsSegments(img2, imgseg);
+   stats{ch} = statisticsSegments(imgc{ch}, imgseg);
 end
 
 cdapi = 1;
@@ -455,6 +471,14 @@ load('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 %% Visualization / Plotting Statistics etc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+nset = size(surf);
+sfset = surf(1:nset);
+fcset = fac(1:nset);
+nmset = norm(1:nset);
+
+imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,0.5]);
+
+
 %% Color code
 
 % 2 = bra = green
@@ -462,13 +486,49 @@ load('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 % 4 = sox2 = blue
 
 val = 'MedianIntensity';
-g = [stats{2}.(val)]';
+b = [stats{2}.(val)]';
 r = [stats{3}.(val)]';
-b = [stats{3}.(val)]';
+g = [stats{4}.(val)]';
 
-c = imarisrgb2color(r,g,b);
+% mm = 40; mx = 126;
+% r(r < mm) = mm; r(r> mx) = mx;
+% 
+% mm = 50; mx = 107;
+% g(g < mm) = mm; g(g> mx) = mx;
+% 
+% mm = 20; mx = 92;
+% b(b < mm) = mm; b(b> mx) = mx;
 
-imarissetstatistics('color', c);
+g = mat2gray(g); r = mat2gray(r); b = mat2gray(b);
+%g = g/256; r = r/256; b = b/256;
+%g = g/max(g(:)); b = b/max(b(:)); r = r/max(r(:)); 
+%r = r/256;
+%
+%b = zeros(size(r,1),1);
+%r = zeros(size(r,1),1);
+%g = ones(size(r,1),1);
+
+%nsurfaces = length(stats{1});
+%r = (0:nsurfaces-1)' / (nsurfaces-1);
+%g = 0 * r; b = 0 * r;
+
+%make it more light
+fbirght = 2;
+r = fbirght*r; g = fbirght*g; b = fbirght*b;
+
+%fshift = 0.5; %-> pastel effect
+%r = r + fshift; g = g + fshift; b = b + + fshift;
+r(r>1) = 1; g(g>1) = 1; b(b>1) = 1;
+
+rgb = [r,g,b];
+grayid = (sqrt(sum(rgb .* rgb, 2)) < 0.01);
+r(grayid) = 0.75; g(grayid) = 0.75; b(grayid) = 0.75;
+
+c = imarisrgb2statistics(r,g,b);
+imarissetstatistics('rgbcolor7', c);
+ 
+
+
 
 
 %% Plotting Statistics as Colored Surfaces
@@ -540,7 +600,8 @@ end
 
 %% Plot Statistics in Imaris
 
-zsl = 3:size(img,3);
+%zsl = 3:size(img,3);
+zsl = 1:size(img,3);
 
 sz= size(img(:,:,zsl));
 nch = 4;
@@ -554,10 +615,27 @@ for ch = 2:4
    img2 = imread_bf(filename, struct('series', se, 'time', ti, 'channel', ch, 'x', xr, 'y', yr));
    img2 = imzreverse(squeeze(img2));
    
+   %img2 = imgc{ch};
    imarissetvolume(dset, uint8(img2(:,:,zsl)),ch-1)
 end
 
-%set colors
+
+%%
+vRGBA = imarisrgb2color(1, 1, 1);
+dset.SetChannelColorRGBA(0, vRGBA);
+
+vRGBA = imarisrgb2color(0, 0, 1);
+dset.SetChannelColorRGBA(1, vRGBA);
+
+vRGBA = imarisrgb2color(1,0,0);
+dset.SetChannelColorRGBA(2, vRGBA);
+
+vRGBA = imarisrgb2color(0, 1, 0);
+dset.SetChannelColorRGBA(3, vRGBA);
+
+
+
+%% set colors
 
 vRGBA = imarisrgb2color(0, 0, 1);
 dset.SetChannelColorRGBA(0, vRGBA);
@@ -570,7 +648,6 @@ dset.SetChannelColorRGBA(2, vRGBA);
 
 vRGBA = imarisrgb2color(0, 1, 0);
 dset.SetChannelColorRGBA(3, vRGBA);
-
 
 %% threshold in sox2 / snail intensity
 
@@ -604,7 +681,7 @@ sfset = surf(1:nset);
 fcset = fac(1:nset);
 nmset = norm(1:nset);
 
-imarissetsurface('Segmentation', sfset, fcset, nmset);
+imarissetsurface('Segmentation', sfset, fcset, nmset, [1, 1, 0.5]);
 
 
 %% 
@@ -636,7 +713,6 @@ fcset = fac(ids);
 nmset = norm(ids);
 
 imarissetsurface('Sox2', sfset, fcset, nmset);
-
 
 %%
 
@@ -676,3 +752,38 @@ imarissetsurface('None', sfset, fcset, nmset);
 %%
 
 save('Z:\aryeh_sox2_snail.mat')
+
+
+
+%%
+
+
+
+% set segmented colored volume:
+
+nsurfaces = length(stats);
+
+rvol = imgseg;
+gvol = imgseg;
+bvol = imgseg;
+
+for i = 1:nsurfaces
+   rvol(stats{i}.PixelIdxList) = r(i);
+   gvol(stats{i}.PixelIdxList) = g(i);
+   bvol(stats{i}.PixelIdxList) = g(i);
+end
+
+rvol = imisostack(rvol,-1, 'mean');
+gvol = imisostack(gvol,-1, 'mean');
+bvol = imisostack(bvol,-1, 'mean');
+
+
+% Create 3 new channels
+
+idatset = imarisgetdataset();
+nchannels = idatset.GetSizeC;
+vDataSet.SetSizeC(4+3);            
+vDataSet.SetChannelName(4, 'Segmentation Red');
+vDataSet.SetChannelName(5, 'Segmentation Green');
+vDataSet.SetChannelName(5, 'Segmentation Green');
+

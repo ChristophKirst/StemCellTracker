@@ -82,3 +82,73 @@ dataset.SetTimePointsDelta(deltaTime);
 imaris.SetDataSet(dataset);
 
 end
+
+
+
+
+
+
+
+
+
+
+
+% 
+% 
+% %
+% %
+% %  Send Image to Imaris 7.3.0
+% %
+% %  Copyright Bitplane AG 2011
+% %
+% %
+% %  Description:
+% %   
+% %   Change the Imaris DataSet.
+% %   This function can be used as utility for other functions; It is not
+% %       called directly by Imaris.
+% %
+% %
+% 
+% function XTSetImarisImage(aImarisApplication, aImage, aTimeIndex, aChannelIndex)
+% 
+% vImarisDataSet = aImarisApplication.GetDataSet.Clone;
+% if vImarisDataSet.GetSizeX ~= size(aImage,1)  || vImarisDataSet.GetSizeY ~= size(aImage,2) || vImarisDataSet.GetSizeZ ~= size(aImage,3)
+%    vImarisDataSet.Resize(0,size(aImage,1), 0,size(aImage,2), 0, size(aImage,3), 0, vImarisDataSet.GetSizeC, 0, vImarisDataSet.GetSizeT);
+% end
+% if size(aImage,1) == vImarisDataSet.GetSizeX && ...
+%         size(aImage,2) == vImarisDataSet.GetSizeY && ...
+%         size(aImage,3) == vImarisDataSet.GetSizeZ
+%    if strcmp(vImarisDataSet.GetType,'eTypeUInt8')
+%         vMin = min(reshape(aImage,[1,numel(aImage)]));
+%         if vMin < 0
+%             aImage = aImage + vMin;
+%         end
+%         vMax = max(reshape(aImage,[1,numel(aImage)]));
+%         if vMax > (2^8-1)
+%             aImage = aImage*(2^8-1)/vMax;
+%         end
+%         vImarisDataSet.SetDataVolumeBytes(uint8(aImage), aChannelIndex-1, aTimeIndex-1);
+%    elseif strcmp(vImarisDataSet.GetType,'eTypeUInt16')
+%         vMin = min(reshape(aImage,[1,numel(aImage)]));
+%         if vMin < 0
+%             aImage = aImage + vMin;
+%         end
+%         vMax = max(reshape(aImage,[1,numel(aImage)]));
+%         if vMax > (2^16-1)
+%             aImage = aImage*(2^16-1)/vMax;
+%         end
+%         vImarisDataSet.SetDataVolumeShorts(uint16(aImage), aChannelIndex-1, aTimeIndex-1);
+%    elseif strcmp(vImarisDataSet.GetType,'eTypeFloat')
+%         vImarisDataSet.SetDataVolumeFloats(single(aImage), aChannelIndex-1, aTimeIndex-1);
+%    end
+% end
+% aImarisApplication.SetDataSet(vImarisDataSet);
+% 
+% 
+% 
+% 
+% 
+% 
+% 
+% 

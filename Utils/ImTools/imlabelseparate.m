@@ -3,8 +3,8 @@ function seplabel = imlabelseparate(label)
 % seplabel = imlabelseparate(label)
 %
 % description:
-%     relabels the image by separating non touching regions into separat
-%     of same into multiple label.
+%     relabels the image by separating non touching regions with same label
+%     into multiple label.
 %
 % input:
 %     label       labeled image
@@ -14,7 +14,7 @@ function seplabel = imlabelseparate(label)
 %
 % note:
 %     bwlabeln(label > 0) fails if two labels touch
-%     bwconncomp scales badly with image size even for small objects -> use boudning box
+%     bwconncomp scales badly with image size even for small objects -> use bounding box
 %
 % See also: bwlabeln, bwlabel
 
