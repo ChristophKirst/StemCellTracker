@@ -273,7 +273,7 @@ end
 %imgf = logFilter(max(imgf(:)) - imgf, param.filter.logsize, [], 0);
 
 %imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
-imgf = dogFilter(imgf, [15, 15, 15], [] ,[], 0);
+imgf = dogFilter(imgf, [15, 15, 7], [] ,[], 0);
 
 if verbose 
    imsubplot(1,2,2);
@@ -407,7 +407,7 @@ if useimaris
    fcset = fac(1:nset);
    nmset = norm(1:nset);
 
-   imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,0.5]);
+   imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,1]);
 end
 
 
@@ -461,7 +461,6 @@ end
 
 %% load
 
-
 load('Z:\140305_RUES2_36hBMP4_Bra_Snail_Sox2_imgseg_imaris_matlab_session.mat')
 
 
@@ -476,7 +475,7 @@ sfset = surf(1:nset);
 fcset = fac(1:nset);
 nmset = norm(1:nset);
 
-imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,0.5]);
+imarissetsurface('Segmentation', sfset, fcset, nmset, 0, [1,1,1]);
 
 
 %% Color code
