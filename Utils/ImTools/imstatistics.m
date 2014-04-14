@@ -1,24 +1,24 @@
-function stats = imstatistics(labeledimage, stats, statnames, image)
+function stats = imstatistics(imglab, stats, statnames, img)
 %
-% stats = imstatistics(labeledimage, statnames, image)
-% stats = imstatistics(labeledimage, stats, statnames, image)
+% stats = imstatistics(imglab, statnames, img)
+% stats = imstatistics(imglab, stats, statnames, img)
 %
 % description:
 %     add standard statistics fields to the struct stats
 %     this function is used to avoid calculating statists more than once
 %
 % input:
-%     labeledimage  labeled image, assumed to be relabled with regions 1:max(labeledimage(:))
+%     imglab        labeled image, assumed to be relabled with regions 1:max(imglab(:))
 %     statsname     name or cell of the statistics fields to calculate
 %                   regoinporps based statistics:
 %                   {'Volume', 'PixelIdxList', 'PixelList', 'PixelValues', 'BoundingBox', 'Centroid', 'WeightedCentroid'}
-%                   measurement statistics (additiona image input needed)
+%                   measurement statistics (additiona img input needed)
 %                   {'MaxInstensity', 'MinInstensity', 'MeanIntensity', 'MedianIntensity', 'TotalIntensity', 'StdIntensity', 'VarIntensity'}
 %                   if 'XXXIntenisty' function lower(XXX) is applied to the intensity values of each labled region
 %                   additional statistics and measures:
 %                   {'UltimateErosion', 'SurfacePixelIdxList'} Todo: {'Surface', 'Ellipsoid', 'MaxDiameter', 'MinDiameter'}                 
 %     stats         (optional) previously calcualted statistics to avoid recalculation of statistics for existing fields
-%     image         (optional) additional intensity image
+%     img           (optional) additional intensity img
 %
 % output:
 %     stats         statistics struct with the requested entries
@@ -31,13 +31,13 @@ function stats = imstatistics(labeledimage, stats, statnames, image)
 
 %define all statistcs names
 regionpropnames =  {'Volume', 'PixelIdxList', 'PixelList', 'PixelValues', 'BoundingBox', 'Centroid', 'WeightedCentroid'};
-regionpropnamesimage = {'WeightedCentroid'};
+regionpropnamesimg = {'WeightedCentroid'};
 intensitypropnames = {'MaxIntensity', 'MinIntensity', 'MeanIntensity', 'MedianIntensity', '*Intensity'};
 specialpropnames =  {'UltimateErosion', 'SurfacePixelIdxList'}; %  'Surface', 'Ellipsoid'
-propnames = {regionpropnames{:} regionpropnamesimage{:} intensitypropnames{:} specialpropnames{:}}; %#ok<CCAT>
+propnames = {regionpropnames{:} regionpropnamesimg{:} intensitypropnames{:} specialpropnames{:}}; %#ok<CCAT>
 
-nlabel = max(labeledimage(:));
-dim = ndims(labeledimage);
+nlabel = max(imglab(:));
+dim = ndims(imglab);
 
 %get all statistics names
 if nargin < 2
@@ -55,15 +55,15 @@ if ~isstruct(stats)
    end
 
    if nargin > 2
-      image = statnames;
+      img = statnames;
    else
-      image  = [];
+      img  = [];
    end
    statnames = stats;
    stats = repmat(struct, nlabel, 1);
 else
    if nargin < 4
-      image = [];
+      img = [];
    end
 end
 
@@ -88,13 +88,15 @@ statnames(strcmp(statnames, 'Area')) = {'Volume'};
 statnames = unique(statnames);
 statnames = statnames(~any(cell2mat(cellfun(@(y) strcmp(statnames,y), {'default', 'all'}, 'UniformOutput', 0)'),1));
 
+
 if length(stats) ~= nlabel
    error('imstatistics: inconsistent object sizes!');
 end
 
-
 %remove existing stats from statnames
-fn  = fieldnames(stats);
+fn  = fieldnames(stats)';
+%statnames
+%cellfun(@(y) strcmp(statnames,y), fn, 'UniformOutput', 0)
 if ~isempty(fn) 
    statnames = statnames(~any(cell2mat(cellfun(@(y) strcmp(statnames,y), fn, 'UniformOutput', 0)'),1));
 end
@@ -103,9 +105,9 @@ if isempty(statnames)
    return
 end
 
-if any(ismember(statnames, intensitypropnames)) || any(ismember(statnames, regionpropnamesimage))
-   if isempty(image)
-      error('imstatistics: intensity statistics need intensity image!');
+if any(ismember(statnames, intensitypropnames)) || any(ismember(statnames, regionpropnamesimg))
+   if isempty(img)
+      error('imstatistics: intensity statistics need intensity img!');
    end
 end
 
@@ -115,14 +117,17 @@ end
 
 %determine regionprop properties
 regprops = {};
-if any(ismember(statnames, 'Volume'))
+idx = find(ismember(statnames, 'Volume'));
+if ~isempty(idx)
    regprops = [regprops, {'Area'}];
+   statnames(idx) = [];  
 end
+
 
 idx = ismember(statnames, regionpropnames);
 regprops = [regprops, statnames(idx)];
 
-idx = ismember(statnames, regionpropnamesimage);
+idx = ismember(statnames, regionpropnamesimg);
 regprops = [regprops, statnames(idx)];
 
 if any(ismember(statnames, intensitypropnames))
@@ -138,13 +143,16 @@ if any(ismember(statnames, specialpropnames(1:2)))
    regprops = [regprops, {'BoundingBox'}];
 end
 
+%regprops
 
 if ~isempty(regprops)
-   if isempty(image)
-      regstats = regionprops(labeledimage, regprops{:});
+   if isempty(img)
+      regstats = regionprops(imglab, regprops{:});
    else
-      regstats = regionprops(labeledimage, image, regprops{:});
+      regstats = regionprops(imglab, img, regprops{:});
    end
+   
+   %regstats
 
    %Area -> Volume
    if isfield(regstats, 'Area')
@@ -193,7 +201,7 @@ if ~isempty(regprops)
    end
    
    % add fields to stats
-   for sn = fieldnames(regstats)
+   for sn = fieldnames(regstats)'
       [stats.(sn{1})] = regstats.(sn{1});
    end
    
@@ -212,7 +220,7 @@ for i = idx
    fun = eval(['@' fn]);
    
    for l = 1:length(stats)
-      stats(l).(statnames{i}) = fun(image(stats(l).PixelIdxList));
+      stats(l).(statnames{i}) = fun(img(stats(l).PixelIdxList));
    end
 end
 
@@ -229,7 +237,7 @@ if any(ismember(statnames, specialpropnames))
    %su = any(ismember(props, 'Surface')); 
    %el = any(ismember(props, 'Ellipsoid')); 
    
-   isize = size(labeledimage);
+   isize = size(imglab);
    dim = length(isize);
    
    for l = 1:nlabel
@@ -242,7 +250,7 @@ if any(ismember(statnames, specialpropnames))
 
       bmin = max(bmin - 1, 1);
       bmax = min(bmax + 1, isize);
-      obj = imextract(labeledimage, bmin, bmax);
+      obj = imextract(imglab, bmin, bmax);
       obj = (obj == l);
       total(obj)
       

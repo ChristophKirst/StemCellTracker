@@ -1,10 +1,10 @@
-function [postlabel, stats] = postProcessSegments(label, image, param)
+function [imgpost, stats] = postProcessSegments(imglab, img, param)
 %
-% [postlabel, stats] = postProcessSegments(label, image, param)
+% [imgpost, stats] = postProcessSegments(imglab, img, param)
 %
 % input:
-%    label    labeled image (assume labels 1-nlables, imrelabel)
-%    image    (optional) intensity image
+%    imglab   labeled image (assume labels are from 1:nalabels, use imrelabel if not)
+%    img      (optional) intensity img
 %    param    (optional) parameter struct with entries
 %             .volume.min        minimal volume to keep (0)
 %             .volume.max        maximal volume to keep (Inf)
@@ -12,28 +12,28 @@ function [postlabel, stats] = postProcessSegments(label, image, param)
 %             .intensity.max     maximal mean intensity to keep (Inf)
 %             .boundaries        clear objects on x,y boundaries (false)
 %             .fillholes         fill holes in each z slice after processing segments (true)
-%             .relabel           relabel from 1:nlabelnew (true)
+%             .relabel           relabel from 1:nimglabnew (true)
 %             .smooth            smooth -- todo e.g. using vtk denoising library / java interface
 % 
 % output:
-%    postlabel  post processed label
-%    stats      calculated statistics
+%    imgpost  post processed imglab
+%    stats    calculated statistics for sequential use
 %
 % note:
 %    clearing of boundary objects here ignores touching z boundaries, use imclearborder for this
-%    filling holes is done in each slice only, use imfill(..., 'holes') on full 3d image for this
+%    filling holes is done in each slice only, use imfill(..., 'holes') on full 3d img for this
 %
-% Seel also: regionstats, imrelabel, imclearborder, imfill
+% See also: regionprops, imrelabel, imclearborder, imfill
 
 if nargin < 2
     param = [];
-    image = [];
+    img = [];
 end
 
 if nargin == 2
-    if isstruct(image)
-        param = image;
-        image = [];
+    if isstruct(img)
+        param = img;
+        img = [];
     end
 end
 
@@ -47,86 +47,87 @@ boundaries = getParameter(param, {'boundaries'}, false);
 fillholes  = getParameter(param, {'fillholes'}, true);
 relabel    = getParameter(param, {'relabel'}, true);
 
-postlabel = label;
+imgpost = imglab;
 
 
 % determine stats to calculate
 statnames = {};
 if volume_min > 0 || volume_max < Inf
-   statnames{end+1} = 'Area';
+   statnames{end+1} = 'Volume';
    statnames{end+1} = 'PixelIdxList';
 end
 if intensity_min > -Inf || intensity_max < Inf
-   if isempty(image)
-      error('postProcessSegments: intensity image expected');
+   if isempty(img)
+      error('postProcessSegments: intensity img expected');
    end
    statnames{end+1} = 'MeanIntensity';
    statnames{end+1} = 'PixelIdxList';
 end
 
 if ~isempty(statnames)
-    if isempty(image)
-        stats = regionprops(label, statnames{:});
+    if isempty(img)
+        stats = imstatistics(imglab, statnames);
     else
-        stats = regionprops(label, image, statnames{:});
+        stats = imstatistics(imglab, img, statnames);
     end
 end
 
 if volume_min > 0 || volume_max < Inf
-   idx = find([stats.Area] > volume_max);
+   idx = find([stats.Volume] > volume_max);
    for i = idx
-      postlabel(stats(i).PixelIdxList) = 0;  
+      imgpost(stats(i).PixelIdxList) = 0;  
    end
-   idx = find([stats.Area] < volume_min);
+   idx = find([stats.Volume] < volume_min);
    for i = idx
-      postlabel(stats(i).PixelIdxList) = 0;  
+      imgpost(stats(i).PixelIdxList) = 0;  
    end
 end
 
 if intensity_min > -Inf || intensity_max < Inf
    
    %for i = length(stats):-1:1
-   %   mi{i} = mean(image(stats(i).PixelIdxList));
+   %   mi{i} = mean(img(stats(i).PixelIdxList));
    %end
    %[stats.MeanIntensity] = mi{:};
    
    idx = find([stats.MeanIntensity] < intensity_min);
    for i = idx
-      postlabel(stats(i).PixelIdxList) = 0;  
+      imgpost(stats(i).PixelIdxList) = 0;  
    end
    idx = find([stats.MeanIntensity] > intensity_max);
    for i = idx
-      postlabel(stats(i).PixelIdxList) = 0;  
+      imgpost(stats(i).PixelIdxList) = 0;  
    end
 end
 
 % fill possible holes in each slice
 if fillholes
-   for s = 1:size(postlabel,3)
-      postlabel(:,:,s) = imfill(postlabel(:,:,s), 'holes');
+   for s = 1:size(imgpost,3)
+      imgpost(:,:,s) = imfill(imgpost(:,:,s), 'holes');
    end
 end
 
 % we dont want to clear objects that border in z
 if boundaries
-   if ndims(label) == 3
-      pseg = zeros(size(postlabel) + [0 0 2]);
-      pseg(:, :, 2:end-1) = postlabel;
+   if ndims(imglab) == 3
+      pseg = zeros(size(imgpost) + [0 0 2]);
+      pseg(:, :, 2:end-1) = imgpost;
       pseg = imclearborder(pseg);
-      postlabel = pseg(:,:,2:end-1);
+      imgpost = pseg(:,:,2:end-1);
    else
-      postlabel = imclearborder(postlabel);
+      imgpost = imclearborder(imgpost);
    end
 end
 
 if relabel
-   postlabel = imrelabel(postlabel);
+   imgpost = imrelabel(imgpost);
    
+   % todo: optimize using previous stats results !
    if nargout > 1
-     if isempty(image)
-        stats = regionstats(label, statnames{:});
+     if isempty(img)
+        stats = imstatistics(imgpost, statnames{:});
      else
-        stats = regionstats(label, image, statnames{:});
+        stats = imstatistics(imgpost, img, statnames{:});
      end
    end
 

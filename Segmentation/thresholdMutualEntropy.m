@@ -1,6 +1,6 @@
-function threshold = thresholdMutualEntropy(image)
+function threshold = thresholdMutualEntropy(image, param)
 %
-% threshold = thresholdMutualEntropy( image )
+% threshold = thresholdMutualEntropy(image, param)
 %
 % description:
 %    finds a threshold based on entropies of the image histrogram
@@ -19,7 +19,7 @@ if nargin < 2
    param = [];
 end
 
-if ~isnumeric(param)
+if isempty(param) || ~isnumeric(param)
    minlog2 = getParameter(param, 'minlog2val', -10);
 else
    minlog2 = param;

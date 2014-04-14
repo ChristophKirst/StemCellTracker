@@ -1,8 +1,11 @@
-%% Segmentation of 2D Images - Template
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Segmentation of 2D Images - Template %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Template to create your individual segmentation routine
+% for 2d images
 %
-% Save this file to ./Skripts/User/ under a descriptive name
+% Save this file to ./Skripts/User/YourName under a descriptive name
 % and modify to find the combination of steps that best segment your image
 %
 % Run this file matlab-cell by matlab-cell to experiment with segmentation parameters. 
@@ -10,7 +13,8 @@
 % create your segmentation function for processing all your images
 %
 % To help others, include in ./Test/Images a small sample image with 
-% a unique and descriptive name.
+% a unique and descriptive name and file a pull request via github
+
 
 %% Clean Start
 
@@ -29,9 +33,9 @@ figure_offset = 0;  % offset for figure numbering / use to compare results etc..
 
 %% Load Image 
 %
-% result: - img    image of intensity values in [0,1]
+% result: img    image of intensity values normalized to [0,1]
 
-filename = './Test/Images/StemCellNuclei.tif';
+filename = './Test/Images/hESCells_DAPI.tif';
 
 imgraw = imread(filename);
 imgraw = double(imgraw);
@@ -42,52 +46,95 @@ img = imgraw;
 if verbose
    figure(1 + figure_offset)
    set(gcf, 'Name', ['Load: ' filename])
-   imshow(img)
+   implot(img)
 end
 
-%% Preprocessing (optional)
+%% Preprocessing 1 (optional)
 %
-% result: - img    image of intensity values in [0,1]
+% result: imgpre  image of intensity values in [0,1]
+%
+% note: this step strongly depends on the image quality / distractors etc
+%       try to remove as much noise as possible while preserving edges
+
+imgpre = img;
+
+% remove strong intensity variations (possibly iterate) 
+%imgpre = log(imgpre+eps);
+%imgpre(imgpre < -12) = 0;
+%imgpre = mat2gray(imgpre);
 
 % reduce range
+%imgpre = imclip(imgpre, 0.1, 0.9);
+%imgpre = mat2gray(imgpre);
 
+% sharpen
+imgpre = imsharpen(imgpre, 'Radius', 4, 'Amount', 0.8, 'Threshold', 0);
+%imgpre = imclip(imgpre,0,1);
 
+% histrogram equlization
+%imgpre = histeq(imgpre, 512);
 
-% appliy some filters to remove noise
+% remove trend in illumination via morphological opening
+background = imopen(imgpre,strel('disk',40));
+imgpre = imgpre - background;
+imgpre = imclip(imgpre,0);
 
+% morphologival operations
+%imgpre = imopen(imgpre, strel('disk', 5));
+
+if verbose 
+   figure(2 + figure_offset)
+   set(gcf, 'Name', ['Preprocess 1: ' filename]);
+   
+   if ~isempty(background)
+      implottiling({img, background, imgpre}, {'img', 'background', 'imgpre'}) 
+   else
+      implottiling({imgraw,  imgpre}, {'img','imgpre'}) 
+   end
+end
+
+%% Preprocessing 2 (option)
+% result: imgpre2    image of intensity values in [0,1]
+%
+% note: this step strongly depends on the image quality / distractors etc
+%       try to remove as much noise as possible while preserving edges
+
+imgpre2 = imgpre;
+
+% appy addiitonal filters 
 % gaussian filter
 %param.filter.ksize = [5, 5];    % size of the filter kernel (q x p box)
 %param.filter.sigma = []         % std of gaussian [] = param.filter.ksize / 2 / sqrt(2 * log(2)); 
-%img = gaussianFilter(img, param.filter.ksize, param.filter.sigma);
+%imgpre2 = gaussianFilter(imgpre2, param.filter.ksize, param.filter.sigma);
 
 % mean shift filter - edge preserving 
 %param.filter.ksize = [3 3];              % size of the filter kernel (q x p box)
 %param.filter.intensity_width = 0.1;  % max deviaiton of intensity values to include in mean
 %param.filter.iterations = 1;         % number of iterating the filtering 
-%img = meanShiftFilter(img, param.filter.ksize, param.filter.intensity_width, param.filter.iterations);
+%imgpre2 = meanShiftFilter(imgpre2, param.filter.ksize, param.filter.intensity_width, param.filter.iterations);
 
 % median filter - edge preserving
 param.filter.ksize = [3, 3];               % size of the filter kernel (q x p box) 
-img = medianFilter(img, param.filter.ksize);
+imgpre2 = medianFilter(imgpre2, param.filter.ksize);
 
 % bilateral filter - edge preserving
 %param.filter.ksize = 3;              % size of the filter kernel (h x w box) 
 %param.filter.sigma_space = [];       % std of gaussian in space  [] = param.filter.ksize / 2 / sqrt(2 * log(2));
 %param.filter.sigma_intensity = [];   % std fo gaussian in intensity [] = 1.1 * std(img(:));
-%img = bilateralFilter(img, param.filter.ksize, param.filter.sigma_space, param.filter.sigma_intensity);
+%imgpre2 = bilateralFilter(imgpre2, param.filter.ksize, param.filter.sigma_space, param.filter.sigma_intensity);
 
 % function filter
 %param.filter.ksize = [5, 5];                    % size of the filter kernel (h x w box) 
 %param.filter.function = @(x)(max(x,[],2)); ;    % function acting on array that for each pixel (1st dim) contains its neighbourhood in 2nd dim
 %                                                % should return a vector of the new pixel values
-%img = medianFilter(img, param.filter.ksize, param.filter.function);
+%imgpre2 = medianFilter(imgpre2, param.filter.ksize, param.filter.function);
 
 % others: see ./Filtering folder
 
-if verbose && total(abs(img-imgraw)) > eps
-   figure(2 + figure_offset)
+if verbose && total(abs(imgpre2-imgraw)) > eps
+   figure(3 + figure_offset)
    set(gcf, 'Name', ['Preprocess: ' filename]);
-   implottiling({imgraw, img},{'imgraw', 'img'});
+   implottiling({imgraw, imgpre2},{'imgraw', 'imgpre2'});
 end
 
 
@@ -137,7 +184,7 @@ imgth(imgth < th) = 0;
 imgmask = imgth > 0;
 
 % remove small fragments and small isolated minima with imopen
-imgmask = imopen(imgmask, strel('disk', 2));   % larger disk size removes larger fragments
+imgmask = imopen(imgmask, strel('disk', 4));    % larger disk size removes larger fragments
 % close
 %imgmask = imclose(imgmask, strel('disk', 2));  % larger disksize closes more
 % dilate
@@ -146,6 +193,7 @@ imgmask = imopen(imgmask, strel('disk', 2));   % larger disk size removes larger
 %imgmask = imerode(imgmask, strel('disk', 2));  % decreasde mask region
 % fill holes
 %imgmask = imfill(imgmask,'holes');
+
 
 
 if verbose
@@ -206,23 +254,25 @@ end
 %% Seeding
 %
 % result: - imgmax     binary image indicating seeds for segmentation
+%
+% note: Ideally have one seed per nucleus
 
+%%% optional pre filtering, alternatively use imgpre, imgpre2
 
-%%% optional pre filtering
-
-imgf = imgraw;
+%imgf = imgraw;
 
 % gaussian smoothing
 %imgf = gaussianFilter(imgf,3,10);
 
 % median filter / if note cumpted above or different parameter set
-imgf = medianFilter(imgf, 3);
+%imgf = medianFilter(imgf, 3);
 
 % mean shift 
 %imgf = meanShiftFilter(imgf, 3, 0.1);
 
+imgf = imgpre;
 
-%%% center enhancing filter
+%%% center enhancing filter to detect seeds
 
 % Laplacian of Gaussians (LoG) - more robust / use on inverse image !
 %param.filter.ksize = [15, 15];       % size of the filter = diameter of nuclei
@@ -243,7 +293,7 @@ imgf = medianFilter(imgf, 3);
 %imgf = dogFilter(imgf, param.filter.ksize,  param.filter.sigma_in,  param.filter.sigma_out);
 
 % sphere filter
-param.filter.ksize = [5, 5];
+param.filter.ksize = [8, 8];
 ker = fspecial2('sphere', param.filter.ksize);
 %ker = ker + fspecial2('disk',  param.filter.ksize, 1, 1, -1);
 imgf = linearFilter(imgf, ker);
@@ -252,126 +302,126 @@ imgf = linearFilter(imgf, ker);
 % normalize
 imgf = mat2gray(imgf);
 
-
 %%% Maxima detection
 
 % h-max detection (only local maxima with height > hmax are considered as maxima
-param.filter.hmax = 0.001;  %0.02;
+param.filter.hmax = 0.005;  %0.02;
 imgmax = imextendedmax(mat2gray(imgf), param.filter.hmax);
 
 %local max
 %imgmax = imregionalmax(imgf);
 
 % constrain to maxima within mask
-imgmax = imgmax .* cast(imgmask, class(imgmax));
+imgmax = immask(imgmax, imgmask);
 
-% Combine nearby points and shrink to single points
-imgmax = imdilate(imgmax, strel('disk', 1));
+% Combine nearby points
+imgmax = imdilate(imgmax, strel('disk', 2));
 % fill holes - combination of nearby points can lead to holes
 imgmax = imfill(imgmax,'holes');
+% shrink to single points - extended maxima usually give better segmentation results
+% imgmax = bwmorph(imgmax,'shrink',inf);           
 
-% imgmax = bwmorph(imgmax,'shrink',inf);           % extended regions usually give better segmentatrion results
-
-
-% plot the results. Ideally have one seed per nucleus
-if verbose  % CK I see a figure(20) and such further down is that intended
-   
+% plot the results.
+if verbose  
    figure(20 + figure_offset)
    set(gcf, 'Name', ['Seeding: ' filename])
    implottiling({imoverlay(imgraw, imgmax), imoverlay(imgf, imgmax)});
-
 end
 
-%% Postprocess Seeds
+%% Postprocess Seeds by Joining (optional)
+%
+% result: - imgjoin     binary image indicating seeds for segmentation
+%
+% note: Ideally have one seed per nucleus
 
-% Join seeds that can be connected by lines that does not cross boundary
-% CK where is this used??
+imgf = imgth;
 
-param.join.distance = 15;     % maximal distance of seeds to join 
-param.join.threshold = -Inf;  % minimum intensity of seed to be considered for joining
-param.join.distance = 15;     % maximal distance of seeds to join 
-param.join.threshold = -Inf;  % minimum intensity of seed to be considered for joining
+imglab = bwlabeln(imgmax);
 
+imggrd = mat2gray(imgradient(imgf));
 
+param = setParameter('threshold.min',        0.05, ...   % if profile comes below this absolute intensity objects are different
+                     'threshold.max',        inf,...    % if profile is always above this threshold, objects are joined
+                     'threshold.change'    , 1, ...   % maximal rel change in intensitiy above objects are assumed to be different
+                     'threshold.gradient'  , 1, ...   % maximal absolute gradient change above objects are assumed to be different, only if gradient image is supplied
+                     'cutoff.distance'     , 20, ...    % maximal distance between labels (= 20)
+                     'averaging.ksize'     , 2, ...     % ksize to calculate reference mean intensity (=3)
+                     'addline'             , true);     % add a line between joined label (true)
 
-%% test stuff
-
-% single point seeds
-
-imgmaxp =  bwmorph(imgmax,'shrink',inf);
-imglabel = bwlabeln(imgmaxp);
-
-labdist = imlabeldistances(imgmaxp);
-
-
-pos = immask2coords(imgmaxp);
-pairs = imlabellocalpairs(imgmaxp, 15, 'dist');
-np = length(pairs);  %CK ;
+%[imgjoin, pairs, joins] = joinSeedsByRays(imglab, imgf, param);
+[imgjoin, pairs, joins] = joinSeedsByRays(imglab, imgf,  imggrd, param);
 
 
-
-figure(43)
-clf
-ax(1) = imsubplot(1,2,1);
-implot(imoverlay(img, imgmaxp))
-
-hold on
-for i = 1:np
+if verbose 
+   figure(30 + figure_offset); clf
    
-   xy =[pos(pairs(i,1),:); pos(pairs(i,2),:)];
-   line(xy(:,1), xy(:,2))
+   ax(1) = imsubplot(1,2,1);
+   implot(imoverlay(imgf, imglab));
+   plotSeedPairs(imglab, pairs);
+   plotSeedPairs(imglab, joins, 'g');
+
+   ax(2) =imsubplot(1,2,2);
+   %figure(13)
+   colormap jet
+   %implot(imcolorize(imgjoin))
+   implot(imoverlaylabel(imgf, imgjoin, true));
+   
+   linkaxes(ax, 'xy');
 end
 
-pairs(1,:);
-pos(pairs(1,1),:);
-pos(pairs(1,2),:);
 
 
-%ax(2) = imsubplot(1,2,2);
-%imshow(mat2gray(labdist))
+%% Segmentation by WaterShed
+%
+% result: - imgseg     segmented image, all pixels of a single segment have a unique number
+%
+% note: Ideally the segments should cover and separate the visible nuclei
 
+% optional fitlering if alternative use of  imgpre, imgpre2 fails
 
-
-% see if two points should be joined inlcude joining line into seed image
-
-
-
-
-
-
-%% Segmentation on Image
-
-% optional fitlering
-%imgf = img;
-imgf = medianFilter(img,3);
-
-
+%imgf = medianFilter(img,3);
 %dilating the maxima can improve segmentation
-imgmaxd = imdilate(imgmax, strel('disk', 1));
-%imgmaxd = imgmax;
+
+imgmaxws = imdilate(imgjoin, strel('disk', 0));
+%imgmaxws = imgmax;
+
+imgf = imgpre;
 
 % watershed
-imgmin = imimposemin(max(imgf(:)) - imgf, imgmaxd);
+imgmin = imimposemin(max(imgf(:)) - imgf, imgmaxws);
 imgws = watershed(imgmin);
-imgseg = double(imgws) .* double(imgmask);
+imgseg = immask(imgws, imgmask);
 
-% watershed on gradient
-imgmaxd = imdilate(imgmax, strel('disk', 3));
-imggrad = imgradient(gaussianFilter(img, 3, 10) .* imgmask);
-rm = imimposemin(imggrad, imgmaxd);
+% watershed on image + gradient
+imgmaxws = imdilate(imgjoin, strel('disk', 0));
+imggrad = mat2gray(imgradient(imgpre2));
+imgf = imgf - 0.5 * imggrad;
+imgf(imgf <0) = 0;
+imgf = mat2gray(imgf);
+
+rm = imimposemin(max(imgf(:)) - imgf, imgmaxws);
 ws = watershed(rm);
-imgsegg = double(ws) .* double(imgmask);
+imgsegg = immask(ws , imgmask);
 
 
 figure(20)
-implottiling({imcolorize(imgseg), imcolorize(imgsegg)}, {'watershed on image', 'watershed image gradient'});
+implottiling({imcolorize(imgseg), imcolorize(imgsegg); imoverlaylabel(img, imgseg), imoverlaylabel(img, imgsegg)}, {'watershed on image', 'watershed image gradient'; 'overlay', 'overlay'});
 
 
 %%
 figure(21)
 implottiling({imoverlaylabel(mat2gray(img), imgseg), imoverlaylabel(img, imgseg, true)}, {[], 'watershed on img overlaid on img'})
 
-%% Watershed Segmentation on Image + Gradient
+
+
+%% Watershed Segmentation on Image + Gradient 
+%
+% result: - imgseg     segmented image, all pixels of a single segment have a unique number
+%
+% note: a different approach to the above matlab cell
+
+% optional fitlering if alternative use of  imgpre, imgpre2 fails
+
 
 %imgf = img;
 imgf = medianFilter(img,3);
@@ -393,13 +443,18 @@ implottiling({imoverlay(imgf, imgmax), imgfgrad, imgmix; ...
 
 
 %% Segmentation by Propagation
+%
+% result: - imgseg     segmented image, all pixels of a single segment have a unique number
+%
+% note: a different approach to the above matlab cell
+
 
 % mixture of image / gradient can improve result
 %imgmedgrad = imgradient(imgmed);
 %mi = max(imgmed(:));
 %mg = max(imgmedgrad(:));
 %imgprop = imadd(imgmed, 5.0 * mi / mg * imgmedgrad);
-imgprop = imgmed;
+imgprop = imgf;
 
 imgmaxlabel = bwlabel(imgmax);
 
@@ -429,155 +484,41 @@ linkaxes(ax, 'xy')
 %figure(41)
 %imshow([imgmedgrad, imgprop])
 
-%% Ray Segmentation - see Test/testRaySegmenetation.m
-
-% check the file for details
-% edit ./Test/testRaySegmentation.m
-
 
 
 %% Postprocess Segmentation and alternative diagnositcs
-
-%clumb splitting
-
-
 %
+% result: - imgpost  cleaned up segmentation removing small areas etc..
+%         - stats    some statistics calculated on the way
+%
+% note: if this step is ignored stats can be an empty struct
 
+param = setParameter('volume.min',    50,...     % minimal volume to keep (0)
+                     'volume.max',    inf,...    % maximal volume to keep (Inf)
+                     'intensity.min', -inf, ...  % minimal mean intensity to keep (-Inf)
+                     'intensity.max', inf, ...   % maximal mean intensity to keep (Inf)
+                     'boundaries',    false, ... % clear objects on x,y boundaries (false)
+                     'fillholes',     true,...   % fill holes in each z slice after processing segments (true)
+                     'relabel',       true);    % relabel from 1:nlabelnew (true)
 
-lbl = bwlabel(imgseg > 0);
-stats = regionprops(logical(lbl), 'Area', 'PixelIdxList');
-min_area = 40;
-keep = [stats.Area] >= min_area;
-% remove small nucs from lbl
-for i = find(~keep)
-    lbl(stats(i).PixelIdxList) = 0;
+[imgpost, stats] = postProcessSegments(imgseg, param);
+
+if verbose
+   
+   figure(41 + figure_offset)
+   colormap jet
+   implottiling({imoverlay(img, imgmax), imcolorize(imgpost), imoverlaylabel(img, imgpost, true)})
 end
 
-[bndry, lbl] = bwboundaries(lbl > 0, 8, 'noholes');
-stats = regionprops(logical(lbl), 'Area', 'Centroid', 'PixelIdxList');
-imgmask = lbl > 0;
-
-edges = false(size(imgseg));
-for i = 1:length(bndry)
-    edges( sub2ind(size(imgseg), bndry{i}(:,1), bndry{i}(:,2)) ) = 1;
-end
-fprintf('Identified %d nuc in segmentation after discarding %d < min-area Min,Max area= %d %d\n',...
-    length(stats), sum(~keep), min([stats.Area]), max([stats.Area]) );
-figure(51), imshow(imoverlay(imgmed, edges, [1,0,0]) )
-
-%% ROI: Thresholding and Closing / Opening Original Image - Tests
-
-threshold = 3000/ 65535.;
-imgroi = im2bw(imgmed, threshold);
 
 
-% larger sizes exclude dividing cells !!
-imgroi = imerode(imgroi, strel('disk',5));
-imgroi = imdilate(imgroi, strel('disk',5));
-%imgroi = bwmorph(imgroi, 'open', 15);
-%imgroi = bwmorph(imgroi, 'close');
+%% Create Objects and Frame form labeled image
 
-imgthres = zeros(size(imgd));
-imgthres(imgroi) = imgd(imgroi);
+param = setParameter('time' ,  0, ...   % time for objects (0)
+                     'rescale',1, ...   % rescale coordinates r by this factor ([1, 1(, 1)])
+                     'method', 'median'); % how to calcualte the intensity in Object, a string of any function, 'none' = dont calcualte ('median')
 
-imgtmed = medianFilter(imgthres,3);
-imgtmsf = meanShiftFilter(imgthres, 3, 0.1);
+objs = label2Objects(imgpost, img, stats, param);
 
-
-figure(100)
-subplot(2,1,1)
-imshow([imgd, imgthres])
-subplot(2,1,2)
-imshow([imoverlay(imgd, imgroi), imoverlay(imgthres, imgroi)])
-
-
-ADD last statement below to the segmentation_2D.m
-
-%% Clean up segmentation and alternative diagnositcs
-
- 
-lbl = bwlabel(imgseg > 0);
-stats = regionprops(logical(lbl), 'Area', 'PixelIdxList');
-min_area = 40;
-keep = [stats.Area] >= min_area;
-% remove small nucs from lbl
-for i = find(~keep)
-    lbl(stats(i).PixelIdxList) = 0;
-end
-lbl = imfill(lbl, 'holes');
-
-
-
-%% Extended Maxima to Join Label
-
-imgf = mat2gray(medianFilter(imgraw,3));
-
-imgfgrad = imgradient(imgf);
-mi = max(imgf(:));
-mg = max(imgfgrad(:));
-%imgf = imsubtract(imgf, 0.5 * (mi/mg) * imgfgrad);
-
-
-imglabel = bwlabeln(imgmax);
-label = imlabel(imglabel);
-
-% in each labeled region find max and set all values to this max
-for l = label
-   idx = find(imglabel == l);
-   vals = imgf(idx);
-   imgf(idx) = max(vals);
-end
-
-% use log or disk fitler again ??
-
-imgff = imgf;
-imgff = medianFilter(imgf,3);
-%imgff = logFilter(max(imgf(:)) - imgf, [15,15]);
-%imgff = diskFilter(imgf, 15, 1, 1, -1);
-imgff = mat2gray(imgff);
-
-
-% now find extended maxima
-
-imgmm = imgff;
-%imgmm = imhmin(imgmm, 0.05);
-imgmm = imextendedmax(imgmm, 0.01);
-imgmm = imdilate(imgmm, strel('disk', 0));
-imgmm = imgmm .* cast(imgmask, class(imgmm));
-
-
-
-
-figure(50)
-clf
-ax(1) = imsubplot(1,3,1);
-imshow(imgff)
-ax(2) = imsubplot(1,3,2);
-imshow(imoverlaylabel(imgf, imglabel))
-ax(3) = imsubplot(1,3,3);
-imshow(imoverlay(imgraw, imgmm))
-
-linkaxes(ax, 'xy');
-
-
-
-%%
-clf
-ker = fspecial3('disk', 3, 0, 1, -1);
-
-ker = fspecial2('dog', 15)
-
-ker = fspecial2('sphere', 15)
-%implot3d(mat2gray(ker))
-%immontage(mat2gray(ker))
-imshow(mat2gray(ker))
-
-size(ker)
-
-%%
-figure
-
-imshow(imgmask)
-
-%%
+frame = Frame('objects', objs, 't', 0);
 

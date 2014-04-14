@@ -5,7 +5,7 @@ classdef Frame < handle
 % See also: Colony, Cell, TimeSeries
 
    properties
-      t = 0;           % absolute time of frame
+      t = 0;        % absolute time of frame
       objects  = [];   % segmented objects in image (e.g. array of Object, Cell, classes...)  
       
       experiment = []; % reference to Experiment class

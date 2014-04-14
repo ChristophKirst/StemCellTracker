@@ -1,6 +1,6 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Besic Setup of an Experiment and Functionality %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Basic Setup and Processing Steps %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
 close all
@@ -18,7 +18,7 @@ exp = Experiment('Name', 'Example', 'Date', datestr(now), 'Description', 'Test t
                  'ReadImageCommandFormat', 'imread(''<directory>/<file>'')',...
                  'ImageFileFormat', 'W1F127T<time,4>Z<z,2>C1.tif', ...
                  'ImageFormatNames', {'z', 'time'},...
-                  'ImageFormatRange', {1:15, 1});
+                 'ImageFormatRange', {1:15, 1});
 
 exp.Info()
 
@@ -31,7 +31,7 @@ exp.SaveResult('testdata.mat', sdata)
 ldata = exp.LoadResult('testdata.mat');
 ldata - sdata
 
-%% Load Images
+%% Load Images an plot
 
 exp.ReadImageCommand([6, 1])
 
@@ -41,8 +41,7 @@ size(img)
 figure(1); clf;
 implot(img)
 
-
-%% Read the full Stack and plot
+%% Read an Image Stack and plot in 3d
 
 for z = exp.ImageFormatRange{1}
    img(:,:, z) = exp.ReadImage([z, 1]);
@@ -56,14 +55,18 @@ figure(2); clf
 implot3d(mat2gray(imgr));
 
 
-%% Simple 3D Segmentation
+%% Simple 2d Segmentation
 
-% see other example scritps in ./Scrtips folder for more details and full functionality
+% see other example scritps in ./Scrtips folder for more details, e.g.
+% for 2d segmentation click on segment2D.m and press Strg + d
+% for 3d segmentation click on segment3D.m and press Strg + d
+% for tracking click on tracking.m and press Strg + d 
 
-%masking
+%loading
 img = exp.ReadImage([6, 1]);
 size(img)
 
+%% Masking
 imgf = mat2gray(log(double(img)));
 %imgf = medianFilter(imgf, 2);
 imgf = meanShiftFilter(imgf, 3);
@@ -73,7 +76,6 @@ imgf = mat2gray(imgf);
 
 %th = thresholdMixtureOfGaussians(imgf)
 th = 0.2;
-
 imgmask = imgf >= th;
 imgmask = imopen(imgmask, strel('disk', 3));
 
@@ -86,7 +88,6 @@ imggrd = mat2gray(imggrd);
 
 figure(1)
 implottiling({img, imgf; imoverlay(imgf, imgmask), imggrd})
-
 
 
 %% Seeding
@@ -123,20 +124,46 @@ figure(30)
 colormap jet
 implottiling({imoverlay(imgw, imgmax), imcolorize(imgseg), imoverlaylabel(img, imgseg, true)})
 
-%% Statistics
+%% Postprocess and create intial statistics
 
-stats = 
+param = setParameter('volume.min',    50,...     % minimal volume to keep (0)
+                     'volume.max',    inf,...    % maximal volume to keep (Inf)
+                     'intensity.min', -inf, ...  % minimal mean intensity to keep (-Inf)
+                     'intensity.max', inf, ...   % maximal mean intensity to keep (Inf)
+                     'boundaries',    false, ... % clear objects on x,y boundaries (false)
+                     'fillholes',     true,...   % fill holes in each z slice after processing segments (true)
+                     'relabel',       true);    % relabel from 1:nlabelnew (true)
+
+[imgpost, stats] = postProcessSegments(imgseg, param);
+
+stats
+
+figure(31)
+colormap jet
+implottiling({imoverlay(img, imgmax), imcolorize(imgpost), imoverlaylabel(img, imgpost, true)})
 
 
+%% Create Objects and Frame form labeled image
+
+param = setParameter('time' ,  0, ...   % time for objects (0)
+                     'rescale',1, ...   % rescale coordinates r by this factor ([1, 1(, 1)])
+                     'method', 'median'); % how to calcualte the intensity in Object, a string of any function, 'none' = dont calcualte ('median')
+
+objs = label2Objects(imgpost, img, stats, param);
+
+frame = Frame('objects', objs, 't', 0);
+
+exp.Result = frame;
 
 
+%% plot some statistics
 
+figure(42)
+hist(double([frame(1).objects.intensity]), 255)
 
 %%
 
-
-
-
+exp.Info()
 
 
 

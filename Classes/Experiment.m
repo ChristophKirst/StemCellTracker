@@ -227,8 +227,9 @@ classdef Experiment < handle
          txt = [txt, 'ImageDirectory : ', obj.ImageDirectory, '\n'];
          txt = [txt, 'ResultDirectory: ', obj.ResultDirectory, '\n'];
          
-         inf = whos('obj');
-         txt = [txt, '\nMemory: ' num2str(inf.bytes/1024) ' kB\n'];
+         %r = obj.Result;
+         %inf = whos('r');
+         %txt = [txt, '\nMemory: ' num2str(inf.bytes/1024) ' kB\n'];
       end
 
       function Info(obj)

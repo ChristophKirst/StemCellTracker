@@ -21,7 +21,7 @@ if nargin < 2
    param = [];
 end
 
-if ~isnumeric(param) || isempty(param)
+if isempty(param) || ~isnumeric(param)
    minlog2 = getParameter(param, 'minlog2val', -10);
 else
    minlog2 = param;

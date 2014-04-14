@@ -4,11 +4,12 @@ classdef Object < handle
 %
 % See also: Cell, Frame, Trajectory
    properties
-      r = [0; 0];    % spatial position
+      r = [0; 0];     % spatial position
+      time = 0;       % time 
       
-      volume = [];    % area or volume ([] for none)
-      intensity = []; % intensity ([] for none)
-      id = [];        % id ([] for none)
+      volume    = 0;  % area or volume ([] for none)
+      intensity = 0;  % intensity ([] for none)
+      id        = 0;  % id ([] for none)
       
       type = [];      % object type ([] for none)
    end
@@ -18,69 +19,17 @@ classdef Object < handle
    %end
    
    methods
-      function obj = Object(data, d, varargin)
-         %
-         % Object(id, time, r, volume, intensity, type)
-         % Object(data, dim)
-         %
-         % input: id, r, time,...   class field entries 
-         %        data              column of the from [id time r ...]
-         %        dim               spatial dimension
-         %
-         if nargin > 0
-            if nargin ==1 && isa(data, 'Object')  % copy constructor 
-
-               obj.id = data.id;
-               obj.time = data.time;
-               obj.r = data.r;
-               obj.volume = data.volume;
-               obj.intensity = data.intensity;
-               obj.type = data.type;
-
-            elseif nargin == 2 && isnumeric(d) && length(data) >= 2 + d % Object(data, dim)
-               
-               if size(data,1) == 1
-                  data = data';
-               end
-               
-               obj.id = data(1);
-               obj.time = data(2);
-               obj.r = data(3:2+d);
-               
-               n = length(data);
-               if n > 2 + d
-                  obj.volume = data(3+d);
-               end   
-               if n > 3 + d
-                  obj.intensity = data(4+d);
-               end              
-               if n > 4 + d
-                  obj.type = data(5+d:end);
-               end
-               
-            elseif isnumeric(data) % Object(id, time, r, size, intensity, type)
-               
-               obj.id = data;
-               
-               if nargin > 1
-                  obj.time = d;
-               end
-               if nargin > 2
-                  obj.r = varargin{1};
-               end
-               if nargin > 3
-                  obj.volume = varargin{2};
-               end
-               if nargin > 4
-                  obj.intensity = varargin{3};
-               end
-               if nargin > 5
-                  obj.type = [ varargin{4:end} ];
-               end
-            end
+      function obj = Object(varargin)  % simple constructor
+      %
+      % Object()
+      % Object(...,fieldname, fieldvalue,...)
+      %
+         for i = 1:2:nargin
+            obj.(varargin{i}) = varargin{i+1};
          end
       end
-                 
+
+      
       function c = copy(obj)
       %
       % c = copy(obj)
