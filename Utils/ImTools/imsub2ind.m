@@ -1,13 +1,13 @@
 function idx = imsub2ind(siz, sub)
 %
-% out = imsub2ind(image, d, sub)
+% out = imsub2ind(siz, sub)
 %
 % description: 
 %     converst array of position coordinates to the linear indices
 %     assuming image dimensions d
 %
 % input:
-%     d        dimension vector
+%     siz      size vector
 %     sub      indices as array of the form [idim1, idim2, ...] (e.g. as returned by imind2sub)
 %
 % output:

@@ -66,6 +66,10 @@ else
 
 end
 
+% som classes depend on imagej ! -> matlab gives cannot foind loc class errro with is a non-sense error message
+ijinitialize;
+
+
 end
 
 

@@ -4,7 +4,7 @@ function rgb3d = label2rgb3d(varargin)
 %
 % description:
 %     converts labeled 3d image into colorized 3d image using a color map
-%     worsk as label2rgb for 3d images
+%     works as label2rgb for 3d images
 %
 % input: 
 %     label     labeled 3d image

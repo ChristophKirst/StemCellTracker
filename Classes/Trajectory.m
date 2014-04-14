@@ -1,12 +1,14 @@
-classdef Trajectory
+classdef Trajectory < handle
 %
 % Trajectory class for storing and reshaping trajectory data
 %
-   properties 
-      objects = [];   % objects in the trajectory
-      
+   properties       
       timeids = [];   % ids of time frames
       objids  = [];   % ids of object in each time frame
+      
+      objects = [];   % objects in the trajectory TODO: remove from here, use timeseries.objects function
+      
+      timeseries = []; % Reference to time series class
    end 
    
    properties (Dependent)

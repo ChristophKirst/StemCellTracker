@@ -1,12 +1,14 @@
-function threshold = thresholdEntropy(image)
+function threshold = thresholdEntropy(image, param)
 %
-% threshold = thresholdEntropy( image )
+% threshold = thresholdEntropy(image, param)
 %
 % description:
 %    finds a threshold based on entropies of the image histrogram
 %
 % input:
 %    image       the image to calculate threshold for
+%    param       paramter struct with entry
+%                .minlog2val (-10)  or the value directly
 %
 % output:
 %    threshold   calculated threshold
@@ -15,10 +17,22 @@ function threshold = thresholdEntropy(image)
 %    Kapur, Sahoo, & Wong, A new Method for Gray Level Picture Thresholding
 %    Using the Entropy of the Histogram, 1985
 
+if nargin < 2 
+   param = [];
+end
+
+if ~isnumeric(param) || isempty(param)
+   minlog2 = getParameter(param, 'minlog2val', -10);
+else
+   minlog2 = param;
+end
+
 image = double(image);
 
 %histrogram
-[N, X] = hist(log2(image(:)), 256);
+log2img = log2(image(:)+eps);
+log2img(log2img < minlog2) = minlog2;
+[N, X] = hist(log2img, 256);
 
 % drop any zero bins
 drop = (N == 0);

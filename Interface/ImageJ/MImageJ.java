@@ -13,6 +13,8 @@
  */
 
 
+/* TODO: speed up by coying memory blocks directly ! */
+
 import ij.IJ;
 import ij.ImageJ;
 import ij.ImagePlus;

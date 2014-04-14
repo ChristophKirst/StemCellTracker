@@ -31,8 +31,12 @@ if ~isstruct(param)
    return
 end
 
+if ischar(field)
+   field = strsplit(field, '.');
+end
 if ~iscellstr(field)
-   field = { field };
+   par = default;
+   return
 end
 
 % get parameter

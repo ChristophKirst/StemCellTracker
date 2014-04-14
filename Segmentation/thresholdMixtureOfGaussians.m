@@ -37,9 +37,9 @@ image = image(ceil(length(image)*0.01):round(length(image)*0.99)); % cut off low
 
 
 nClasses = 3;
-classMean(1) = image(round(length(image)*probBackground/2));                      % Initialize background class
-classMean(3) = image(round(length(image)*(1 - probability/2)));                % Initialize foregournd class
-classMean(2) = (classMean(1) + classMean(3))/2;                                   % Initialize intermediate class
+classMean(1) = image(round(length(image)*probBackground/2));    % Initialize background class
+classMean(3) = image(round(length(image)*(1 - probability/2))); % Initialize foregournd class
+classMean(2) = (classMean(1) + classMean(3))/2;                 % Initialize intermediate class
 classStd(1:3) = 0.15;
 
 pClass(1) = 3/4*probBackground;

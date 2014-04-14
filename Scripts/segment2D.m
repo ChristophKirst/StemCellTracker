@@ -49,6 +49,10 @@ end
 %
 % result: - img    image of intensity values in [0,1]
 
+% reduce range
+
+
+
 % appliy some filters to remove noise
 
 % gaussian filter
@@ -363,9 +367,9 @@ figure(20)
 implottiling({imcolorize(imgseg), imcolorize(imgsegg)}, {'watershed on image', 'watershed image gradient'});
 
 
+%%
 figure(21)
-implottiling({imoverlaylabel(img, imgseg), double(imcolorize(imgseg)/255) .* double(gray2rgb(img))}, {[], 'watershed on img overlaid on img'})
-
+implottiling({imoverlaylabel(mat2gray(img), imgseg), imoverlaylabel(img, imgseg, true)}, {[], 'watershed on img overlaid on img'})
 
 %% Watershed Segmentation on Image + Gradient
 
@@ -575,5 +579,5 @@ figure
 
 imshow(imgmask)
 
-
+%%
 

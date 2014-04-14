@@ -1,28 +1,26 @@
 classdef Frame < handle
 %
-% Frame is a class that conains data about objects from single time point
+% Frame is a class that conains data about objects from a single time point
 %
+% See also: Colony, Cell, TimeSeries
 
    properties
-      filename = {};   % the file names of the source image
-      objects  = [];   % objects in image (e.g. nuclei)  
-
+      t = 0;           % absolute time of frame
+      objects  = [];   % segmented objects in image (e.g. array of Object, Cell, classes...)  
+      
+      experiment = []; % reference to Experiment class
+      filedata = [];   % data to specify images to load
    end
    
    methods
-      function obj = Frame(filename, objects)
+      
+      function obj = Frame(varargin)
       %
-      % Image(filename, objects)
+      % Frame()
+      % Frame(...,fieldname, fieldvalue,...)
       %
-      % input:
-      %    filename     source image file name
-      %    objects      idenified objects in image
-      %
-         if nargin > 0
-            obj.filename = filename;
-         end
-         if nargin > 1
-            obj.objects = objects;
+         for i = 1:2:nargin
+            obj.(varargin{i}) = varargin{i+1};
          end
       end
       
@@ -33,7 +31,7 @@ classdef Frame < handle
       % description:
       %    deep copy of the frame and its objects
       %
-         f = Frame(obj.filename, obj.objects.copy);
+         f = Frame('time', obj.time, 'objects', obj.objects.copy);
       end
       
  
@@ -45,22 +43,24 @@ classdef Frame < handle
       %
       % data = toArray(obj)
       %
-      % convert data of all objects in picture to array
+      % convert data of all objects to array
       %  
          data = obj.objects.toArray;
       end
            
-      function t = time(obj)
+      function ti = time(obj)
       %
       % t = time(obj)
       %
       % output:
       %   t    time of the frame
       %
-         if length(obj) == 1
-            t = obj.objects(1).time;
+         if ~isempty(obj.time)
+            ti = obj.time;
+         elseif length(obj) == 1
+            ti = obj.objects(1).time;
          else
-            t = cellfun(@(x) x(1).time, {obj.objects});
+            ti = cellfun(@(x) x(1).time, {obj.objects});
          end
       end
       
@@ -145,7 +145,20 @@ classdef Frame < handle
          obj.objects = obj.objects.transformCoordinates(R,T,C);
          
       end
-
+      
+      
+      function data = ReadData(obj)
+      %
+      % data = ReadData()
+      %
+      % returns the image data of this frame
+      % 
+      
+         data = obj.exp.ReadData(obj.filedata);
+         
+      end
+      
+      
    end
    
 end

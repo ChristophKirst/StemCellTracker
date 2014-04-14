@@ -31,8 +31,11 @@ isize = size(image);
 ssize = size(subimage);
 
 if numel(coords) ~= ndims(image) || numel(coords) ~= ndims(subimage) || any(coords > isize)
+   disp coords:
    disp(coords)
+   disp ndims(image):
    ndims(image)
+   disp ndims(subimage):
    ndims(subimage)
    error('imreplace: inconsistent image dimensions or positions!')
 end

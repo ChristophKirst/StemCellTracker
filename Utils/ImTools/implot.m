@@ -1,21 +1,28 @@
-function implot(image, varargin)
+function implot(img, varargin)
 %
-% implot(image, varargin)
+% implot(img, varargin)
 %
 % description:
-%    implot plots image using pixel coordinates [p,q]
+%    implot plots 2d or 3d image
 %
 % input:
-%    image     image to show
-%    varargin  options for imshow
+%    img     image to plot
 %
-% See also: implot3d, imshow
+% See also: implot2d, implot3d
 
-image = squeeze(image);
-imshow(permute(image, [2 1 3]), varargin{:})
-axis on
-xlabel('p'); ylabel('q'); 
-set(gca,'YDir','normal');
+% switch 2d / 3d image
 
-%matlab does not display image if one wants to rotate it
-%view(-90,90)
+imf = imformat(img);
+
+switch imf
+   case {'pq', 'pqc'}
+      implot2d(img, varargin{:});
+   case {'pql', 'pqlc'}
+      implot3d(img, varargin{:});
+   otherwise
+      error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);
+end
+
+
+
+     

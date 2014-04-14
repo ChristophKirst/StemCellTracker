@@ -1,17 +1,16 @@
 classdef Object < handle
 %
-% Object class storing info for the objects identified in images and to be tracked / quantified 
+% Object class storing basic information necessary for tracking objects
 %
-% See also: Trajectory, Picture, Frame
+% See also: Cell, Frame, Trajectory
    properties
       r = [0; 0];    % spatial position
-      time = 0;      % time
       
       volume = [];    % area or volume ([] for none)
       intensity = []; % intensity ([] for none)
-      id = [];        % id ([] forn none)
+      id = [];        % id ([] for none)
       
-      type = [];      % data that identifies the object type ([] for none)
+      type = [];      % object type ([] for none)
    end
    
    %properties (Dependent)

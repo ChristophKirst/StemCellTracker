@@ -12,7 +12,7 @@ function stack = imzreverse(stackin)
 %    stack      stack with inverted z direction
 %
 
-stack = flipdim(stackin, imdim(stackin, 'z'));
+stack = flip(stackin, imdim(stackin, 'z'));
 
 end
 

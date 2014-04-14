@@ -1,41 +1,45 @@
-function reduced = joinSegmentsByRays(image, gradient, label, param)
+function imgjoin = joinSeedsByRays(imglabel, img, imggrad, param)
 %
-% reduced = joinLabel(image, label, param)
+% joined = joinLabel(image, label, param)
+% joined = joinSeedsByRays(img, imggrad, imglabel, param)
 %
 % description:
-%    If intensity changes and gradients along the conencting line of two
-%    labels is indicating the same cell then the labels are joined and
+%    If intensity changes and gradients along the connecting line of two
+%    labels do not change sufficiently then the seeds are joined and
 %    the conencting line is added to the labeled pixel
 %
 % input:
-%    image    original image
-%    gradient gradient of the original image
-%    label    label of objects
+%    img      intensity image
+%    imggrad  gradient of img
+%    imglabel labeled or bw image
 %    param    parameter struct with entries
 %             .threshold.background    below this intensity objects end definately
 %             .threshold.change        maximal rel change in intensitiy above objects are assumed to be different
-%             .threshold.gradient      maximal absolute gradient change above objects are joint 
+%             .threshold.gradient      maximal absolute gradient change below objects are joined 
 %             .cutoff.distance         maximal distance between labels (= 20)
 %             .averaging.ksize         ksize to calculate reference mean intensity (=3)
 %
 % output:
-%    reduced  reduced labels
+%    imgjoin  reduced joined seeds image
 %
 % See also: findPeaks
 
 
 % initialize
 
-if nargin < 4
+if nargin < 3
    param = [];
+else
+   if isstruct(imggrad)
+      param = imggrad;
+      imgrad = [];
+   else
+      param = [];
+   end
 end
 
-%%
 
-%image = median(imgraw,3);
-gradient = imgradient(image);
-
-label =  bwmorph(imgmax,'shrink',inf);
+label = bwmorph(imgmax,'shrink',inf);
 label = bwlabeln(label);
 
 figure(32)

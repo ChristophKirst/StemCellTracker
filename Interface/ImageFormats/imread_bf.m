@@ -253,7 +253,7 @@ end
 %imageList = cell(numImages, 2);
 %colorMaps = cell(numImages);
 
-
+fprintf('imread_bf: size of image: %g x %g x %g x %g x %g\n', sizeX, sizeY, sizeZ, sizeC, sizeT);
 data = zeros([sizeX, sizeY, sizeZ, sizeC, sizeT]);
 
 

@@ -3,7 +3,7 @@ function ie = isentry(obj, name)
 % bool = isentry(obj, name)
 %
 % description:
-%   checks if name if name is a field, property or method of obj
+%   checks if name is a field, property or method of obj
 %
 % input:
 %   obj     object
@@ -11,7 +11,7 @@ function ie = isentry(obj, name)
 %
 
 if length(obj) > 1
-   ie = isfield(obj, name) || isprop(obj(1),name) || ismethod(obj, name);
+   ie = isfield(obj, name) || isprop(obj(1), name) || ismethod(obj, name);
 else
-   ie = isfield(obj, name) || isprop(obj,name) || ismethod(obj, name);
+   ie = isfield(obj, name) || isprop(obj, name) || ismethod(obj, name);
 end

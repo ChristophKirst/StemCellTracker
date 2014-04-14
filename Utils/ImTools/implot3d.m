@@ -19,7 +19,7 @@ function model = implot3d(image, param)
 %              .parent         parent axes (gca)
 %
 % output:
-%    model     refernece to the 3d model
+%    model     reference to the 3d model
 %
 % note:
 %    use interp3 on input data to increase/decrease resolution of data
@@ -28,7 +28,6 @@ function model = implot3d(image, param)
 
 % based on code by Joe Conti, 2004
 % modified by C. Kirst 2014 to fit into imtools
-%                           in particular assuming pixel coordinates for the data
 
 if nargin < 2
    param = [];
@@ -46,38 +45,38 @@ model.parent = getParameter(param, {'parent'}, model.parent);
 model.alpha = getParameter(param, {'color', 'alpha'}, model.alpha);
 model.cscale = getParameter(param, {'color', 'scale'}, model.cscale);
 model.texture = getParameter(param, {'texture'}, model.texture);
-model.xdata = getParameter(param, {'range', 'x'}, model.xdata);
-model.xdata = getParameter(param, {'range', 'p'}, model.xdata);
-model.ydata = getParameter(param, {'range', 'y'}, model.ydata);
-model.ydata = getParameter(param, {'range', 'q'}, model.ydata);
-model.zdata = getParameter(param, {'range', 'y'}, model.zdata);
-model.zdata = getParameter(param, {'range', 'l'}, model.zdata);
+model.xrange = getParameter(param, {'range', 'x'}, model.xrange);
+model.xrange = getParameter(param, {'range', 'p'}, model.xrange);
+model.yrange = getParameter(param, {'range', 'y'}, model.yrange);
+model.yrange = getParameter(param, {'range', 'q'}, model.yrange);
+model.zrange = getParameter(param, {'range', 'y'}, model.zrange);
+model.zrange = getParameter(param, {'range', 'l'}, model.zrange);
 
 rr  = getParameter(param, {'range'}, []);
 if ~isempty(rr)
-   model.xdata = rr(1:2);         
-   model.ydata = rr(3:4);         
-   model.zdata = rr(5:6);
+   model.xrange = rr(1:2);         
+   model.yrange = rr(3:4);         
+   model.zrange = rr(5:6);
 end
 
-% define [x,y,z]data
+% define [x,y,z] data
 siz = size(model.cdata);
-if isempty(model.xdata)
-    model.xdata = [0 siz(1)] + 0.5;  % we use pixel coordinates
+if isempty(model.xrange)
+    model.xrange = [0 siz(1)] + 0.5;
 end
-if isempty(model.ydata)
-    model.ydata = [0 siz(2)] + 0.5;
+if isempty(model.yrange)
+    model.yrange = [0 siz(2)] + 0.5;
 end
-if isempty(model.zdata)
-    model.zdata = [0 siz(3)] + 0.5;
+if isempty(model.zrange)
+    model.zrange = [0 siz(3)] + 0.5;
 end
 
 
 boxratios = getParameter(param, {'BoxRatios'}, [1 1 1]);
 if ~isempty(boxratios) 
-   model.xdata = [model.xdata(1), boxratios(1) * (model.xdata(2)-model.xdata(1)) + model.xdata(1)];
-   model.ydata = [model.ydata(1), boxratios(2) * (model.ydata(2)-model.ydata(1)) + model.ydata(1)];
-   model.zdata = [model.zdata(1), boxratios(3) * (model.zdata(2)-model.zdata(1)) + model.zdata(1)];
+   model.xrange = [model.xrange(1), boxratios(1) * (model.xrange(2)-model.xrange(1)) + model.xrange(1)];
+   model.yrange = [model.yrange(1), boxratios(2) * (model.yrange(2)-model.yrange(1)) + model.yrange(1)];
+   model.zrange = [model.zrange(1), boxratios(3) * (model.zrange(2)-model.zrange(1)) + model.zrange(1)];
 end
 
 if isempty(model.parent)
@@ -88,6 +87,7 @@ end
 
 %set(gca,'YDir','Reverse');
 xlabel('p'); ylabel('q'); zlabel('l')
+xlim(model.xrange); ylim(model.yrange); zlim(model.zrange);
 
 end
 
@@ -96,9 +96,9 @@ function [model] = localGetDefaultModel
 
 model.cdata = [];
 model.alpha = [];
-model.xdata = [];
-model.ydata = [];
-model.zdata = [];
+model.xrange = [];
+model.yrange = [];
+model.zrange = [];
 model.parent = [];
 model.handles = [];
 model.texture = 'xyz';
@@ -164,10 +164,11 @@ else
        cdata(cdata> 1) = 1;
        caxis(ax, model.cscale)
     end
-    opts{4} = 'scale';
+    opts{4} = 'scaled';
 end
 
-if isempty(model.alpha) 
+
+if isempty(model.alpha)
     alpha = cdata;
     if ndims(alpha) > 3
         alpha = sqrt(sum(double(alpha).^2, 4));
@@ -175,12 +176,25 @@ if isempty(model.alpha)
         alpha = alpha / max(alpha(:));
     end
     opts{6} = 'none';
+    
+    %max(alpha(:))
+    %min(alpha(:))
 else
-    alpha = model.alpha;
-    if ~isequal(csiz(1:3), size(alpha))
-        error('imshow3d: Incorrect size of alpha!');
-    end
-    opts{6} = 'none';
+   alpha = model.alpha;
+   
+   if ndims(alpha) == 3
+      alpha = permute(alpha, [2 1 3]);
+   else
+      alpha = permute(cdata, [2 1 3 4]);
+      alpha = sqrt(sum(double(alpha).^2, 4));
+      alpha = alpha - min(alpha(:));
+      alpha = alpha / max(alpha(:));
+   end
+   
+   if ~isequal(csiz(1:3), size(alpha))
+      error('implot3d: Incorrect size of alpha!');
+   end
+   opts{6} = 'none';
 end
 
 h = findobj(ax,'type','surface','tag',model.tag);
@@ -194,56 +208,55 @@ end
 handle_ind = 1;
 
 % Create z-slice
-if (view(3))    
-  x = [model.xdata(1), model.xdata(2); model.xdata(1), model.xdata(2)];
-  y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
-  z = [model.zdata(1), model.zdata(1); model.zdata(1), model.zdata(1)];
-  diff = model.zdata(2)-model.zdata(1);
-  delta = diff/csiz(3);
-  for n = 1:csiz(3)
-
-   cslice = squeeze(cdata(:,:,n,:));
-   aslice = double(squeeze(alpha(:,:,n)));
-   h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
-   z = z + delta;
-   handle_ind = handle_ind + 1;
-  end
-
+if (view(3))
+   x = [model.xrange(1), model.xrange(2); model.xrange(1), model.xrange(2)];
+   y = [model.yrange(1), model.yrange(1); model.yrange(2), model.yrange(2)];
+   z = [model.zrange(1), model.zrange(1); model.zrange(1), model.zrange(1)];
+   diff = model.zrange(2)-model.zrange(1);
+   delta = diff/csiz(3);
+   for n = 1:csiz(3)
+      cslice = squeeze(cdata(:,:,n,:));
+      aslice = double(squeeze(alpha(:,:,n)));
+      h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
+      z = z + delta;
+      handle_ind = handle_ind + 1;
+   end
+   
 end
 
 
 % Create x-slice
-if (view(1)) 
-  x = [model.xdata(1), model.xdata(1); model.xdata(1), model.xdata(1)];
-  y = [model.ydata(1), model.ydata(1); model.ydata(2), model.ydata(2)];
-  z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
-  diff = model.xdata(2)-model.xdata(1);
-  delta = diff/csiz(2);
-  for n = 1:csiz(2)
-
-   cslice = squeeze(cdata(:,n,:,:));
-   aslice = double(squeeze(alpha(:,n,:)));
-   h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
-   x = x + delta;
-   handle_ind = handle_ind + 1;
-  end
+if (view(1))
+   x = [model.xrange(1), model.xrange(1); model.xrange(1), model.xrange(1)];
+   y = [model.yrange(1), model.yrange(1); model.yrange(2), model.yrange(2)];
+   z = [model.zrange(1), model.zrange(2); model.zrange(1), model.zrange(2)];
+   diff = model.xrange(2)-model.xrange(1);
+   delta = diff/csiz(2);
+   for n = 1:csiz(2)
+      
+      cslice = squeeze(cdata(:,n,:,:));
+      aslice = double(squeeze(alpha(:,n,:)));
+      h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
+      x = x + delta;
+      handle_ind = handle_ind + 1;
+   end
 end
 
 % Create y-slice
 if (view(2))
-  x = [model.xdata(1), model.xdata(1); model.xdata(2), model.xdata(2)];
-  y = [model.ydata(1), model.ydata(1); model.ydata(1), model.ydata(1)];
-  z = [model.zdata(1), model.zdata(2); model.zdata(1), model.zdata(2)];
-  diff = model.ydata(2)-model.ydata(1);
-  delta = diff/csiz(1);
-  for n = 1:csiz(1)
-
-   cslice = squeeze(cdata(n,:,:,:));
-   aslice = double(squeeze(alpha(n,:,:)));
-   h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
-   y = y + delta;
-   handle_ind = handle_ind + 1;
-  end
+   x = [model.xrange(1), model.xrange(1); model.xrange(2), model.xrange(2)];
+   y = [model.yrange(1), model.yrange(1); model.yrange(1), model.yrange(1)];
+   z = [model.zrange(1), model.zrange(2); model.zrange(1), model.zrange(2)];
+   diff = model.yrange(2)-model.yrange(1);
+   delta = diff/csiz(1);
+   for n = 1:csiz(1)
+      
+      cslice = squeeze(cdata(n,:,:,:));
+      aslice = double(squeeze(alpha(n,:,:)));
+      h(handle_ind) = surface(x,y,z,cslice,'alphadata',aslice,opts{:});
+      y = y + delta;
+      handle_ind = handle_ind + 1;
+   end
 end
 
 model.handles = h;

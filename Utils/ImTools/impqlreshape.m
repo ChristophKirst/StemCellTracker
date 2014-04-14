@@ -7,7 +7,7 @@ function rimage = impqlreshape(image, in_format, out_format)
 %
 % input:
 %     image      input image
-%     in_format  (optional) format of ipnut image as characters (imformat(stack))
+%     in_format  (optional) format of input image as characters (imformat(stack))
 %     out_format (optional) format of output image  ('matlab' = 'pqclt')
 %
 % output:
@@ -15,6 +15,7 @@ function rimage = impqlreshape(image, in_format, out_format)
 %
 % note:
 %     'matlab' here is defined as 'pqclt' which only corrects the color ordering not the x,y exchange !
+%     'p' = 'x', 'y' = reverse 'q', 'z' = 'l'
 %
 % See also: imformat
 
@@ -34,11 +35,31 @@ end
 %if length(in_format) ~= ndims(image) % matlab is inconssitent if last dimension is 1 
 %   error('impqlreshape: input image and format inconsistent!')
 %end
+
+in_format = strrep(in_format, 'x', 'p');
+in_format = strrep(in_format, 'z', 'l');
+
+out_format = strrep(out_format, 'x', 'q');
+out_format = strrep(out_format, 'z', 'l');
+
 if length(unique(in_format)) ~= length(in_format)
    error('impqlreshape: labels appear more than one in input format: %s', in_format)
 end
 if length(unique(out_format)) ~= length(out_format)
    error('impqlreshape: labels appear more than one in output format: %s', out_format)
+end
+
+%reverse in y if requested
+ypos = strfind(in_format, 'y');
+if ~isempty(ypos)
+   rimage = flip(image, ypos);
+   in_format(ypos) = 'q';
+else
+   rimage = image;
+end
+ypos = strfind(out_format, 'y');
+if ~isempty(ypos)
+   out_format(ypos) = 'q';
 end
 
 
@@ -48,7 +69,7 @@ k = 1;
 for i = 1:length(out_format)
    sf = strfind(in_format, out_format(i));
    if ~isempty(sf)
-      shape(i) = size(image,sf(1));
+      shape(i) = size(rimage,sf(1));
       of(k) = out_format(i);  %#ok<AGROW>
       k = k + 1;
    end
@@ -59,9 +80,9 @@ k = 1;
 for i = 1:length(in_format)
    sf = strfind(of, in_format(i));
    if isempty(sf) % removing of dimensions only if it is of size 1 (squeeze)
-      if size(image,i) == 1
-         siz = size(image); siz(i) = [];
-         image = reshape(image, siz);
+      if size(rimage,i) == 1
+         siz = size(rimage); siz(i) = [];
+         rimage = reshape(rimage, siz);
       else
          error('impqlreshape: dimension %s are not specified in format: %s', in_format(i), format);
       end
@@ -72,7 +93,12 @@ for i = 1:length(in_format)
 end
 
 % premute and reshape the image coordinates
-rimage = reshape(permute(image, per), shape(:)');
+rimage = reshape(permute(rimage, per), shape(:)');
+
+%reverse in y if requested
+if ~isempty(ypos)
+   rimage = flip(rimage, ypos);
+end
 
 end
    

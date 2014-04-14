@@ -1,6 +1,6 @@
 function out = imoverlay(in, mask, color, intensity, rescale)
 %
-% out = imoverlay(in, mask, color)
+% out = imoverlay(in, mask, color, intensity, rescale)
 %
 % description:
 %    replace pixels in image specifed by mask with specified color
@@ -9,7 +9,7 @@ function out = imoverlay(in, mask, color, intensity, rescale)
 % input:
 %    in        input image, 2d, 3d, gray or color in form pq, pqc, pql or pqlc
 %    mask      mask where pixels should be changed
-%    intensity (optional) make maksed pixels intensity the one of the old pixels (false)
+%    intensity (optional) make masked pixels intensity the one of the old pixels (false)
 %    rescale   (optional) rescale original image intensitites (true)
 %
 % output:

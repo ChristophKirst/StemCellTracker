@@ -15,7 +15,24 @@ function threshold = thresholdMutualEntropy(image)
 %    Johannsen, Bille, A threshold selection method using information measures
 %    Proceedings 6th Int. conf. Pattern Recognition, 1982
 
+if nargin < 2 
+   param = [];
+end
+
+if ~isnumeric(param)
+   minlog2 = getParameter(param, 'minlog2val', -10);
+else
+   minlog2 = param;
+end
+   
+
 image = double(image);
+
+%histrogram
+log2img = log2(image(:)+eps);
+log2img(log2img < minlog2) = minlog2;
+[N, X] = hist(log2img, 256);
+
 
 %histrogram
 [N, X] = hist(log2(image(:)), 256);
