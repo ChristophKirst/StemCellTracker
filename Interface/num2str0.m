@@ -21,7 +21,7 @@ if l > n
    error('num2str0: number string %s is langer than %g', str, n)
 end
 
-str =[repmat('0', 1, n - l), str];
+str =[repmat(pad, 1, n - l), str];
 
 end
 

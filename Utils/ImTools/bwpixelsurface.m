@@ -3,8 +3,8 @@ function surface = bwpixelsurface(bw, method)
 % surface = bwpixelsurface(bw)
 %
 % description: 
-%    returns pixel on the surface of the bw objects
-%    this is pixel with city-block distance 1 from the exterior
+%    returns pixels on the surface of the bw objects
+%    these are pixels with city-block distance 1 from the background = 0 
 %
 % input:
 %    bw       the bw image
@@ -23,6 +23,10 @@ end
 switch method
    case 'border'
       %padd with background
+      
+      %ndims(bw)
+      %size(bw)
+      
       pad = padarray(bw, ones(ndims(bw), 1), 0);
       surface = bwdist(~pad, 'cityblock') == 1;
       surface = unpadarray(surface, ones(ndims(bw), 1));

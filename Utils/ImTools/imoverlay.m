@@ -21,6 +21,8 @@ function out = imoverlay(in, mask, color, intensity, rescale)
 if nargin < 3 || isempty(color)
     color = [1 0 0];
 end
+color = imcolorspec2rgb(color);
+
 if nargin < 4
    intensity = false;
 end

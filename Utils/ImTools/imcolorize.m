@@ -1,21 +1,21 @@
-function image = imcolorize(label, param)
+function image = imcolorize(imglab, param)
 %
 % image = imcolorize(image, param)
 %
 % description:
-%    colorizes the label image
+%    colorizes the labeled image imglab
 %
 % input:
-%    image      matrix of labels
+%    image      labels, any dimension
 %    param      (optional) parameter struct with entries
-%               .color.data       color according to this data ([] = random)
 %               .color.map        use this colormap (colormap)
+%               .color.data       color imglab using this value ([] = random)
 %               .color.scale      scale color data (true)
-%               .color.shuffle    shuffle colors
+%               .color.shuffle    shuffle colors, either 'none', 'shuffle' or 'random' ('shuffle' if color.data = [], 'none' otherwise)
 %               .color.background background color
 %               
 % output:
-%    image      colorized labeled image
+%    image      colorized labeled rgb image, has one dimension of size 3 more
 %
 % See also:
 %    label2rgb
@@ -24,29 +24,28 @@ if nargin < 2
    param = [];
 end
 
-cmap  = imlabelcolormap(max(label(:)), param);
+cmap  = imlabelcolormap(max(imglab(:)), param);
 
-shuffle = getParameter(param,  {'color', 'shuffle'}, []);
+shuffle = getParameter(param, {'color', 'shuffle'}, []);
+if isempty(shuffle)
+   shuffle = 'shuffle';
+end
 
-%if isempty(shuffle) && isempty(getParameter(param,  {'color', 'data'}, []))
-%   shuffle = 'shuffle';
-%end
-
-back = getParameter(param,  {'color', 'background'}, []);
-
+back = getParameter(param, {'color', 'background'}, []);
 if isempty(back)
     opt = {'k'};
 else
     opt = {back};
 end
+
 if ~isempty(shuffle)
    opt = [opt, {shuffle}];
 end
 
-if ndims(label) == 2 %#ok<ISMAT>
-   image = label2rgb(label, cmap, opt{:});
+if ndims(imglab) == 2 %#ok<ISMAT>
+   image = label2rgb(imglab, cmap, opt{:});
 else
-   image = label2rgb3d(label, cmap, opt{:});
+   image = label2rgb3d(imglab, cmap, opt{:});
 end
 
 image = double(image) / double(max(image(:)));

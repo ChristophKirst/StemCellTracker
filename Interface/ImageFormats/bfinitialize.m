@@ -21,6 +21,10 @@ if javacheckclasspath('loci_tools.jar')
    status = true;
 end
 
+% its useful try to clear imagej objects
+clearclass('ij.ImageJ')
+clearclass('MImageJ')
+
 % try to find loci_tools.jar in the specified path or all its subfolders
 if ~status && nargin > 0
    loci = findloci(bfpath);
@@ -30,6 +34,24 @@ if ~status && nargin > 0
    end
 end
 
+%  automatic detection: check imagej's jars path
+if ~status
+    bfpath = ijpath;
+    
+    if ~isempty(bfpath)
+       loci = findloci(bfpath);
+       if ~isempty(loci)      
+         javaaddjar(loci);
+         status = true;
+       end
+       
+       % some classes depend on imagej ! -> matlab gives cannot find loci class error with is a non-sense error message
+       % solution: initialize imagej
+       ijinitialize;
+
+    end
+end
+
 %still not found, search in bfinitialize's folder
 if ~status
    loci = findloci(fileparts(mfilename('fullpath')));
@@ -37,18 +59,6 @@ if ~status
       javaaddjar(loci);
       status = true;
    end
-end
-
-%  automatic detection: check imagej's jars path
-if ~status
-    bfpath = ijpath;
-    if ~isempty(bfpath)
-       loci = findloci(bfpath);
-       if ~isempty(loci)
-         javaaddjar(loci);
-         status = true;
-       end
-    end
 end
 
 
@@ -61,13 +71,10 @@ else
       v = bfversion();
       fprintf('bfinitialize: loci_tools.jar installed: version: %s\n', v)
    catch
-      error('bfinitialize: error while trying to run bf loci_tools.jar')
+      error('bfinitialize: found loci_tools.jar error while running it!')
    end
 
 end
-
-% som classes depend on imagej ! -> matlab gives cannot foind loc class errro with is a non-sense error message
-ijinitialize;
 
 
 end

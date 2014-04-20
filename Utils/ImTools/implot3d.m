@@ -1,16 +1,16 @@
-function model = implot3d(image, param)
+function model = implot3d(img, varargin)
 %
-% model = implot3d(image, param)
+% model = implot3d(img, varargin)
 %
 % description:
 %    implot3d visualizes 3d volumetirc grayscale or color data in pixel coordinates 
 %    using semi transparent slicing
 %
 % input:
-%    image     3d grayscale or color image
+%    img       3d grayscale or color image
 %    param     (optional) parameter struct with entries
 %              .color.scale    color data scale [cmin, cmax] ([] = automatic = [min(cdata), max(cdata)])
-%              .color.alpha    alpha data (image intensity)
+%              .color.alpha    alpha data (img intensity)
 %              .renderslice    set the slices to render ('z')
 %              .range.p        1x2 p-axis bounds. ( [1 size(data,1)] )
 %              .range.q        1x2 q-axis bounds. ( [1 size(data,2)] )
@@ -31,15 +31,19 @@ function model = implot3d(image, param)
 
 if nargin < 2
    param = [];
+elseif nargin > 3
+   param = setParameter(varargin{:});
+else
+   param = varargin{1};
 end
 
-if isstruct(image)
-    model = image;
+if isstruct(img)
+    model = img;
 else
     model = localGetDefaultModel; 
 end
 
-model.cdata = image;
+model.cdata = img;
 
 model.parent = getParameter(param, {'parent'}, model.parent);
 model.alpha = getParameter(param, {'color', 'alpha'}, model.alpha);
@@ -112,11 +116,7 @@ end
 function [model,ax] = local_draw(model)
 
 cdata = model.cdata;
-if ndims(cdata) == 3
-   cdata = permute(cdata, [2 1 3]);
-else
-   cdata = permute(cdata, [2 1 3 4]);
-end
+cdata = permute(cdata, [2 1 3 4]);
 csiz = size(cdata);
 
 try
@@ -148,20 +148,22 @@ switch model.texture
 end
 
 
-opts = {'Parent',ax,'cdatamapping',[],'alphadatamapping',[],'facecolor','texturemap','edgealpha',0,'facealpha','texturemap','tag',model.tag};
+opts = {'Parent',ax,'CDataMapping',[],'AlphaDataMapping',[],'FaceColor','texturemap','FaceAlpha','texturemap','EdgeColor','none','tag',model.tag};
 
 if ndims(cdata) > 3
     opts{4} = 'direct';
 else
     if isempty(model.cscale)
+       %need to scale manually to use cdata as alpha data too !
        cdata = cdata - min(cdata(:));
        cdata = cdata / max(cdata(:));
-       caxis(ax, [min(cdata(:)), max(cdata(:))]);
+       caxis(ax, [0, 1]); 
+       %caxis(ax, [min(cdata(:)), max(cdata(:))])
     else
        cdata = cdata - model.cscale(1);
        cdata(cdata < 0) = 0;
        cdata = cdata / (model.cscale(2) - model.cscale(1));
-       cdata(cdata> 1) = 1;
+       cdata(cdata > 1) = 1;
        caxis(ax, model.cscale)
     end
     opts{4} = 'scaled';

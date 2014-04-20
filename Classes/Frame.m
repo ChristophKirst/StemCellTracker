@@ -5,11 +5,12 @@ classdef Frame < handle
 % See also: Colony, Cell, TimeSeries
 
    properties
-      t = 0;        % absolute time of frame
-      objects  = [];   % segmented objects in image (e.g. array of Object, Cell, classes...)  
+      t = 0;           % absolute time of frame
+      objects  = [];   % segmented objects in image (e.g. array of Object, Cell, classes...)
       
       experiment = []; % reference to Experiment class
-      filedata = [];   % data to specify images to load
+      timeseries = []; % optional reference to the time series this frame belongs to
+      file       = []; % image to load specified either by row vector of file tags or direct filename 
    end
    
    methods
@@ -17,13 +18,30 @@ classdef Frame < handle
       function obj = Frame(varargin)
       %
       % Frame()
+      % Frame(frame)
       % Frame(...,fieldname, fieldvalue,...)
       %
-         for i = 1:2:nargin
-            obj.(varargin{i}) = varargin{i+1};
+         if nargin == 1 && isa(varargin{1}, 'Frame') % copy constructor
+            f = varargin{1};
+            obj.t = f.t;
+            obj.objects = f.objects.copy;
+            obj.experiment = f.experiment;
+            obj.timeseries = f.timeseries;
+            obj.file = f.file;    
+         else
+            for i = 1:2:nargin % constructor from arguments
+               if ~ischar(varargin{i})
+                  error('Frame: invalid constructor input, expects char at position %g', i);
+               end
+               if isprop(obj, lower(varargin{i}))
+                  obj.(lower(varargin{i})) = varargin{i+1};
+               else
+                  warning('Frame: unknown property name: %s ', lower(varargin{i}))
+               end
+            end
          end
       end
-      
+
       function f = copy(obj)
       % 
       % f = copy(obj)
@@ -31,7 +49,7 @@ classdef Frame < handle
       % description:
       %    deep copy of the frame and its objects
       %
-         f = Frame('time', obj.time, 'objects', obj.objects.copy);
+         f = Frame(obj);
       end
       
  
@@ -55,8 +73,8 @@ classdef Frame < handle
       % output:
       %   t    time of the frame
       %
-         if ~isempty(obj.time)
-            ti = obj.time;
+         if ~isempty(obj.t)
+            ti = obj.t;
          elseif length(obj) == 1
             ti = obj.objects(1).time;
          else
@@ -156,6 +174,27 @@ classdef Frame < handle
       
          data = obj.exp.ReadData(obj.filedata);
          
+      end
+      
+      
+      
+      
+      %%% Statistics 
+      
+      function pos = StatisticsIdx(obj, snames)
+         % 
+         % pos = StatisticsIdx(snames)
+         %
+         % descrition:
+         %    returns the indices of the statistics names in StatisticsNames
+         %  
+         
+         if iscellstr(snames)
+            pos =cellfun(@(x) find(strcmp(obj.StatisticsNames, x),1), snames, 'UniformOutput', false);
+            pos = [pos{:}];
+         else
+            pos = strfind(obj.StatisticsNames, snames);
+         end
       end
       
       

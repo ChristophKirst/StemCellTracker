@@ -18,7 +18,7 @@ function universe = ijplot3d(image, varargin)
 % See also: ijstart
 
 pixel_depth = 1;
-name = '3DImage (Matlab)';
+name = ['3DImage: ' datestr(now)];
 univ = [];
 
 for n = 1:2:length(varargin)
@@ -32,19 +32,24 @@ for n = 1:2:length(varargin)
    end
 end
 
-
-dim = ndims(image);
-
-if dim == 4 % color image
-   % nothing to be done / maybe check format hwlc !!
-else % stack of gray scale images
-   image = cat(4, image,image,image);
-end
 % convert to uint8 
-
 image = cast(255 * image / max(image(:)), 'uint8');
 
-imp = MImageJ.createImage(name, 'hwlc', image)
+dim = ndims(image)
+size(image)
+
+if dim == 4 % color image
+   image = impqlpermute(image, 'pqlc', 'clpq');   
+   
+   size(image)
+   
+   imp = MImageJ.createImage(name, 'clpq', image);
+else % stack of gray scale images   
+   %image = impqlpermute(image, 'pql', 'qpl');
+   %imp =  MImageJ.createImage(name, 'pql', image);
+   image = impqlpermute(image, 'pql', 'lqp');
+   imp =  MImageJ.createImage(name, 'lpq', image);
+end
 
 % pixel depth
 calibration = ij.measure.Calibration();

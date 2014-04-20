@@ -23,6 +23,4 @@ switch imf
       error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);
 end
 
-
-
      

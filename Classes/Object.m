@@ -24,8 +24,24 @@ classdef Object < handle
       % Object()
       % Object(...,fieldname, fieldvalue,...)
       %
-         for i = 1:2:nargin
-            obj.(varargin{i}) = varargin{i+1};
+         if nargin == 1 && isa(varargin{1}, 'Object') %% copy constructor
+            oin = varargin{1};
+            obj.r = oin.r;
+            obj.time = oin.time;
+            obj.volume = oin.volume;
+            obj.id = oin.id;
+            obj.type = oin.type; 
+         else
+            for i = 1:2:nargin % constructor from arguments
+               if ~ischar(varargin{i})
+                  error('Frame: invalid constructor input, expects char at position %g', i);
+               end
+               if isprop(obj, lower(varargin{i}))
+                  obj.(lower(varargin{i})) = varargin{i+1};
+               else
+                  warning('Frame: unknown property name: %s ', lower(varargin{i}))
+               end
+            end
          end
       end
 

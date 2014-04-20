@@ -30,11 +30,16 @@ if ismac() || ispc() % windows / mac
    cd(curdir); 
     
 elseif isunix()
+   
    [status, apath] = system(['readlink -f ' name]);
-   apath = strtrim(apath);
+   
    if status
       error('absolutepath: could not determine absolute path!')
-   end
+   end   
+   
+   %apath = strtrim(apath);
+   apath = strsplit(apath, '\n');
+   apath = apath{1};
 
    if ~isdir([apath filesep])
       apath = fileparts(apath);

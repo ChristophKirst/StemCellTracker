@@ -12,7 +12,7 @@ if nargin < 3
    col = 'b';
 end
 
-np = length(pairs);
+np = size(pairs,1);
 
 pos = imstatistics(imglab, 'Centroid');
 pos = round([pos.Centroid]);

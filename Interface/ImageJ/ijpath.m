@@ -19,7 +19,7 @@ found = 0;
 
 % use hint
 if nargin == 1
-   [ipath, ijjar, viewer3djar] = checkpath(hintpath);
+    [ipath, ijjar, viewer3djar] = findij(hintpath);
    if ~isempty(ipath)
       found = 1;
    end
@@ -45,7 +45,8 @@ end
 
 %edjucated guessing 2
 if ~found && isunix && ~ismac()
-   hintpath = '~/programs/ImageJ/';  
+   hintpath = '~/programs/ImageJ/';
+   
    [ipath, ijjar, viewer3djar] = findij(hintpath);
    if ~isempty(ipath)
       found = 1;
@@ -98,7 +99,6 @@ end
 
 
 end
-
 
 
 

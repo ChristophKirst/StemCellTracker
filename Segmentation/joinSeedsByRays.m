@@ -97,12 +97,13 @@ for p = 1:npairs
    c1 = centr(:,p1); c2 = centr(:, p2);
    x = [c1(1), c2(1)]; y = [c1(2), c2(2)];
    
-   profile =  improfile(img, y, x, 2*round(dist(p)));
+   profile =  improfile(img, y, x, 2*round(dist(p)), 'bilinear');
    
-   if p < 10
+   if p < 100
    figure(p + 30)
-   subplot(1,2,1)
-   plot(profile)
+   subplot(3,1,1)
+   col = hsv2rgb([p/npairs, 1, 1]);
+   plot(profile,'Color', col)
    end
    
    % lover absolute threshold -> if we cross background dont join
@@ -121,9 +122,10 @@ for p = 1:npairs
       % chang in rel intensity
       profile = profile / min(means0(p1), means0(p2));
    
-      if p < 10
-      subplot(1,2,2)
-      plot(profile)
+      if p < 100
+      subplot(3,1,2)
+      col = hsv2rgb([p/npairs, 1, 1]);
+      plot(profile, 'Color', col)
       end
       
       if max(profile)-min(profile) > threshold_change
@@ -132,7 +134,15 @@ for p = 1:npairs
    
       % check gradient profile
       if checkgrad
-         gradprofile = improfile(imggrad, y, x, 2*round(dist(p)));
+         gradprofile = improfile(imggrad, y, x, 2*round(dist(p)), 'bilinear');
+         
+         if p < 100
+            subplot(3,1,3)
+            col = hsv2rgb([p/npairs, 1, 1]);
+            plot(gradprofile, 'Color', col)
+         end
+         
+         
          if max(gradprofile) < threshold_gradient
             continue
          end

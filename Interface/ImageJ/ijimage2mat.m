@@ -3,7 +3,7 @@ function data = ijimage2mat(ijplus)
 % data = ijimage2mat(ijp)  
 %
 % description:
-%    converts ImageJ ImagePlus image to matalb array in h,w,l coordinates
+%    converts ImageJ ImagePlus image to matalb array in p,q,l coordinates
 %
 % input:
 %    ijplus         ImagePlus java class
@@ -15,7 +15,7 @@ function data = ijimage2mat(ijplus)
 
 
 if ~isa(ijplus, 'ij.ImagePlus')
-   error('ijimage2mat: expect ij.ImagePlusclass as input image, got: %s!', class(ijplus));
+   error('ijimage2mat: expect ij.ImagePlus class as input image, got: %s!', class(ijplus));
 end
    
 siz = ijplus.getDimensions()'
@@ -28,7 +28,7 @@ for i = 1:prod(siz(3:end))
 end
 
 %imagej usually stores data as
-%h,w,c,l,t
-data = impqlreshape(data, 'pqclt', 'pqlct');
+%p,q,c,l,t
+data = impqlpermute(data, 'pqclt', 'pqlct');
 
 end

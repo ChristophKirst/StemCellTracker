@@ -15,6 +15,7 @@ function implottiling(images, tiling, titles)
 
 if ~iscell(images)
    % check if we have 3d stack
+   %imformat(images)
    switch imformat(images)
       case 'pql'
          images = mat2cell(images, size(images,1), size(images,2), ones(size(images,3),1));
@@ -25,6 +26,7 @@ if ~iscell(images)
       otherwise
          images = {images};  
    end
+   %size(images)
    
    if nargin < 2
       tl = ceil(sqrt(length(images)));
@@ -59,7 +61,9 @@ for i = 1:length(images(:))
       k = k + 1;
       %size(images{i})
       
-      implot(images{i});
+      %imformat(images{i})
+      %size(images{i})
+      implot(squeeze(images{i}));
       if i <= ntitles && ~isempty(titles(i))
          title(titles(i));
       end

@@ -66,16 +66,25 @@ end
 
 figure(6)
 for c= 1:3
-   subplot(1,3,c)
+   subplot(2,3,c)
    hist(double(img{c}(:)), 256)
+   subplot(2,3,c+3)
+   hist(log(img{c}+eps), 256)
+   
 end
    
 %%
+for c = 1:3
+   [thresholdOtsu(img{c}), thresholdEntropy(img{c}), thresholdMixtureOfGaussians(img{c})]
+end
 
-th = 370;
+
+
+%%
+th = [380, 370, 700];
 
 for c=1:3
-   img{c}(img{c} < th) = 0;
+   img{c}(img{c} < th(3)) = 0;
 end
 
 figure(7)
@@ -93,29 +102,26 @@ implottiling(mat2gray(img{1}))
 
 
 
-%% Prefiltering / Denoising
+%% Prefiltering / Denoising - single Image testing
 
 c = 1;
 imgf = img{c};
 
+imgf = img{1} + img{2} + img{3};
+imgf = imgf(:, :, 4);
+
+isize = size(imgf)
+
 %% adding images to enhance cells
 
-imgf = img{1} + img{2} + img{3};
 back = imopen(imgf, strel('disk', 25));
 imgf = imgf - back;
 imgf(imgf < 0 ) = 0;
 
 
-%imgf = imsharpen(imgf);
+imgf = histeq(imgf(:));
+imgf = reshape(imgf, isize);
 %imgf = medianFilter(img{c}, 3);
-
-
-
-
-
-
-
-
 
 
 %imgd = double(img);
@@ -128,8 +134,10 @@ imgf(imgf < 0 ) = 0;
 if verbose
    figure(1)
    clf
-   set(gcf, 'Name', ['Preprocess Stack: channel: 1']);
-   implottiling(mat2gray(imgf));
+   set(gcf, 'Name', ['Preprocess Stack']);
+   %implottiling(mat2gray(imgf));
+   
+   implot(mat2gray(imgf));
    
    %figure(2)
    %subplot(1,2,1);
@@ -137,6 +145,27 @@ if verbose
    %subplot(1,2,2);
    %hist(imgd(:), 256);
 end
+
+
+%%
+
+imggrd = imgradient(imgf);
+
+   figure(2)
+   clf
+   set(gcf, 'Name', ['Gradient']);
+   implottiling(mat2gray(imggrd));
+
+   
+   %%
+   
+[centers, radii, metric] =  imfindcircles(imgf,[15 20],  'Sensitivity', 0.92, 'EdgeThreshold', 0.01);
+
+
+figure(3); clf
+implot(mat2gray(imgf));
+hold on
+viscircles(centers, radii,'EdgeColor','b');
 
 
 %% filter 

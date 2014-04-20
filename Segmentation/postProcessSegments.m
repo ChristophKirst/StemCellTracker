@@ -127,7 +127,7 @@ if relabel
      if isempty(img)
         stats = imstatistics(imgpost, statnames{:});
      else
-        stats = imstatistics(imgpost, img, statnames{:});
+        stats = imstatistics(imgpost, statnames{:}, img);
      end
    end
 

@@ -56,7 +56,7 @@ end
 if nargin > paddoff && ischar(varargin{end})
    padding = varargin{end};
 else
-   padding = 'replicate';
+   padding = 'symmetric';
 end
 
 

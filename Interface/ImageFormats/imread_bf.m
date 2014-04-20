@@ -12,8 +12,8 @@ function [data, metatdata] = imread_bf(name, param)
 %           .time      ids of time frames to import as array [tid1, tid2, ...] ([] = all)
 %           .channel   ids of channels to import as array [cid1, cid2, ...] ([] = all)
 %           .z /.l     pixel range [min, max] in z / l direction ([])
-%           .x /.h     pixel range [min, max] in x / h direction ([])
-%           .y /.w     pixel range [min, max] in y / w direction ([])
+%           .x /.p     pixel range [min, max] in x / p direction ([])
+%           .y /.q     pixel range [min, max] in y / q direction ([])
 %           .metadata  return also meta data if true
 %           .gui       open gui to select series if true (full image series is improted)
 %
@@ -192,7 +192,7 @@ end
 if isentry(param, 'x')
    xrange = getParameter(param, {'x'}, []);
 else
-   xrange = getParameter(param, {'h'}, []);
+   xrange = getParameter(param, {'p'}, []);
 end
 if isempty(xrange)
    x = 1; h = sizeX;
@@ -201,10 +201,10 @@ elseif length(xrange) == 1
 elseif length(xrange) ==2
    x = xrange(1); h = xrange(2) - xrange(1) + 1;
 else
-   error('imread_bf: x/h should be of the form min or [min, max]');
+   error('imread_bf: x/p should be of the form min or [min, max]');
 end
 if x < 1 || x + h > sizeX + 1
-   error('imread_bf: x/h [min, max] out of bounds');
+   error('imread_bf: x/p [min, max] out of bounds');
 else
    sizeX = h;
 end
@@ -213,7 +213,7 @@ end
 if isentry(param, 'y')
    yrange = getParameter(param, {'y'}, []);
 else
-   yrange = getParameter(param, {'w'}, []);
+   yrange = getParameter(param, {'q'}, []);
 end
 if isempty(yrange)
    y = 1; w = sizeY;
@@ -222,10 +222,10 @@ elseif length(yrange) == 1
 elseif length(yrange) ==2
    y = yrange(1); w = yrange(2) - yrange(1) + 1;
 else
-   error('imread_bf: x/h should be of the form min or [min, max]');
+   error('imread_bf: y/q should be of the form min or [min, max]');
 end
 if y < 1 || y + w > sizeY + 1
-   error('imread_bf: y/w [min, max] out of bounds');
+   error('imread_bf: y/q [min, max] out of bounds');
 else
    sizeY = w;
 end
@@ -239,7 +239,7 @@ planeSize = loci.formats.FormatTools.getPlaneSize(r, h, w);
 %end
 
 if planeSize/(1024)^3 >= 2,
-    error('imread_bf: image larger than 2GB! try opening i');
+    error('imread_bf: image larger than 2GB! try opening images individually');
 end
 
 if 1 < s &&  s > numSeries

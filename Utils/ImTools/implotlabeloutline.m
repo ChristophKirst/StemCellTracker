@@ -12,6 +12,6 @@ function implotlabeloutline(image, label, varargin)
 %
 % See also: impixelsurface, imsurfaceplot3d, imoverlay, imlabelcolormap
 
-implottiling(imoverlaylabel(image, impixelsurface(label), varargin{:}))
+implottiling(imoverlaylabel(image, impixelsurface(label), false, varargin{:}))
 
 end
