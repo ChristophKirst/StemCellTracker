@@ -45,7 +45,8 @@ if ~any(strcmp({'list', 'mask'}, format))
    error('bwuncompress: format is not mask, list or PixelIdxList but %s', format);
 end
 
-isize = mm(1:2);
+dim = mm(1);
+isize = mm(2:dim+1);
 
 switch format
    case 'mask'
@@ -53,27 +54,28 @@ switch format
       mask = false(isize);
       switch type
          case 'full'
-            for i = 3:2:length(mm)
+            for i = dim+2:2:length(mm)
                mask(mm(i):mm(i+1)) = 1;
             end
          case 'edge'
             if strcmp(type, 'edge')
-               mask(mm(3:end)) = 1;
+               mask(mm(dim+2:end)) = 1;
             end
       end
  
    case 'list'
       switch type
          case 'full'
-            dl = mm(4:2:end) - mm(3:2:end) + 1;  %number of positions in each row
+            dl = mm(dim+3:2:end) - mm(dim+2:2:end) + 1;  %number of positions in each row
             nl = sum(dl);
             mask = zeros(1,nl);
             dl = [0 cumsum(dl)];
+            ioff = dim + 1;
             for i = 1:length(dl)-1         
-               mask(dl(i)+1:dl(i+1)) = mm(2*i-1 + 2):mm(2*i + 2);
+               mask(dl(i)+1:dl(i+1)) = mm(2*i-1 + ioff):mm(2*i + ioff);
             end
          case 'edge'
-            mask = mm(3:end);
+            mask = mm(dim+2:end);
       end  
 end
 

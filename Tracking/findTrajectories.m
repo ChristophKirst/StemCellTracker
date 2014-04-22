@@ -64,7 +64,7 @@ for n = ntraj:-1:1
       objs(p) = frames{ti(p)}(tr(p));
    end
    
-   trajetories(n) = Trajectory(objs, ti, tr);
+   trajetories(n) = Trajectory('objects', objs, 'frameids', ti, 'objids', tr);
 
    clear objs
 end

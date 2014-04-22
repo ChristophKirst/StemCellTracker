@@ -9,52 +9,61 @@ classdef Frame < handle
       objects  = [];   % segmented objects in image (e.g. array of Object, Cell, classes...)
       
       experiment = []; % reference to Experiment class
-      timeseries = []; % optional reference to the time series this frame belongs to
+      %timeseries = []; % optional reference to the time series this frame belongs to
       file       = []; % image to load specified either by row vector of file tags or direct filename 
    end
    
    methods
       
       function obj = Frame(varargin)
-      %
-      % Frame()
-      % Frame(frame)
-      % Frame(...,fieldname, fieldvalue,...)
-      %
-         if nargin == 1 && isa(varargin{1}, 'Frame') % copy constructor
-            f = varargin{1};
-            obj.t = f.t;
-            obj.objects = f.objects.copy;
-            obj.experiment = f.experiment;
-            obj.timeseries = f.timeseries;
-            obj.file = f.file;    
+         %
+         % Frame()
+         % Frame(frame)
+         % Frame(...,fieldname, fieldvalue,...)
+         %
+
+         if nargin == 1 && isa(varargin{1}, 'Frame') %% copy constructor
+            obj = copy(varargin{1});
          else
             for i = 1:2:nargin % constructor from arguments
                if ~ischar(varargin{i})
-                  error('Frame: invalid constructor input, expects char at position %g', i);
+                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
                end
                if isprop(obj, lower(varargin{i}))
                   obj.(lower(varargin{i})) = varargin{i+1};
                else
-                  warning('Frame: unknown property name: %s ', lower(varargin{i}))
+                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
                end
             end
          end
       end
 
-      function f = copy(obj)
+      function newobj = copy(obj)
       % 
       % f = copy(obj)
       %
       % description:
       %    deep copy of the frame and its objects
       %
-         f = Frame(obj);
+         nobjs = length(obj);
+         newobj(nobjs) = Frame();
+         for k = 1:nobjs
+            newobj(k).t          = obj(k).t;
+            newobj(k).objects    = obj(k).objects.copy;
+            newobj(k).experiment = obj(k).experiment; % shallo copy
+            newobj(k).file       = obj(k).file;
+            %newobj(k).timeseries = obj(k).timeseries;
+         end 
       end
       
- 
+      
       function d = dim(obj)
-            d = obj(1).objects(1).dim;
+         %
+         % d = dim()
+         %
+         % spatial dimension of object's position
+         %
+         d = obj(1).objects(1).dim;
       end
 
       function data = toArray(obj)
@@ -66,7 +75,7 @@ classdef Frame < handle
          data = obj.objects.toArray;
       end
            
-      function ti = time(obj)
+      function t = time(obj)
       %
       % t = time(obj)
       %
@@ -74,11 +83,11 @@ classdef Frame < handle
       %   t    time of the frame
       %
          if ~isempty(obj.t)
-            ti = obj.t;
+            t = obj.t;
          elseif length(obj) == 1
-            ti = obj.objects(1).time;
+            t = obj.objects(1).time;
          else
-            ti = cellfun(@(x) x(1).time, {obj.objects});
+            t = cellfun(@(x) x(1).time, {obj.objects});
          end
       end
       
@@ -88,7 +97,7 @@ classdef Frame < handle
       % xyz = r(obj)
       %
       % output:
-      %   xyz    coordinates of the objects in the image os column vectors
+      %   xyz    coordinates of the objects in the image as column vectors
       %
          if length(obj) > 1 % for array of images
             xyz = cellfun(@(x) [ x.r ], { obj.objects }, 'UniformOutput', false);
@@ -165,39 +174,21 @@ classdef Frame < handle
       end
       
       
-      function data = ReadData(obj)
+      function img = readImage(obj)
       %
-      % data = ReadData()
+      % img = readData()
       %
       % returns the image data of this frame
-      % 
-      
-         data = obj.exp.ReadData(obj.filedata);
-         
+      %
+         img = obj.experiment.readData(obj.file);    
       end
-      
-      
-      
-      
-      %%% Statistics 
-      
-      function pos = StatisticsIdx(obj, snames)
-         % 
-         % pos = StatisticsIdx(snames)
-         %
-         % descrition:
-         %    returns the indices of the statistics names in StatisticsNames
-         %  
-         
-         if iscellstr(snames)
-            pos =cellfun(@(x) find(strcmp(obj.StatisticsNames, x),1), snames, 'UniformOutput', false);
-            pos = [pos{:}];
-         else
-            pos = strfind(obj.StatisticsNames, snames);
-         end
+
+
+      % image
+      function imglab = labeledImage(obj)
+         imglab = obj.objects.labeledImage();
       end
-      
-      
+
    end
    
 end

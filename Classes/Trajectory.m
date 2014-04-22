@@ -2,50 +2,71 @@ classdef Trajectory < handle
 %
 % Trajectory class for storing and reshaping trajectory data
 %
+% Todo: base on objects, remove frameids, objids
    properties       
-      timeids = [];   % ids of time frames
-      objids  = [];   % ids of object in each time frame
+
+      objects  = [];   % objects that constitute the trajectory
+      frameids = [];   % id of the frames to which the objects belong
+      objids   = [];   % ids of object in each time frame
       
-      objects = [];   % objects in the trajectory TODO: remove from here, use timeseries.objects function
-      
-      timeseries = []; % Reference to time series class
+      %timeseries = [];  % Reference to time series class
+      %experiment = [];  % Reference to experiment class
    end 
    
    properties (Dependent)
       dim             % spatial dimension
-      length          % length of the trajectory
+      duration        % length of the trajectory
    end
    
    methods
-      function obj = Trajectory(objects, timeids, objids)
-      %
-      % Trajectory(objects)
-      % Trajectory(objects, timeids, objids)
-      %
-      % input: 
-      %   objects   array of subsequent objects in trajectory
-      %   timeids   ids in the frames array corresponding to objs
-      %   objids    ids of the objects in objects array in each frame
-      %   
-         if nargin > 0
-            obj.objects = objects;
-            
-            if nargin > 1
-               obj.timeids = timeids;
-            end
-            if nargin > 2
-               obj.objids = objids;
-            end   
-         end
-        
-      end 
       
+      function obj = Trajectory(varargin)
+         %
+         %
+         % Trajectory()
+         % Trajectory(trajectory)
+         % Trajectory(...,fieldname, fieldvalue,...)
+         %
+         
+         if nargin == 1 && isa(varargin{1}, 'Trajectory') %% copy constructor
+            obj = copy(varargin{1});
+         else
+            for i = 1:2:nargin % constructor from arguments
+               if ~ischar(varargin{i})
+                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
+               end
+               if isprop(obj, lower(varargin{i}))
+                  obj.(lower(varargin{i})) = varargin{i+1};
+               else
+                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
+               end
+            end
+         end
+      end
+
+      function newobj = copy(obj)
+      % 
+      % f = copy(obj)
+      %
+      % description:
+      %    deep copy
+      %
+         nobjs = length(obj);
+         newobj(nobjs) = Frame();
+         for k = 1:nobjs
+            newobj(k).objects    = obj(k).objects.copy;
+            newobj(k).frameids   = obj(k).frameids;
+            newobj(k).objids     = obj(k).objids;     
+         end 
+      end
+      
+ 
       function d = get.dim(obj)
             d = obj(1).objects(1).dim;
       end
       
-      function l = get.length(obj)
-         if lengths(obj) == 1
+      function l = get.duration(obj)
+         if length(obj) == 1
             l = length(obj.objects);
          else
             l = arrayfun(@length, obj.objects);
@@ -157,7 +178,7 @@ classdef Trajectory < handle
 
          if length(obj) == 1 % single trajectory
             tpos = find(obj.objects.time == t);
-            %tpos = find(obj.timeids == t);
+            %tpos = find(obj.frameids == t);
             if isempty(tpos)
                trajpos = tops;
             else
@@ -169,7 +190,7 @@ classdef Trajectory < handle
             
          else % array of trajectories 
             tpos = cellfun(@(x) find(x==t,1), obj.time, 'UniformOutput', false);
-            %tpos = cellfun(@(x) find(x==t,1), {obj.timeids}, 'UniformOutput', false);
+            %tpos = cellfun(@(x) find(x==t,1), {obj.frameids}, 'UniformOutput', false);
             trajpos = find(cellfun(@length, tpos)); 
             if nargout > 1              
                tpos = cell2mat(tpos);
@@ -206,7 +227,7 @@ classdef Trajectory < handle
 
          if length(obj) == 1 % single trajectory
             %tpos = find(obj.objects.time == t);
-            tpos = find(obj.timeids == t);
+            tpos = find(obj.frameids == t);
             if isempty(tpos)
                trajpos = tops;
             else
@@ -218,7 +239,7 @@ classdef Trajectory < handle
             
          else % array of trajectories 
             %tpos = cellfun(@(x) find(x==t,1), obj.time, 'UniformOutput', false);
-            tpos = cellfun(@(x) find(x==t,1), {obj.timeids}, 'UniformOutput', false);
+            tpos = cellfun(@(x) find(x==t,1), {obj.frameids}, 'UniformOutput', false);
             trajpos = find(cellfun(@length, tpos)); 
             if nargout > 1              
                tpos = cell2mat(tpos);
@@ -273,7 +294,7 @@ classdef Trajectory < handle
       
          if length(obj) == 1
             tpos = find(obj.objects.time == t);
-            %tpos = find(obj.timeids == t);
+            %tpos = find(obj.frameids == t);
             if isempty(tpos)
                trajpos = tpos;
             else
@@ -304,7 +325,7 @@ classdef Trajectory < handle
          else % array of trajectories
             
             tpos = cellfun(@(x) find(x==t,1), obj.time, 'UniformOutput', false);               
-            %tpos = cellfun(@(x) find(x==t,1), {obj.timeids}, 'UniformOutput', false);
+            %tpos = cellfun(@(x) find(x==t,1), {obj.frameids}, 'UniformOutput', false);
             trajpos = find(cellfun(@length, tpos));
             
             if nargout > 1
@@ -374,7 +395,7 @@ classdef Trajectory < handle
       
          if length(obj) == 1
             %tpos = find(obj.objects.time == t);
-            tpos = find(obj.timeids == t);
+            tpos = find(obj.frameids == t);
             if isempty(tpos)
                trajpos = tpos;
             else
@@ -405,7 +426,7 @@ classdef Trajectory < handle
          else % array of trajectories
             
             %tpos = cellfun(@(x) find(x==t,1), obj.time, 'UniformOutput', false);               
-            tpos = cellfun(@(x) find(x==t,1), {obj.timeids}, 'UniformOutput', false);
+            tpos = cellfun(@(x) find(x==t,1), {obj.frameids}, 'UniformOutput', false);
             trajpos = find(cellfun(@length, tpos));
             
             if nargout > 1
@@ -491,6 +512,25 @@ classdef Trajectory < handle
          stats = statisticsTrajectory(obj);
          
       end
+      
+      
+      
+      
+      function imglab = labeledImage(obj)
+         if length(obj) ==1 
+            objs = obj.objects;
+            shape = [objs.segment];
+            [idx, isize] = shape.pixelIdxList();
+            imglab = zeros(isize);
+            for i = 1:length(idx)
+               imglab(idx{i}) = obj.frameids(i);
+            end
+         else
+            warning('%s: no methods to generate a labeled image form multiple trajectories', class(obj));
+            imglab = [];
+         end
+      end
+      
  
    end % methods
 end % classdef

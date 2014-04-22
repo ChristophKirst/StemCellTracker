@@ -15,7 +15,7 @@ function implot2d(img, varargin)
 %in case we extrated a z slice -> squeeze
 img = squeeze(img);
 
-%save previous colormap
+%colormap
 if nargin >= 2 
    if ismatrix(varargin{1}) && size(varargin{1},2) == 3
       cmap = varargin{1};
@@ -62,10 +62,6 @@ set(gca,'YDir','normal');
 
 end
 
-
-
-%restore previous colormap
-%colormap(cmap);
 
 %matlab does not display image if one wants to rotate it
 %view(-90,90)

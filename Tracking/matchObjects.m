@@ -37,7 +37,6 @@ if isentry(data1, 'objects')
 end
 
 
-
 % match 
 [match, cost] = findMatch(data0, data1, param);
 
@@ -54,7 +53,7 @@ if ~isempty(optimize) && optimize > 0
       C %#ok<NOPRT>
    end
    
-   data0t = data0.copy;
+   data0t = Object(data0); % deep copy of relevant Object data only!
    data0t = data0t.transformCoordinates(R, T, C);
 
    % match transformed data

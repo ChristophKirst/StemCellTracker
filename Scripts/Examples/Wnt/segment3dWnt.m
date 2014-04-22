@@ -1,4 +1,4 @@
-function imgseg = segment3dWnt(img, verbose)
+function imgpost = segment3dWnt(img, verbose)
 % 3d segmentation for Wnt data
 
 %% Init
@@ -16,6 +16,8 @@ if false
    ijinitialize();
    
    bfinitialize;
+   
+   verbose = true;
 end
 
 if nargin < 2
@@ -29,18 +31,21 @@ if false
    filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';
    %lifdata = imread_bf();
    
-   lifdata = imread_bf(filename, struct('series', 1, 'time', [3, 4], 'channel', [1, 2]));
-   
-   
+   lifdata = imread_bf(filename, struct('series', 1, 'time', [3, 4], 'channel', [1, 2])); 
    img = lifdata(:,:,:,1,1);
+   
+   
+   %add a zero image on top
+   %img(:,:,end+1) = zeros(size(img(:,:,end)));
+   
 else
    filename = '';
 end
 
 %% initialize / prefiltering
 
-imgd = double(img);
-imgd = mat2gray(imgd);
+img = double(img);
+img = mat2gray(img);
 
 %imglogvals = log2(imgd(:)+eps);
 %imglogvals(imglogvals < -5) = -5;
@@ -50,8 +55,8 @@ if verbose
    figure(1)
    clf
    set(gcf, 'Name', ['Raw Stack: ' filename ' channel: 1']);
-   implot3d(imresample(imgd, [3, 3, 1]));
-   ijplot3d(imgd, 'PixelDepth', 8)
+   implot3d(imresample(img, [3, 3, 1]));
+   %ijplot3d(imgd, 'PixelDepth', 8)
    
    %figure(2)
    %subplot(1,2,1);
@@ -62,46 +67,33 @@ end
 
 
 %% filter 
-param.filter.median.ksize = [5, 5, 3]; %3;
-imgmed = mat2gray(medianFilter(imgd, param.filter.median.ksize));
+imgf = mat2gray(medianFilter(img, [5, 5, 3], 'replicate'));
 %imgmed = meanShiftFilter(imgmed, 4, 0.1);
 
+imgf(imgf > 0.5) = 0.5;
+imgf = mat2gray(imgf);
 
-imgmedf = imgmed;
-imgmedf(imgmed > 0.5) = 0.5;
-imgmedf = mat2gray(imgmedf);
-
-if verbose
-   %%
+if verbose   
    figure(3)
    clf
    set(gcf, 'Name', ['Filtered Stack: ' filename ' channel: 1']);
-   implot3d(imgmed);
-   
-   figure(4)
-   clf
-   set(gcf, 'Name', ['Filtered Stack: ' filename ' channel: 1']);
-   implottiling(imgmedf);
-   
-   
-   %figure(5)
+   implottiling(imgf);
+  
+   %figure(4)
    %hist(imgmed(:), 256)
 end
-
-
-
 
 
 %% thresholding / masking 
 
 %th = 2^thresholdMixtureOfGaussians(imglogvals, 0.9);
-th = thresholdMixtureOfGaussians(imgmedf, 0.5);
+th = thresholdMixtureOfGaussians(imgf, 0.5);
 %th = thresholdEntropy(imgmed);
 %th = thresholdMutualEntropy(imgmed);
 %th = thresholdOtsu(imgmed);
 
 
-imgth = imgmedf;
+imgth = imgf;
 imgth(imgth < th) = 0;
 
 imgmask = imgth > 0;
@@ -140,69 +132,61 @@ end
 
 % Laplacian of Gaussians
 
-zsize = size(imgmedf,3);
-imgf = mat2gray(imgmedf);
+zsize = size(imgf,3);
+imgs = mat2gray(imgf);
 for z = zsize:-1:1
-   imgf(:,:,z) = imgf(:,:,z) - 0.0 * mat2gray(imgradient(imgf(:,:,z)));
+   imgs(:,:,z) = imgs(:,:,z) - 0.1 * mat2gray(imgradient(imgth(:,:,z)));
 end
 
-%param.filter.logsize = [20, 20, 3];
-%imgf = logFilter(max(imgf(:)) - imgf, param.filter.logsize);
-
-imgf = sphereFilter(imgf, [20,20,4]);
+%imgs = logFilter(max(imgs(:)) - imgs, [17,17,3], [], 'replicate');
+%imgs = sphereFilter(imgs, [22,22,4], [], 'replicate');
+imgs = diskFilter(imgs, [10,10,3]);
 
 %%%
 % find maxima using h-max detection 
-param.filter.hmax = 0.01;  %0.02;
-%imgmax = imregionalmax(imgf);
-imgmax = imextendedmax(mat2gray(imgf), param.filter.hmax);
+%imgmax = imregionalmax(imgs);
+imgmax = imextendedmax(mat2gray(imgs), 0.05);
+
+%dilating the maxima can help
+%imgmax = imdilate(imgmax, strel('disk', 1));
+%imgmax = imfill(imgmax, 'holes');
+%imgmaxd = imgmax;
 
 if verbose
    %%
-   figure(21)
-   clf
-   %colormap jet
-   implottiling(imoverlay(mat2gray(imgmedf), bwlabeln(imgmax)));
+   figure(21); clf
+   set(gcf, 'Name', ['Seeding: ' filename ' channel: 1']);
+   implottiling(imoverlay(mat2gray(imgs), bwlabeln(imgmax)));
    
-   figure(22)
-   clf
-   implotlabeloutline(mat2gray(imgf), bwlabeln(imgmax));
+   figure(22); clf
+   set(gcf, 'Name', ['Seeding / Thresholded Image: ' filename ' channel: 1']);
+   implottiling(imoverlaylabel(mat2gray(imgth), bwlabeln(imgmax)));
    
 end
 
 
-%% Watershed Segmentation on Image
-
-%dilating the maxima can help
-imgmaxd = imdilate(imgmax, strel('disk', 1));
-imgmaxd = imfill(imgmaxd, 'holes');
-%imgmaxd = imgmax;
+%% Segmentation on Image
 
 % watershed
-imgmin = imimposemin(max(imgmedf(:)) - imgmedf, imgmaxd);
+imgmin = imimposemin(max(imgs(:)) - imgs, imgmax);
 imgws = watershed(imgmin);
 
-figure(42)
-implot3d(imcolorize(imgws))
+if verbose 
+   %%
+   figure(42)
+   implot3d(imcolorize(imgws))
 
-%%
-figure(43)
-imgseg = immask(imgws, imgmask);
-implot3d(imcolorize(imgseg))
+   %%
+   figure(43)
+   imgseg = immask(imgws, imgmask);
+   implot3d(imcolorize(imgseg))
 
-%%
-figure(44)
-implotlabeloutline(imgmedf, imgseg)
+   %%
+   figure(44)
+   implotlabeloutline(imgf, imgseg)
+end
 
-
-
-%%
-%propagation
-%imgseg = segmentByPropagation(imgmedf, bwlabeln(imgmaxd), imgmask);
-
-
-
-%% 
+%% Postprocessing
 
 param = setParameter('volume.min',    50,...     % minimal volume to keep (0)
                      'volume.max',    inf,...    % maximal volume to keep (Inf)
@@ -216,14 +200,13 @@ param = setParameter('volume.min',    50,...     % minimal volume to keep (0)
 
 if verbose
    
-   figure(47)
-   colormap jet
-   implottiling({imcolorize(imgpost), imoverlaylabel(img, imgpost, true)})
+   figure(47); clf
+   implottiling(imcolorize(imgpost))
 end
 
 
 %%
-if true
+if verbose
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 4);
 end
 

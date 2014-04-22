@@ -631,11 +631,10 @@ class MImageJ {
 		int height = is[0][0].length;
 		int width = is[0][0][0].length;
       
-      System.out.println(colsize);
-      System.out.println(length);
-      System.out.println(height);
-      System.out.println(width);
-      
+      //System.out.println(colsize);
+      //System.out.println(length);
+      //System.out.println(height);
+      //System.out.println(width);
       
 		ImageStack imagestack = new ImageStack(width, height);
 		if (colsize >= 3) {

@@ -1,8 +1,8 @@
-function [tfrmt, tags] = tagformat(fname, tagnames)
+function [tfrmt, tnames, tags] = tagformat(fname, tagnames)
 %
 % tfrmt = tagformat(fname)
 % tfrmt = tagformat(fname, tagnames)
-% [tfrmt, tags] = tagformat(...)
+% [tfrmt, tnames, tags] = tagformat(...)
 %
 % description:
 %        tries to infer tagged name format of files fname 
@@ -15,12 +15,13 @@ function [tfrmt, tags] = tagformat(fname, tagnames)
 %
 % output:
 %      tfrmt     taggedfile format
+%      tnames    (optional) tag names
 %      tags      (optional) indices in each tag dimension
 %
 % See also: tags2name, tagformat2tagnames, name2tags
 
 if ~ischar(fname)
-   error('fileformat: first argument not valid file or directory name');
+   error('tagformat: first argument not valid file or directory name');
 end
 
 if ~isdir(fname)
@@ -31,14 +32,14 @@ else
 end
 
 if ~isdir(dirname)
-   error('fileformat: %s not a valid directory', dirname);
+   error('tagformat: %s not a valid directory', dirname);
 end
 
 if nargin < 2
    tagnames = {};
 else
    if ~iscellstr(tagnames) 
-      error('fileformat: expect cell of tag names as second argument');
+      error('tagformat: expect cell of tag names as second argument');
    end
 end
 
@@ -48,12 +49,12 @@ fns([fns.isdir]) = [];
 fns = {fns.name};
 
 if isempty(fns)
-   error('fileformat: no files in %s', fullfile(dirname, fname));
+   error('tagformat: no files in %s', fullfile(dirname, fname));
 end
 
 %filenames need to be of same size
 if any(diff(cellfun(@length, fns)))
-   error('fileformat: filenames not of same length');
+   error('tagformat: filenames not of same length');
 end
 
 %get common chars
@@ -83,6 +84,12 @@ for i = 2:length(sp)
 end
 
 if nargout < 2
+   return
+end
+
+tnames = tagnames;
+
+if nargout < 3
    return
 end
 

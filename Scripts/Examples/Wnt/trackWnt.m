@@ -1,4 +1,4 @@
-function [stacksegmented, segmentprops] = segment4dWntfromLeicaCK(filename, seriesid)
+function ts = track(filename, seriesid)
 % Segmentation in 4D
 
 %% Init
@@ -12,13 +12,14 @@ set(0, 'DefaultFigurePosition', [1   705   560   420]);
 initialize()
 
 ijinitialize();
+bfinitialize();
 
 addpath('/home/ckirst/Science/Simulation/Matlab/StemCell3D/Scripts/User/Eric/Wnt')
 verbose = true;
 
 %% Load Data
 
-filename = '/home/ckirst/Science/Simulation/Matlab/StemCell3D/Test/Images/Develop/Wnt/wnt_clone8_again_feb09.lif';
+filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';;
 seriesid = 1;
 datalif = imread_bf(filename, struct('series', seriesid, 'channel', []));
 %check = imcheckimage(datalif);
@@ -29,6 +30,7 @@ datalif = datalif(:,:,:,:,1:end-1);
 size(datalif)
 check = imcheckimage(datalif);
 nframes = size(datalif, ndims(datalif))
+nframes = 3;
 
 for t = 1:nframes
    datalif(:,:,:, 1, t) = mat2gray(datalif(:,:,:,1,t));
@@ -64,7 +66,7 @@ end
 
 
 if verbose
-      %ijplot3d(imgd, 'PixelDepth', 3);
+   %ijplot3d(imgd, 'PixelDepth', 3);
    t = 1;
    lifdataf(:,:,:,1,t) = medianFilter(datalif(:,:,:,1,t),3);
    %lifdata(:,:,:,2,t) = medianFilter(lifdata(:,:,:,2,t),3);
@@ -82,43 +84,35 @@ if verbose
    lifdataf(:,:,:,2,t) = cast(256 * mat2gray(log(datalif(:,:,:,2,t)+eps) + 15), 'int16');
    
    ijplot3d(lifdataf(:,:,:,:,t), 'PixelDepth', 5);
-   
-   
    %ijplot3d(lifdata(:,:,:,1,t), 'PixelDepth', 5);
 end
 
 
-%%
-
-figure(16)
-clf
-implottiling( lifdataf(:,:,:,1,1) )
-
-
 %% Segmentation
 
-dataseg = zeros(size(datalif));
 for t = 1:nframes
-   %stack = datalif(:,:,:, 1, t) - 0.5 * datalif(:,:,:,2,t);
-   %stack(stack < 0) = 0;
+   
+   %% Segment
    stack = datalif(:,:,:,1,t);
-   dataseg(:,:,:,1,t) = segment3dWnt(stack, false);
+   [imgseg, stats] = segment3dWnt(stack, false);
+ 
+   %% convert to Objects for Tracking
+   objects = label2DataObjects(imgseg, datalif(:,:,:,1,t), stats, 'existing', struct('time', t, 'rescale', [1 1 5]));
+   frame(t) = Frame('file', filename, 'objects', objects);
 end
 
 
-%% Convert to Objects and add statistics
+%% Inspect Data Structure
 
-for t = 1:nframes
-   objects = label2objects(datalif(:,:,:,1,t), dataseg(:,:,:,1,t), t, [1 1 5]);
-   frame(t) = Frame(filename, objects);
-end
+imglab = frame(1).labeledImage();
+figure(13)
+implottiling(imglab)
+
 
 
 %% Tracking
 
-
-
-%% test track
+%% Test: 2 Frames
 
 param.optimize = true;
 param.print.optimization = true;
@@ -188,10 +182,14 @@ title('cost matrix')
 [matches, traj] = trackObjects(frame, param);
 
 
+%% Plot object moving in time
+
+imgtraj = traj(1).labeledImage();
+figure(42); clf
+implot(imgtraj)
 
 
+%% Return Time Series
 
-
-
-
+ts = TimeSeries('frames', frame, 'trajectories', traj);
 

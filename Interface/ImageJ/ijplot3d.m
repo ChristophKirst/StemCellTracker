@@ -35,13 +35,12 @@ end
 % convert to uint8 
 image = cast(255 * image / max(image(:)), 'uint8');
 
-dim = ndims(image)
-size(image)
+dim = ndims(image);
+%size(image)
 
 if dim == 4 % color image
-   image = impqlpermute(image, 'pqlc', 'clpq');   
-   
-   size(image)
+   image = impqlpermute(image, 'pqlc', 'clpq');
+   %size(image)
    
    imp = MImageJ.createImage(name, 'clpq', image);
 else % stack of gray scale images   

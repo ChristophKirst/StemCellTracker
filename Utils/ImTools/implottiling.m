@@ -1,7 +1,7 @@
 function implottiling(images, tiling, titles)
 %
-% imtile(images, tiling, titles)
-% imtile(images, titles)
+% implottiling(images, tiling, titles)
+% implottiling(images, titles)
 %
 % descritption:
 %    distribute images over figure and link thier axes
@@ -13,9 +13,13 @@ function implottiling(images, tiling, titles)
 %
 % See also: immontage, imsubplot
 
+
+
+clim = [];
+
 if ~iscell(images)
    % check if we have 3d stack
-   %imformat(images)
+   clim = [min(images(:)), max(images(:))];
    switch imformat(images)
       case 'pql'
          images = mat2cell(images, size(images,1), size(images,2), ones(size(images,3),1));
@@ -24,7 +28,8 @@ if ~iscell(images)
       case 'pqcl'
          images = mat2cell(images, size(images,1), size(images,2), size(images,3), ones(size(images,4),1));  
       otherwise
-         images = {images};  
+         images = {images};
+         clim = [];
    end
    %size(images)
    
@@ -59,11 +64,11 @@ for i = 1:length(images(:))
    if ~isempty(images{i})
       ax(k) = imsubplot(tiling(1),tiling(2),i); %#ok<AGROW>
       k = k + 1;
-      %size(images{i})
-      
-      %imformat(images{i})
-      %size(images{i})
-      implot(squeeze(images{i}));
+      if ~isempty(clim)
+         implot2d(images{i},  'color.scale', clim);
+      else
+         implot2d(images{i});
+      end
       if i <= ntitles && ~isempty(titles(i))
          title(titles(i));
       end

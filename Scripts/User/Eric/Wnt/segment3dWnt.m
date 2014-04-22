@@ -1,4 +1,4 @@
-function imgseg = segment3dWnt(img, verbose)
+function [imgseg, imgstats] = segment3dWnt(img, verbose)
 % 3d segmentation for Wnt data
 
 %% Init
@@ -182,35 +182,35 @@ imgseg = immask(imgws, imgmask);
 
 
 
-% %% Clean up segmentation and alternative diagnositcs
+%% Clean up segmentation and alternative diagnositcs
 % 
-imgseg = imlabelseparate(imgseg); % CK impose mask before watershed.
-stats = regionprops(imgseg, 'Area', 'PixelIdxList');
 
-min_area = 40;  % its actually volume use length(pixel...list)
-keep = [stats.Area] >= min_area;
-for i = find(~keep)
-   imgseg(stats(i).PixelIdxList) = 0;
-end
-imgseg = imfill(imgseg, 'holes');
-imgseg = imrelabel(imgseg);
+param = setParameter('volume.min',    50,...     % minimal volume to keep (0)
+                     'volume.max',    inf,...    % maximal volume to keep (Inf)
+                     'intensity.min', -inf, ...  % minimal mean intensity to keep (-Inf)
+                     'intensity.max', inf, ...   % maximal mean intensity to keep (Inf)
+                     'boundaries',    false, ... % clear objects on x,y boundaries (false)
+                     'fillholes',     true,...   % fill holes in each z slice after processing segments (true)
+                     'relabel',       true);    % relabel from 1:nlabelnew (true)
 
-% 
-% [bndry, lbl] = bwboundaries(lbl > 0, 8, 'noholes');
-% stats = regionprops(logical(lbl), 'Area', 'Centroid', 'PixelIdxList');
-% imgmask = lbl > 0;
+[imgseg, stats] = postProcessSegments(imgseg, param);
 
 if verbose
    %%
    figure(11)
    clf
-   implot3d(imgseg);
+   implot3d(imgpost);
    %imsurfaceplot3d(imgseg);
 end
 
 %%
 if true
    ijplot3d(imcolorize(imgseg) + gray2rgb(mat2gray(img)), 'PixelDepth', 5);
+end
+
+
+if nargout > 1
+   imgstats = stats;
 end
 
 

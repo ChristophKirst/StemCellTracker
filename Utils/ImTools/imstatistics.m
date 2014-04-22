@@ -89,8 +89,8 @@ statnames = unique(statnames);
 statnames = statnames(~any(cell2mat(cellfun(@(y) strcmp(statnames,y), {'default', 'all'}, 'UniformOutput', 0)'),1));
 
 
-if length(stats) ~= nlabel
-   error('imstatistics: inconsistent object sizes!');
+if ~isempty(stats) && length(stats) ~= nlabel
+   error('imstatistics: inconsistent object sizes: %g , %g!', length(stats), nlabel);
 end
 
 %remove existing stats from statnames

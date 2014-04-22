@@ -3,7 +3,7 @@ function mm = bwcompress(img, sizei)
 % mm = bwcompress(img, sizei)
 %
 % description:
-%     use run length encoding to take a bw image input either as array (with
+%     use run length encoding on a 2d or 3d bw image input either as array (with
 %     values 0, !=0), or as a list of nonzero pixel values (in which case sizei
 %     must be supplied).
 %
@@ -13,8 +13,7 @@ function mm = bwcompress(img, sizei)
 %   sizei   the size of array as row vector, needed if img input as pixel list.
 %
 % output:
-%   mm      [sizei, (beg end) pix value pairs for intervals of img==1, col-wise
-%           mm output as 1 row
+%   mm      [sizei, (beg end) pix value pairs for intervals where img > 1, col-wise]
 % 
 % note:
 %     For 10x images, this routine uses about 30 uint32 ints per nucleus. There
@@ -23,25 +22,26 @@ function mm = bwcompress(img, sizei)
 %
 % See also: bwuncompress, bwpack
 
-
 if min(size(img)) > 1  % assuming input real image
     pixels = find(img);
     sizei = size(img);
 else
     if nargin ==1
-        warning('bwcompress: WARNING bad input: pixel list, without sizei\n');
+        error('bwcompress: bad input: pixel list, without sizei\n');
     else
         pixels = img;
     end
 end
 
+dim = length(sizei);
+
 npixels = length(pixels);
 pixels = sort(pixels);
 
 mm = uint32(zeros(1,2*npixels+2) );  % worst case all regions 1 pixel
-mm(1:3) = [sizei, pixels(1)];
+mm(1:dim+2) = [dim, sizei, pixels(1)];
 last = pixels(1);
-ptr = 4;
+ptr = dim+3;
 for i = 2:npixels
     if pixels(i) > last +  1;
         %mm = [mm, last, pixels(i)];  %% this took 1000x longer with no
