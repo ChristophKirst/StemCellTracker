@@ -69,7 +69,11 @@ classdef DataObject < Object
          % description:
          %     returns field names of the data entries
 
-         fnames = fieldnames(obj(1).data);    
+         if isempty(obj(1).data)
+            fnames = {};
+         else
+            fnames = fieldnames(obj(1).data);
+         end
       end
       
       
@@ -93,10 +97,55 @@ classdef DataObject < Object
          % description:
          %     returns the value of the field ['ch' num2str(ch) '_' fname]
             
-            fname = ['ch' num2str(ch) '_' fname];
+            fname = ['ch', num2str(ch) '_' fname];
             val = [obj.data];
             val = [val.(fname)]; 
       end
+      
+      % set channel data
+      function obj = addChannelData(obj, ch, stats)
+         %
+         % addChannelData(obj, stats)
+         %
+         % description:
+         %     adds/overwrites the entries in stats with prefix ch to the obj.data structure
+         
+            fnames = fieldnames(stats);
+            for i = length(fnames):-1:1
+               newfnames{i} = ['ch', num2str(ch) '_' fnames{i}];
+            end
+            
+            stats = renfield(stats, fnames, newfnames);
+            
+            obj = obj.addData(stats);
+      end
+      
+      
+      %add statistics
+      function obj = addData(obj, stats)
+         %
+         % addData(obj, stats)
+         %
+         % description:
+         %     adds the entries in stats to the obj.data structure
+         
+            fnames = obj(1).dataFields();   % assume identical field names !
+            snames = fieldnames(stats);
+              
+            if ~isempty(fnames)
+               dstats = [obj.data];
+               dstats = rmfield(dstats, intersect(fnames, snames));
+            else
+               dstats(length(obj)) = struct();
+            end
+
+            for i = 1:length(snames)
+               dd = num2cell([stats.(snames{i})]);
+               [dstats.(snames{i})] = dd{:};
+            end
+            dstats = num2cell(dstats);
+            [obj.data] = dstats{:};
+      end  
       
       %some specialized data access function 
       function val = dapi(obj)
