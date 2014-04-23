@@ -1,28 +1,46 @@
-function [tnames, tw] = tagformat2tagnames(tfrmt)
-%
-% [tnames, tw] = tagformat2tagnames(tfrmt)
-%
-% description:
-%    finds all tag names and possible width specifications in a tagged format string
-%
-% input:
-%    tfrmt   tagged format
-% 
-% outut:
-%    tnames  tagged names
-%    tw      width of tag, 0 if not specified.
+function [tnames, twidth, ttype, torig] = tagformat2tagnames(tfrmt)
 
-tgs = regexp(tfrmt, '<(?<name>\w*)\s*(?<k>(,\s*\d*?|\s*?))\s*>', 'names');
+% return tag information
 
-tnames = {tgs.name};
-tw = zeros(1, length(tnames));
+tnames = regexp(tfrmt, '<(?<name>.*?)>', 'names');
+tnames = {tnames.name};
+nnames = length(tnames);
 
-for i = length(tnames):-1:1
-   if ~isempty(tgs(i).k)
-      tk = tgs(i).k;
-      tk(tk == ',') = [];
-      tw(i) = str2double(tk);
+if nargout > 3
+   torig = tnames;
+   for i = 1:nnames
+      torig{i} = ['<' torig{i} '>'];
    end
 end
 
+twidth = cell(1,nnames);
+ttype = cell(1, nnames);
+
+for i = 1:nnames
+   nms = strtrim(strsplit(tnames{i}, ','));
+   
+   if length(nms) < 2
+      nms{2} = '0';
+   end
+   
+   if length(nms) == 2 && any(ismember({'s', 'd'}, nms{2}))
+      nms{3} = nms{2};
+      nms{2} = '0';
+   end
+   twidth{i} = str2double(nms{2});
+   
+   if length(nms) < 3
+      nms{3} = 'd';
+   end
+   ttype{i} = nms{3};
+   tnames{i} = nms{1};
 end
+
+end
+
+
+
+
+
+
+

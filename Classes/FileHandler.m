@@ -15,8 +15,6 @@ classdef FileHandler < handle
 
       ReadImageCommandFormat = 'imload(<file>)'; % command to open the image data on which segmentation is performed, typically the image data in one Frame, eg: 'imload(<directory>\<file>)'
       ReadImageFileFormat    = '';   % format of individual file names, example: 'IMG_T<time,3>_C<channel,2>_P<position,2>.TIF'      
-      ReadImageTagNames      = {};   % images are obtinaed by replacing the tags in ImageFileFormat and ReadImageCommandFormat with numbers, the ordering of these numbers stored in Frame or derived classes is specified in this cell array
-      ReadImageTagRange      = {};   % cell array with ranges of the tag indices, each range is specifiede by {min, max}, {min, max, delta} or array of indices    
    end
    
    properties (Dependent)
@@ -38,16 +36,23 @@ classdef FileHandler < handle
                if ~ischar(varargin{i})
                   error('%s: invalid constructor input, expects char at position %g',class(obj), i);
                end
-               if isprop(obj, lower(varargin{i}))
-                  obj.(lower(varargin{i})) = varargin{i+1};
+               if isprop(obj, varargin{i})
+                  obj.(varargin{i}) = varargin{i+1};
                else
-                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
+                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
                end
             end
             
+            
+            %obj.ReadImageCommandFormat 
+            %obj.ReadImageFileFormat
+            %obj.ReadImageTagNames
+            %obj.ReadImageTagRange  
+             
             obj.initialize();           
          end
       end
+      
       
       
       function newobj = copy(obj)
@@ -74,42 +79,26 @@ classdef FileHandler < handle
          % description: initializes missing info and checks consistency
             
          if ~isdir(obj.BaseDirectory)
-            warning('BaseDirectory %s is not a directory!', obj.BaseDirectory);
+            warning('FileHandler: BaseDirectory %s is not a directory!', obj.BaseDirectory);
          end
          
          if ~isdir(obj.ImageDirectory)
-            warning('ImageDirectory %s is not a directory!', obj.ImageDirectory);
+            warning('FileHandler: ImageDirectory %s is not a directory!', obj.ImageDirectory);
          end
          
-         % check tag names 
-         cmd = obj.ReadImageCommand([]);
-         tnames = tagformat2tagnames(cmd);
-         
-         if isempty(obj.ReadImageTagNames)
-            obj.ReadImageTagNames = tnames;
-            fprintf('FileHandler; generated tag names: %s', var2char(tnames));
-         end
-         
-         extratags = setdiff(tnames, obj.ReadImageTagNames);
-         if ~isempty(extratags)
-            warning('There are more tags in the format than specified, adding extra tags to the list!');
-            obj.ReadImageTagNames = [obj.ReadImageTagNames, extratags];
-         end
-         if ~isempty(obj.ReadImageTagNames, tnames)
-            warning('There are more tags in ReadImageTagNames than used in the format!');   
-         end
-         
-         % tag ranges   
-         if isempty(obj.ReadImageTagRange)
+         % check if files exists specified by the 
+         if ~isempty(obj.ReadImageFileFormat)
             tfrmt = obj.fileName();
-            fns = tagdir(obj.fileName());
-            tags = name2tags(tfrmt, fns, obj.ReadImageTagNames);
+            fns = tagformat2files(tfrmt);
             
-            for i = 1:size(tags, 1)
-               obj.ReadImageTagRange{i} = {min(tags(i,:)), max(tags(i,:))};
-               fprintf('ReadImageTagRange; generated tagrange for %s: %s', obj.ReadImageTagNames{i},  var2char(obj.ReadImageTagRange{i}));
+            if isempty(fns)
+               warning('FileHandler: ReadImageFileFormat %s, does not point to any files!', obj.ReadImageFileFormat);
+            else
+               fprintf('FileHandler: %g, files of format %s found!\n', length(fns), tfrmt);
+               fprintf('FileHandler: first file is %s\n', fns{1});
             end
          end
+
       end
     
 
@@ -147,7 +136,7 @@ classdef FileHandler < handle
          %
          % Experiment.readImageCommand, Experiment.readImage, tags2name, tagformat
          
-         fn = obj.ReadImageTagFormat;
+         fn = obj.ReadImageFileFormat;
          
          if nargin > 1
             fn = tags2name(fn, tags, obj.ReadImageTagNames);
@@ -156,7 +145,7 @@ classdef FileHandler < handle
          fn = fullfile(obj.ImageDirectory, fn);
       end
  
-      function cmd = ReadImageCommand(obj, tags)
+      function cmd = ReadImageCommand(obj, varargin)
          % description:
          % returns the command to open an image specified by tags
          %
@@ -165,10 +154,17 @@ classdef FileHandler < handle
          %
          % See also:  Experiment.readImage, tags2name, tagformat
          
+         if nargin > 1
+            if ~isstruct(varargin{1})
+               tags = struct(varargin{:});
+            else
+               
+         
+         
          cmd = obj.ReadImageCommandFormat;
          cmd = strrep(cmd, '<file>', obj.fileName);
          
-         if nargin < 2
+         if nargin < 2 || isempty(tags)
             return
          else
             if isempty(obj.ReadImageTagNames) || isstruct(tags)
@@ -178,6 +174,13 @@ classdef FileHandler < handle
             end
          end
       end
+      
+
+      function tnames = ReadImageTagNames(obj)
+         cmd = obj.ReadImageCommand([]);
+         tnames = tagformat2tagnames(cmd);
+      end
+        
       
       function data = readImage(obj, varargin)
          % description:
@@ -191,52 +194,24 @@ classdef FileHandler < handle
          data = eval(obj.ReadImageCommand(varargin{:}));     
       end
 
-      function b = checkTags(obj, tags)
-         %
-         % b = checkTags(tags)
-         %
-         % description: checks tags to lie in specified tag range
-         
-         b = 1;
-         for i = 1:length(obj.ReadImageTagNames)
-            range = obj.ReadImageTagRange{i};
-            if iscell(range)
-               if length(range) == 2
-                  if tags(i) < range{1} || tags(i) > range{2}
-                     b = 0;
-                     return
-                  end
-               else 
-                  range = range{1}:range{3}:range{2};
-                  if ~any(range == tags(i));
-                     b = 0; 
-                     return
-                  end
-               end
-            else
-               if ~any(range == tags(i));
-                  b = 0;
-                  return
-               end
-            end
-         end
-      end
-      
       
       %%% Saving
-      function fn = saveResult(obj, fname, data, varargin) %#ok<INUSL>
+      function fn = saveData(obj, fname, data, varargin) %#ok<INUSL>
          %
-         % fn = saveResult(obj, fname, varargin)
+         % fn = saveData(obj, fname, varargin)
          %
          % description:
-         % save a result in the result folder creating subdirectories if necessary
+         %     save data in the result folder creating subdirectories if necessary
          %
          % input:
-         % fname the file name relative to the ResultDirectory
-         % varargin arguments to save
+         %     fname    the file name relative to the ResultDirectory
+         %     varargin optional arguments to save
          %
          % output:
-         % fn the file name where results were saved
+         %     fn       file name where results were saved
+         %
+         % note: 
+         %     only saves one data object at a time
          %
          % See also: loadResults
          
@@ -253,12 +228,12 @@ classdef FileHandler < handle
       end
       
       
-      function result = loadResult(obj, fname, varargin)
+      function result = loadData(obj, fname, varargin)
          %
-         % result = LoadResult(fname, varargin)
+         % result = loadData(fname, varargin)
          %
          % description:
-         % load a result in the result folder
+         % load data from the result folder
          %
          % input:
          % fname the file name relative to the ResultDirectory
@@ -287,8 +262,15 @@ classdef FileHandler < handle
          txt = [txt, 'Directories:\n'];
          txt = [txt, 'BaseDirectory : ', obj.BaseDirectory, '\n'];
          txt = [txt, 'ImageDirectory : ', obj.ImageDirectory, '\n'];
-         txt = [txt, 'ResultDirectory: ', obj.ResultDirectory, '\n'];
+         txt = [txt, 'ResultDirectory: ', obj.ResultDirectory, '\n'];  
          
+         if ~isempty(obj.ReadImageCommandFormat)
+            txt = [txt, 'ReadImageCommandFormat: ', obj.ReadImageCommandFormat, '\n'];  
+         end
+         if ~isempty(obj.ReadImageFileFormat')
+            txt = [txt, 'ReadImageFileFormat   : ', obj.ReadImageFileFormat, '\n'];
+         end
+            
          %r = obj.Result;
          %inf = whos('r');
          %txt = [txt, '\nMemory: ' num2str(inf.bytes/1024) ' kB\n'];

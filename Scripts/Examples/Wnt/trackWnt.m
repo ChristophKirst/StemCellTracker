@@ -19,7 +19,7 @@ verbose = true;
 
 %% Load Data
 
-filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';;
+filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';
 seriesid = 1;
 datalif = imread_bf(filename, struct('series', seriesid, 'channel', []));
 %check = imcheckimage(datalif);

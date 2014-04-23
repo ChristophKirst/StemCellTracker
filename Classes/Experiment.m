@@ -11,7 +11,7 @@ classdef Experiment < FileHandler
  
       result  = [];                 % reference to result data of segmentation / analysis
  
-      microscope@char = [];         % name of microscope with which images are taken
+      microscope      = '';         % name of microscope with which images are taken
       resolution      = [];         % resolution of the images in um / Pixel in the different spatial image dimensions
       metadata        = [];         % space to store some meta data
    end
@@ -38,8 +38,7 @@ classdef Experiment < FileHandler
          end
          
       end
-        
-           
+       
       %%% info
       
       function txt = infoString(obj)

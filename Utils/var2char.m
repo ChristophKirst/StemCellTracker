@@ -7,9 +7,9 @@ function c = var2char(cs)
 % note: as matlab, here columns are used as primary index
 
 if ischar(cs)
-   c = cs;
+   c = ['''' , cs, ''''];
    return
-elseif isscalar(cs)
+elseif ~iscell(cs) && isscalar(cs)
    if isnumeric(cs)
       c = num2str(cs);
    else
@@ -33,6 +33,11 @@ else
    end
    
    if iscell(cs)
+      if isempty(cs)
+         c ='{}';
+         return
+      end
+      
       c = '{';
       if cdi
          for i = 1:si(end)-1

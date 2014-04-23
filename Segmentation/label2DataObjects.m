@@ -18,13 +18,13 @@ function [objects, varargout] = label2DataObjects(imglab, img, stats, statnames,
 %              .method    how to calcualte the intensity in Object tracking, a string of any function, 'none' = dont calcualte ('median')
 %  
 % output:
-%    objects array of DataObjects each representing one of the labels
-%    stats   (optional) updated statistics
+%    objects   array of DataObjects each representing one of the labels
+%    stats     (optional) updated statistics
 %
 % See also: Object, DataObject, imstatistics
 
 if nargin < 3
-   stats = struc();
+   stats = struct();
 end
 
 if nargin < 4

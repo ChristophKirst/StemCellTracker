@@ -40,12 +40,12 @@ nlabel = max(imglab(:));
 dim = ndims(imglab);
 
 %get all statistics names
-if nargin < 2
+if nargin < 2 
    stats = repmat(struct, nlabel, 1);
    statnames = 'default';
 end
 
-if isempty(stats)
+if isemptystruct(stats)
    stats = repmat(struct, nlabel, 1);
 end
 
@@ -89,7 +89,7 @@ statnames = unique(statnames);
 statnames = statnames(~any(cell2mat(cellfun(@(y) strcmp(statnames,y), {'default', 'all'}, 'UniformOutput', 0)'),1));
 
 
-if ~isempty(stats) && length(stats) ~= nlabel
+if ~isempty(stats) && ~isempty(fieldnames(stats)) && length(stats) ~= nlabel
    error('imstatistics: inconsistent object sizes: %g , %g!', length(stats), nlabel);
 end
 

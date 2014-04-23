@@ -77,7 +77,7 @@ classdef DataObject < Object
       end
       
       
-      function val = stat(obj, sname)
+      function val = value(obj, sname)
          %
          % val = stat(sname)
          %

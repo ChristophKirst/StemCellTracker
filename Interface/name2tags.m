@@ -1,4 +1,4 @@
-function tags = name2tags(tfrmt, name, tagnames)
+function [tags, ttypes] = name2tags(tfrmt, name, tagnames)
 %
 % tags = name2tags(tfrmt, tagnames)
 %
@@ -14,24 +14,8 @@ function tags = name2tags(tfrmt, name, tagnames)
 
 % convert tagformat to regexpr
 
-[tnames, tagw] = tagformat2tagnames(tfrmt);
-
-re = tfrmt;
-for i = 1:length(tnames)
-   if tagw(i) == 0 
-      repl = regexp(tfrmt, ['<\s*?' tnames{i} '\s*?>'],'match');
-      if length(repl) ~= 1
-         error('name2tags: cannot infer tag values')
-      end
-      re = strrep(re, repl{1}, ['(?<' tnames{i} '>\d+?)']);
-   else
-      repl = regexp(tfrmt,  ['<\s*?' tnames{i}  '\s*?,\s*?' num2str(tagw(i)) '\s*?>'], 'match');
-      if length(repl) ~= 1
-         error('name2tags: cannot infer tag values')
-      end
-      re = strrep(re, repl{1}, ['(?<' tnames{i} '>\d{' num2str(tagw(i)) '})']);
-   end
-end
+[tnames, ~, ttype] = tagformat2tagnames(tfrmt);
+re = tagformat2regexp(tfrmt);
 
 if nargin == 3
    if ~iscellstr(tagnames)
@@ -40,8 +24,9 @@ if nargin == 3
       else
          error('name2tags: expects cell or strings as third argument');
       end
-   end   
-   tnames = tagnames;
+   end
+else
+   tagnames = tnames;
 end
 
 
@@ -52,17 +37,33 @@ end
 
 m = length(name);
 for i = m:-1:1
-   regexp(name{i}, re, 'names')
-   tagsre(i) = regexp(name{i}, re, 'names');
+   regexp(name{i}, re, 'match')
+   tags(i) = regexp(name{i}, re, 'names');
 end
 
-tags = zeros(n,m);
+for i = 1:length(tagnames);
+   k = find(~cellfun(@isempty, strfind(tnames,tagnames{i})));
+   if isempty(k)
+      error('name2tags: unable to locate tag %s', tagnames{i});
+   end
+   ttypen{i} = ttype{k}; %#ok<AGROW>
+end
+
+tags = rmfield(tags, setdiff(fieldnames(tags), tagnames));
+
 for i = n:-1:1
-   if isfield(tagsre, tnames{i})
-      tags(i,:) = str2double({tagsre.(tnames{i})});
+   if isfield(tags, tagnames{i})
+      if strcmp(ttypen{i}, 'd')
+         dat = num2cell(str2double({tags.(tagnames{i})}));
+         [tags.(tagnames{i})] = dat{:};
+      end
    else
       error('name2tags: unable to locate tag %s', tnames{i});
    end
+end
+
+if nargout > 1
+   ttypes = ttypen;
 end
 
 end

@@ -5,13 +5,13 @@ function [tfrmt, tnames, tags] = tagformat(fname, tagnames)
 % [tfrmt, tnames, tags] = tagformat(...)
 %
 % description:
-%        tries to infer tagged name format of files fname 
+%        tries to infer tagged name format from files specified by fname 
 %        image names must have same length of chars
 %        example: img_T001_Z01.tif, img_T001_Z02.tif img_T002_Z01.tif, img_T002_Z02.tif -> img_T<tag1, 3>_Z<tag2, 2>.tif
 %
 % input:
 %      fname     directory or variable filename (e.g.  img_T*_Z*.tif)
-%      tagnames  (optional) use these names for the tags
+%      tagnames  (optional) use these names for the tags in order of appearance
 %
 % output:
 %      tfrmt     taggedfile format

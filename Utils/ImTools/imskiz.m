@@ -15,7 +15,7 @@ function skiz = imskiz(image, label, mask)
 %
 % See also: bwdistgeodesic, watershed
 
-% the skiz is geven by the watershed of the geodesic distance transform
+% the skiz is given by the watershed of the geodesic distance transform
 
 bwg = mat2gray(bwdistgeodesic(image, label > 0));
 
