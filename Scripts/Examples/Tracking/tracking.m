@@ -39,7 +39,8 @@ implot(img)
 
 
 %%
-img = fh.readImage('time', 1);
+
+img = fh.readImage(1);
 img = mat2gray(img);
 
 figure(1)

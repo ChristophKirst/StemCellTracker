@@ -127,7 +127,7 @@ classdef FileHandler < handle
       
       %%% ReadImage functionality 
  
-      function fn = fileName(obj, tags)
+      function fn = fileName(obj, varargin)
          % description:
          %     returns the filename specified by tags
          %
@@ -137,9 +137,10 @@ classdef FileHandler < handle
          % Experiment.readImageCommand, Experiment.readImage, tags2name, tagformat
          
          fn = obj.ReadImageFileFormat;
+         tags = parseParameter(varargin{:});
          
          if nargin > 1
-            fn = tags2name(fn, tags, obj.ReadImageTagNames);
+            fn = tags2name(fn, tags);
          end
          
          fn = fullfile(obj.ImageDirectory, fn);
@@ -157,16 +158,8 @@ classdef FileHandler < handle
          tags = parseParameter(varargin{:});
          cmd = obj.ReadImageCommandFormat;
          cmd = strrep(cmd, '<file>', obj.fileName);
-         
-         if nargin < 2 || isempty(tags)
-            return
-         else
-            if isempty(obj.ReadImageTagNames) || isstruct(tags)
-               cmd = tags2name(cmd, tags);
-            else
-               cmd = tags2name(cmd, tags, obj.ReadImageTagNames);
-            end
-         end
+         cmd = tags2name(cmd, tags);
+
       end
       
 
