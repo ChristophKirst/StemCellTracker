@@ -27,9 +27,15 @@ fh.info()
 
 %%
 
-fh.ReadImageCommand(struct('time', 1))
+fh.ReadImageCommand('time', 1)
 
-                                          
+%%
+
+img = fh.readImage('time', 3);
+figure(42); clf; colormap gray
+implot(img)
+
+
 %%
 
 img = fh.readImage(1);

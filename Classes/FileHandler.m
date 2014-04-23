@@ -154,13 +154,7 @@ classdef FileHandler < handle
          %
          % See also:  Experiment.readImage, tags2name, tagformat
          
-         if nargin > 1
-            if ~isstruct(varargin{1})
-               tags = struct(varargin{:});
-            else
-               
-         
-         
+         tags = parseParameter(varargin{:});
          cmd = obj.ReadImageCommandFormat;
          cmd = strrep(cmd, '<file>', obj.fileName);
          
