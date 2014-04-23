@@ -183,7 +183,7 @@ function [rpath, ijar, v3djar] = findij(ipath)
    ipath = absolutepath(ipath);
    %ipath = fullfile(ipath, 'ImageJ');
 
-   ipathcomp = stringsplit(ipath, filesep);
+   ipathcomp = strsplit(ipath, filesep);
    for l = length(ipathcomp):-1:1
       ipath = fullfile(ipathcomp{1:l});
       [ijar, v3djar] = checkpath(ipath);

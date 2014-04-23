@@ -58,7 +58,7 @@ elseif print_load && isempty(size_flag) && s < 12
    size_flag = s;
 end
 
-labels = stringsplit(data.textdata{1}, ',');
+labels = strsplit(data.textdata{1}, ',');
 %if labels{end} == ''
 %   labels = labels{1:end-1};
 %end

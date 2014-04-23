@@ -58,7 +58,7 @@ for t = 1:nframes
    postids = [postobjs.id];
 
    % find index for id in data file
-   labels = stringsplit(fd.textdata{1}, ',');
+   labels = strsplit(fd.textdata{1}, ',');
    [~, id_pos] = ismember(id_label,labels);
    if id_pos == 0
       error('saveEmbryoData: Error: cannot find id label in file:\n%s\n', frames(t).filename)

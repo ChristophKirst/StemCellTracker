@@ -129,7 +129,7 @@ function rpath = findrootpath(ipath)
    ipath = absolutepath(ipath);
    %ipath = fullfile(ipath, 'Imaris');
 
-   ipathcomp = stringsplit(ipath, filesep);
+   ipathcomp = strsplit(ipath, filesep);
    for l = length(ipathcomp):-1:1
       ipath = fullfile(ipathcomp{1:l});
       rpath = checkpath(ipath);

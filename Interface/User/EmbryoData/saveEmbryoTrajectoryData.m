@@ -43,7 +43,7 @@ for t = nframes:-1:1
    end
    
    % find index for id in data file
-   labels = stringsplit(filedata{t}.textdata{1}, ',');
+   labels = strsplit(filedata{t}.textdata{1}, ',');
    [~, id_pos] = ismember(id_label,labels);
    if id_pos == 0
       error('saveEmbryoTrajectoryData: Error: cannot find id label in file:\n%s\n', frames(t).filename)
