@@ -4,7 +4,7 @@ function format = imformat(data)
 %
 % description:
 %     determines the format of the data
-%     channel dimension is detected as dimensions having size <= 5
+%     channel dimension is detected as dimensions having size <= 3
 % 
 % input:
 %     data    image data
@@ -26,7 +26,7 @@ function format = imformat(data)
 % note:
 %     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'
 
-cmaxsize = 4;  % max size for channel dimension
+cmaxsize = 3;  % max size for channel dimension
 
 dim = ndims(data);
 

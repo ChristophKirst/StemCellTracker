@@ -2,6 +2,8 @@ classdef Match < handle
 %
 % Match is class storing data from matching two frames
 %
+% See also: Trajectory, Object
+
    properties      
       n0 = 0;     % number of pre objects 
       n1 = 0;     % number of post objects

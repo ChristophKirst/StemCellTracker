@@ -36,6 +36,7 @@ end
 % add MImageJ to jave path
 mpath = fileparts(which(mfilename));
 if ~javacheckclasspath(mpath)
+   javaaddpath(fullfile(mpath, 'MImageJ.class') , '-end');
    javaaddpath(mpath, '-end');
 end
 

@@ -10,7 +10,7 @@ function out = functionFilter(image, ksize, func, padding, chunkfactor)
 %     image            image to filter (2d or 3d grayscale)
 %     ksize            h x w (x l) filter size
 %     func             name or handle to function applied to an array of values 
-%                      with row corresponding to values in a pxiel neighbourhood
+%                      with row corresponding to values in a pixel neighbourhood
 %                      e.g. for a median fitler use func = @(x)(median(x,2))
 %                      possible names: 'median', 'min', 'max'
 %     padding          padding option for fitering at boundaries ('symmetric')

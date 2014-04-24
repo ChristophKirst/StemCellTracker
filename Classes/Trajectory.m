@@ -2,7 +2,8 @@ classdef Trajectory < handle
 %
 % Trajectory class for storing and reshaping trajectory data
 %
-% Todo: base on objects, remove frameids, objids
+% See also: Frame, Object
+
    properties       
 
       objects  = [];   % objects that constitute the trajectory

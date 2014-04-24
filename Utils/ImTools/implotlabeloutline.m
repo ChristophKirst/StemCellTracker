@@ -1,17 +1,17 @@
-function implotlabeloutline(image, label, varargin)
+function implotlabeloutline(img, imglab, varargin)
 %
-% implotlabeloutline(image, label, param)
+% implotlabeloutline(img, imglab, param)
 %
 % description:
 %     plots image as tiling together with pixel surface of the labeled image
 %
 % input:
-%     image    grayscale image
-%     label    labeled image
+%     img      grayscale image
+%     imglab   labeled image
 %     param    (optional) paramter struct for color map as in imlabelcolormap
 %
 % See also: impixelsurface, imsurfaceplot3d, imoverlay, imlabelcolormap
 
-implottiling(imoverlaylabel(image, impixelsurface(label), false, varargin{:}))
+implottiling(imoverlaylabel(img, impixelsurface(imglab), false, varargin{:}))
 
 end

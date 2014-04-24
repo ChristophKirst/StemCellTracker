@@ -33,7 +33,9 @@ for n = 1:2:length(varargin)
 end
 
 % convert to uint8 
-image = cast(255 * image / max(image(:)), 'uint8');
+if ~isa(image, 'uint8')
+   image = cast(255 * image / max(image(:)), 'uint8');
+end
 
 dim = ndims(image);
 %size(image)

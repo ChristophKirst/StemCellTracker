@@ -170,6 +170,7 @@ end
 % watershed
 imgmin = imimposemin(max(imgs(:)) - imgs, imgmax);
 imgws = watershed(imgmin);
+imgseg = immask(imgws, imgmask);
 
 if verbose 
    %%

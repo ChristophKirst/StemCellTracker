@@ -2,7 +2,8 @@ classdef Object < handle
 %
 % Object class storing basic information necessary for tracking objects
 %
-% See also: Cell, Frame, Trajectory
+% See also: DataObject, Frame, Trajectory
+
    properties
       r = [0; 0];     % spatial position
       time = 0;       % time 

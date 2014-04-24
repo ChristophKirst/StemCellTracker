@@ -2,7 +2,7 @@ classdef Experiment < FileHandler
 %
 % Experiment class for storing info, filenames and results of an experiment 
 %
-% See also: FileHandler, Object, Frame, TimeSeries, Tiling
+% See also: FileHandler, Object, Frame, TimeSeries
 
    properties
       name@char        = '';        % Name of experiment
@@ -38,7 +38,22 @@ classdef Experiment < FileHandler
          end
          
       end
-       
+      
+      
+      function fname = saveExperiment(obj, fname)
+         if nargin < 2
+            fname = obj.name;
+         end
+         if isempty(fname)
+            fname = ['experiment_' datestr(now, 'yyyy-mm-dd') '.mat'];
+         end
+
+         fname = fullfile(obj.ResultDirectory, fname);
+         data = obj; %#ok<NASGU>
+         
+         save(fname, 'data'); 
+      end
+      
       %%% info
       
       function txt = infoString(obj)
@@ -50,20 +65,20 @@ classdef Experiment < FileHandler
          %
          
          
-         txt = ['Experiment : ' obj.Name '\n'];
-         if ~isempty(obj.Date)
-            txt = [txt, 'Date       : ', obj.Date, '\n'];
+         txt = ['\nExperiment : ' obj.name '\n'];
+         if ~isempty(obj.date)
+            txt = [txt, 'Date       : ', obj.date, '\n'];
          end
          
-         if ~isempty(obj.Description)
-            txt = [txt, 'Description: ', obj.Description, '\n'];
+         if ~isempty(obj.description)
+            txt = [txt, 'Description: ', obj.description, '\n'];
          end
          
-         if ~isempty(obj.Microscope)
-            txt = [txt, 'Microscope : ', obj.Microscope , '\n'];
+         if ~isempty(obj.microscope)
+            txt = [txt, 'Microscope : ', obj.microscope , '\n'];
          end
          
-         txt = [txt, infoString@FileHandler];
+         txt = [txt, obj.infoString@FileHandler];
                  
          %r = obj.Result;
          %inf = whos('r');

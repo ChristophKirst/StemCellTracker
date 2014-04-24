@@ -69,6 +69,7 @@ else
 end
 
 if ischar(cmap)
+   cmap
    cmap = imcolormap(cmap, nlabel);
 end
 

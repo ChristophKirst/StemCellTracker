@@ -19,7 +19,9 @@ function name = tags2name(tfrmt, tags)
 %
 % See also: name2tags, tagformat, num2str0, tagformat2tagnames
 
-if nargin < 2 
+name = tfrmt;
+
+if nargin < 2 || isempty(tags) && isemptystruct(tags)
    return 
 end
 
@@ -34,9 +36,9 @@ for i = 1:length(tagnames)
       warning('tags2name: tag %s is not in the tag format', tagnames{i})
    else
       if tw{k} == 0
-         name = strrep(name, torig{k}, num2str(tags(i).(tagnames{i})));
+         name = strrep(name, torig{k}, num2str(tags.(tagnames{i})));
       else
-         name = strrep(name, torig{k}, num2str0(tags(i).(tagnames{i}), tw{i}));
+         name = strrep(name, torig{k}, num2str0(tags.(tagnames{i}), tw{i}));
       end
    end
 end   

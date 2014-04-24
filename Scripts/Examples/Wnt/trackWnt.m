@@ -14,7 +14,7 @@ initialize()
 ijinitialize();
 bfinitialize();
 
-addpath('/home/ckirst/Science/Simulation/Matlab/StemCell3D/Scripts/User/Eric/Wnt')
+addpath('/home/ckirst/Science/Simulation/Matlab/StemCell3D/Scripts/Examples/Wnt')
 verbose = true;
 
 %% Load Data
@@ -75,8 +75,7 @@ if verbose
    lifdataf(:,:,:,2,t) = cast(256 * mat2gray(log(datalif(:,:,:,2,t)+eps) + 15), 'int16');
    
    ijplot3d(lifdataf(:,:,:,:,1), 'PixelDepth', 5);
-   
-   
+
    t = 2;
    lifdataf(:,:,:,1,t) = medianFilter(datalif(:,:,:,1,t),3);
 
@@ -86,6 +85,43 @@ if verbose
    ijplot3d(lifdataf(:,:,:,:,t), 'PixelDepth', 5);
    %ijplot3d(lifdata(:,:,:,1,t), 'PixelDepth', 5);
 end
+
+
+%% Load data 2
+
+fh = FileHandler('BaseDirectory',           './Test/Data/Experiment', ...
+                 'ImageDirectoryName',     '../../Images/mESCells_Wnt',...
+                 'ResultDirectoryName',    '.', ...
+                 'ReadImageCommandFormat', 'imread(''<file>'')',...
+                 'ReadImageFileFormat',    'wnt_t<time,2>_z<z,2>.tif');
+
+fh.info()
+
+%%
+
+fh.fileName('time', 1, 'z', 1)
+
+%%
+tags = fh.fileTags;
+
+[tags.time]
+[tags.z]
+
+
+img = fh.readImage(struct('time', 1, 'z', 1));
+[x,y] = size(img)
+
+%% read all data at once
+
+datalif = zeros([x, y,11, 1, 5]);
+for t = 1:5
+   for z = 1:11
+      datalif(:,:,z,1,t) = fh.readImage(struct('time', t, 'z', z));
+   end
+end
+
+size(datalif)
+      
 
 
 %% Segmentation

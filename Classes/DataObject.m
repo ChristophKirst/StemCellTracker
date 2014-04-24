@@ -3,7 +3,7 @@ classdef DataObject < Object
 % DataObject class extends the Object class with a data and segmentation property 
 % for object specific data such as fluorescence measurement, or segmentation results
 %
-% See also: Cell, Frame, Trajectory
+% See also: Object, Segment, Frame, Trajectory, TimeSeries
    properties
       data = [];
       segment = [];

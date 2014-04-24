@@ -11,5 +11,7 @@ function param = setParameter(varargin)
 % 
 % ouput:
 %  param        parameter struct
+%
+% See also: getParameter, parseParameter, cell2parameter
 
 param = cell2parameter(varargin{:});

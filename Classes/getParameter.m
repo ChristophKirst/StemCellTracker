@@ -10,6 +10,7 @@ function par = getParameter(param, field, varargin)
 % output:
 %   par       parameter value
 %
+% See also: setParameter, parseParameter
 
 % initialize 
 

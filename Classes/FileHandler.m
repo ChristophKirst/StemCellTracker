@@ -5,7 +5,8 @@ classdef FileHandler < handle
    %      image data acces is divided into two routines: 
    %             - readImage   reads the data necessary for segmentation, e.g. the full image in each Frame
    %             - loadImage   allows for reading also sub sets of images, and is intended for user insection, testing 
-   %                           
+   %
+   % See also: Experiment
    
    properties
       % file info
@@ -145,6 +146,17 @@ classdef FileHandler < handle
          
          fn = fullfile(obj.ImageDirectory, fn);
       end
+      
+      function fns = files(obj, varargin)      
+         fns = tagformat2files(obj.fileName(varargin{:})); 
+      end
+      
+      
+      function tags = fileTags(obj, varargin)      
+         fns = tagformat2files(obj.fileName(varargin{:})); 
+         tags = name2tags(obj.fileName(varargin{:}), fns);
+      end
+      
  
       function cmd = ReadImageCommand(obj, varargin)
          % description:
@@ -247,7 +259,7 @@ classdef FileHandler < handle
     
          txt = '';
          txt = [txt, 'Directories:\n'];
-         txt = [txt, 'BaseDirectory : ', obj.BaseDirectory, '\n'];
+         txt = [txt, 'BaseDirectory  : ', obj.BaseDirectory, '\n'];
          txt = [txt, 'ImageDirectory : ', obj.ImageDirectory, '\n'];
          txt = [txt, 'ResultDirectory: ', obj.ResultDirectory, '\n'];  
          
@@ -255,9 +267,12 @@ classdef FileHandler < handle
             txt = [txt, 'ReadImageCommandFormat: ', obj.ReadImageCommandFormat, '\n'];  
          end
          if ~isempty(obj.ReadImageFileFormat')
-            txt = [txt, 'ReadImageFileFormat   : ', obj.ReadImageFileFormat, '\n'];
+            txt = [txt, 'ReadImageFileFormat   : ', obj.ReadImageFileFormat, '\n'];    
+            txt = [txt, 'Number of Files       : ', num2str(length(obj.files)), '\n'];
          end
-            
+         
+         
+         
          %r = obj.Result;
          %inf = whos('r');
          %txt = [txt, '\nMemory: ' num2str(inf.bytes/1024) ' kB\n'];

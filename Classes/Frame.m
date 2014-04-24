@@ -2,7 +2,7 @@ classdef Frame < handle
 %
 % Frame is a class that conains data about objects from a single time point
 %
-% See also: Colony, Cell, TimeSeries
+% See also: Object, DataObject, TimeSeries
 
    properties
       t = 0;           % absolute time of frame

@@ -29,8 +29,7 @@ perm = 'none';
 colmap = [];
 
 permnames = {'none', 'random', 'shuffle'};
-usercolmapnames = {'igray', 'inversegray', 'default'};
-
+usercolmapnames = {'igray', 'inversegray', 'default', 'y', 'yellow', 'm', 'magenta', 'c', 'cyan', 'r', 'red', 'g', 'green', 'b', 'blue', 'w', 'white', 'k', 'black'};
 if nargin >=1
    var1 = varargin{1};  
    if isnumeric(var1)
@@ -38,7 +37,9 @@ if nargin >=1
          ncol = var1;
       else
          colmap = var1;
-         ncol = size(colmap,1);
+         if ~ischar(colmap)
+            ncol = size(colmap,1);
+         end
          if size(colmap,2) ~= 3
             error('imcolormap: colormap needs 3 columns');
          end
@@ -78,6 +79,9 @@ if isempty(colmap)
             colmap = gray(ncol);
             colmap = flip(colmap, 1);
             % space for other nice color maps / colormaps that map to ncol etc... 
+         case {'y', 'yellow', 'm', 'magenta', 'c', 'cyan', 'r', 'red', 'g', 'green', 'b', 'blue', 'w', 'white', 'k', 'black'}
+            rgb = double(imcolorspec2rgb(colmapname));
+            colmap = (double(0:(ncol-1)) / double(ncol-1))' * rgb;
          otherwise
             colmap = jet(ncol);   
       end

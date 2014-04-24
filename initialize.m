@@ -1,9 +1,9 @@
 function [] = initialize(comp)
 %
-% [] = initialize()   % ck correct docs for comp
+% [] = initialize()
 %
 % description:
-%     sets all necessary paths and starts up interfaces
+%     sets all necessary paths and parameter
 %
 % See also: setPath
 
@@ -20,21 +20,9 @@ if nargin < 1
 end
 
 if comp
-   cd Segmentation
-   mex segmentByPropagationMEX.cpp
-   cd ..
+   compileSegmentation();
+   ijcompile();
 end
-   
-
-
-% imagej interface
-% if nargin < 1
-%    with_ij = 0;
-% end
-% if with_ij
-%    ijstart
-% end
-
 
 end
 

@@ -26,6 +26,7 @@ switch method
       
       %ndims(bw)
       %size(bw)
+      %ndims(bw)
       
       pad = padarray(bw, ones(ndims(bw), 1), 0);
       surface = bwdist(~pad, 'cityblock') == 1;

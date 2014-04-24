@@ -9,7 +9,6 @@ if nargin >= 1
    if isstruct(varargin{1}) 
       param = varargin{1};
       vararg = varargin(2:end);
-      narg = length(varargin)-1;
    else
       if nargin == 1
          if isempty(varargin{1})
@@ -22,21 +21,20 @@ if nargin >= 1
          if isempty(varargin{1})
             param = struct();
             vararg = varargin(2:end);
-            narg = length(varargin)-1;
          else
             vararg = varargin;
-            narg = nargin;
             param = struct();
          end
       end
    end
 end
 
-for i = 1:2:narg % constructor from arguments
-   if ~ischar(vararg{i})
-      error('parseParameter: invalid constructor input, expects char at position %g', i);
-   else
-      param.(vararg{i}) = vararg{i+1};
+newparam = setParameter(vararg{:});
+if ~isempty(newparam)
+   parnames = fieldnames(newparam);
+
+   for i = 1:length(parnames)
+      param.(parnames{i}) = newparam.(parnames{i});
    end
 end
 
