@@ -33,9 +33,11 @@ classdef Experiment < FileHandler
             if isprop(obj, varargin{i})
                obj.(varargin{i}) = varargin{i+1};
             else
-               warnin('Experiment: unknown property name: %s', varargin{i})
+               warning('Experiment: unknown property: %s', varargin{i})
             end        
          end
+         
+         obj.initialize();
          
       end
       
@@ -63,7 +65,6 @@ classdef Experiment < FileHandler
          % descrition:
          %    returns text with information about the experiment
          %
-         
          
          txt = ['\nExperiment : ' obj.name '\n'];
          if ~isempty(obj.date)

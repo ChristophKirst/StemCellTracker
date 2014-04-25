@@ -1,4 +1,4 @@
-function name = tags2name(tfrmt, tags)
+function name = tags2name(tfrmt, varargin)
 %
 % name = tags2name(tfrmt, tags)
 %
@@ -8,11 +8,11 @@ function name = tags2name(tfrmt, tags)
 %    for a field with name xxx in the struct tags the substring 
 %       <xxx>    is replaced by the value, 
 %       <xxx,k>  is replaced by the value xxx using k digits with trailling zeros
-
+%       <xxx,s>  denotes a string 
 %
 % input:
 %    tfrmt       the tagged string
-%    tags        struct with the image specifications as tags.name -> val
+%    tags        struct with the image specifications as tags.name -> val or parameter list: 'name', val, ...
 %
 % output:
 %    name        the name with tag replaced by values
@@ -20,8 +20,9 @@ function name = tags2name(tfrmt, tags)
 % See also: name2tags, tagformat, num2str0, tagformat2tagnames
 
 name = tfrmt;
+tags = parseParameter(varargin{:});
 
-if nargin < 2 || isempty(tags) && isemptystruct(tags)
+if nargin < 2 || isempty(tags) || isemptystruct(tags)
    return 
 end
 
@@ -38,7 +39,7 @@ for i = 1:length(tagnames)
       if tw{k} == 0
          name = strrep(name, torig{k}, num2str(tags.(tagnames{i})));
       else
-         name = strrep(name, torig{k}, num2str0(tags.(tagnames{i}), tw{i}));
+         name = strrep(name, torig{k}, num2str0(tags.(tagnames{i}), tw{k}));
       end
    end
 end   

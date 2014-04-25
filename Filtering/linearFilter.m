@@ -1,28 +1,28 @@
-function out = linearFilter(image, ker, varargin)
+function imgf = linearFilter(img, ker, varargin)
 %
-% out = linearFilter(image, ker, varargin)
-% out = linearFilter(image, type, ksize, varargin)
-% out = linearFilter(image, ..., padding)
+% imgf = linearFilter(img, ker, varargin)
+% imgf = linearFilter(img, type, ksize, varargin)
+% imgf = linearFilter(img, ..., padding)
 %
 % description:
-%    apply the filter kernel ker to image
+%    apply the filter kernel ker to img
 %
 % input:
-%    image        image to be filtered
+%    img          image to be filtered
 %    ker          filter kernel matrix or type
 %    type         special type
 %    ksize        h x w (x l) size of the fitler
 %    padding      padding of array at borders as used in imfilter
 %
 % output:
-%    out          filtered image
+%    imgf         filtered image
 %
 % See also: fspecial2, fspecial3, imfilter
 
-dim = ndims(image);
+dim = ndims(img);
 
 if dim < 2 || dim > 4
-   error('linearFilter: image must be a 2d or 3d gray scale image')
+   error('linearFilter: img must be a 2d or 3d gray scale img')
 end
 
 if ischar(ker)
@@ -47,10 +47,10 @@ else
 end
 
 if ndims(ker) ~= dim
-   error('linearFilter: image and kernel dimensions do not agree')
+   error('linearFilter: img and kernel dimensions do not agree')
 end
-if dim == 3 && size(image,3) == 3
-   error('linearFilter: image must be gray scale image')
+if dim == 3 && size(img,3) == 3
+   error('linearFilter: img must be gray scale img')
 end
 
 if nargin > paddoff && ischar(varargin{end})
@@ -60,6 +60,6 @@ else
 end
 
 
-out = imfilter(image, ker, padding);
+imgf = imfilter(img, ker, padding);
 
 end

@@ -71,11 +71,11 @@ imgpre = img;
 imgpre = imsharpen(imgpre, 'Radius', 4, 'Amount', 0.8, 'Threshold', 0);
 %imgpre = imclip(imgpre,0,1);
 
-% histrogram equlization
+% histrogram equalization
 %imgpre = histeq(imgpre, 512);
 
 % remove trend in illumination via morphological opening
-background = imopen(imgpre,strel('disk',40));
+background = imopen(imgraw,strel('disk',60));
 imgpre = imgpre - background;
 imgpre = imclip(imgpre,0);
 
@@ -83,13 +83,13 @@ imgpre = imclip(imgpre,0);
 %imgpre = imopen(imgpre, strel('disk', 5));
 
 if verbose 
-   figure(2 + figure_offset)
+   figure(2 + figure_offset); clf; colormap jet
    set(gcf, 'Name', ['Preprocess 1: ' filename]);
    
    if ~isempty(background)
-      implottiling({img, background, imgpre}, {'img', 'background', 'imgpre'}) 
+      implottiling({imgraw, background, imgpre}, {'imgraw', 'background', 'imgpre'}) 
    else
-      implottiling({imgraw,  imgpre}, {'img','imgpre'}) 
+      implottiling({imgraw, imgpre}, {'imgraw','imgpre'}) 
    end
 end
 
@@ -142,7 +142,8 @@ end
 %
 % result: - imgmask    binary mask that specifies region of interest, get mask correct here
 %         - imgth      thresholded image with removed background
-
+%
+% note: see thresholding.m script for more info
 
 % determine threshold using the histogram on logarithmic intensities
 
@@ -175,7 +176,6 @@ imgvalslogmax = log2(imgvalsmax);
 param.threshold.MoG = 0.5;   
 thmax = 2^thresholdMixtureOfGaussians(imgvalslogmax, param.threshold.MoG);
 
-
 % select a threshold and create mask and thresholded image
 th = thmax;
 
@@ -195,7 +195,6 @@ imgmask = imopen(imgmask, strel('disk', 4));    % larger disk size removes large
 %imgmask = imfill(imgmask,'holes');
 
 
-
 if verbose
 
    prt = '\n\nthresholds:\n===========\n';
@@ -204,7 +203,7 @@ if verbose
                     'Entropy on hist = %7.5f', 'Mutual entropy  = %7.5f', 'MoG on local max= %7.5f'};
    for t = 1:length(thnames)
       if exist(thnames{t}, 'var')
-         prt = [prt '\n' sprintf(thdescription{t}, eval(thnames{t}))];
+         prt = [prt '\n' sprintf(thdescription{t}, eval(thnames{t}))]; %#ok<AGROW>
        end
    end
    prt = [prt '\n-------------------------\n'];
@@ -410,7 +409,7 @@ implottiling({imcolorize(imgseg), imcolorize(imgsegg); imoverlaylabel(img, imgse
 
 %%
 figure(21)
-implottiling({imoverlaylabel(mat2gray(img), imgseg), imoverlaylabel(img, imgseg, true)}, {[], 'watershed on img overlaid on img'})
+implottiling({imoverlaylabel(mat2gray(img), imgseg, false), imoverlaylabel(img, imgseg, true)}, {'watershed', 'watershed on img overlaid on img'})
 
 
 
@@ -432,13 +431,13 @@ mg = max(imgfgrad(:));
 imgmix = imsubtract(imgf, 0.5 * (mi/mg) * imgfgrad);
 
 imgmin = imimposemin(max(imgmix(:)) - imgmix, imdilate(imgmax, strel('disk',0)));
+imgmin(imgmin < 0) = 0;
 imgws = watershed(imgmin);
 imgseg = double(imgws) .* double(imgmask);
 
-figure(30)
-
+figure(30); clf
 implottiling({imoverlay(imgf, imgmax), imgfgrad, imgmix; ...
-              imgmin, imcolorize(imgws), imoverlay(double(imcolorize(imgws)/255) .* gray2rgb(img), imgmax)})
+              mat2gray(imgmin), imcolorize(imgws), imoverlaylabel(img, imgws)})
 
 
 
@@ -465,12 +464,14 @@ param.propagation.cutoff.distance = Inf;
 [imgproplabel, dist] = segmentByPropagation(imgprop, imgmaxlabel, imgmask, param.propagation.lambda, param.propagation.ksize);
 imgproplabel(dist>param.propagation.cutoff.distance) = 0;
 
+
+
 figure(40)
 ax(1) = imsubplot(1,3,1);
 imshow(imoverlay(imgprop, imgmax))
 ax(2) = imsubplot(1,3,2);
 %imshow(imcolorize(imgproplabel))
-imshow(double(imcolorize(imgproplabel)) .* gray2rgb(imgd))
+imshow(double(imcolorize(imgproplabel)) .* gray2rgb(img))
 
 distinf0 = dist;
 distinf0(dist==Inf) = 0;

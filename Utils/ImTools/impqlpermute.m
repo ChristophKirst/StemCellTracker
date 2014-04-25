@@ -39,14 +39,14 @@ if strcmp(out_format, 'imagej')
 end
 
 if length(unique(in_format)) ~= length(in_format)
-   error('impqlreshape: labels appear more than one in input format: %s', in_format)
+   error('impqlpermute: labels appear more than one in input format: %s', in_format)
 end
 if length(unique(out_format)) ~= length(out_format)
-   error('impqlreshape: labels appear more than one in output format: %s', out_format)
+   error('impqlpermute: labels appear more than one in output format: %s', out_format)
 end
 
 %if length(in_format) ~= ndims(img) % matlab is inconssitent if last dimension is 1 
-%   error('impqlreshape: input img and format inconsistent!')
+%   error('impqlpermute: input img and format inconsistent!')
 %end
 
 in_format = strrep(in_format, 'x', 'p');

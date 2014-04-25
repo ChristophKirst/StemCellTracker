@@ -1,4 +1,4 @@
-function imgpost = segment3dWnt(img, verbose)
+function [imgpost, stats] = segment3dWnt(img, verbose)
 % 3d segmentation for Wnt data
 
 %% Init
@@ -27,18 +27,38 @@ end
 %% get some test data
 
 if false
-   %%
-   filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';
+   %% Load From lif
+   %filename = '/home/ckirst/Science/Projects/StemCells/Experiment/Other/Wnt/wnt_clone8_again_feb09.lif';
    %lifdata = imread_bf();
    
-   lifdata = imread_bf(filename, struct('series', 1, 'time', [3, 4], 'channel', [1, 2])); 
-   img = lifdata(:,:,:,1,1);
+   %lifdata = imread_bf(filename, struct('series', 1, 'time', [3, 4], 'channel', [1, 2])); 
+   %img = lifdata(:,:,:,1,1);
+   
+   %% Load from test images
+   
+   fh = FileHandler('BaseDirectory',           './Test/Data/Experiment', ...
+                    'ImageDirectoryName',     '../../Images/mESCells_Wnt',...
+                    'ResultDirectoryName',    '.', ...
+                    'ReadImageCommandFormat', 'imread(''<file>'')',...
+                    'ReadImageFileFormat',    'wnt_t<time,2>_z<z,2>.tif');
+
+   fh.info()
+   [x,y] = size(fh.readImage(struct('time', 1, 'z', 1)));
    
    
-   %add a zero image on top
-   %img(:,:,end+1) = zeros(size(img(:,:,end)));
+   tagr = fh.fileTagRange;
+   img = zeros([x, y, 11]);
+   for z = tagr.z
+      img(:,:,z) = fh.readImage(struct('time', 1, 'z', z));
+   end
+
    
+   filename = '';
+   
+   %%add a zero image on top
+   %img(:,:,end+1) = zeros(size(img(:,:,end)));  
 else
+   %%
    filename = '';
 end
 

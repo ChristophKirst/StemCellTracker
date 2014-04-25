@@ -43,8 +43,7 @@ classdef FileHandler < handle
                   warning('%s: unknown property name: %s ', class(obj), varargin{i})
                end
             end
-            
-            
+     
             %obj.ReadImageCommandFormat 
             %obj.ReadImageFileFormat
             %obj.ReadImageTagNames
@@ -53,7 +52,6 @@ classdef FileHandler < handle
             obj.initialize();           
          end
       end
-      
       
       
       function newobj = copy(obj)
@@ -109,7 +107,7 @@ classdef FileHandler < handle
          % returns the image data directorty for the experiment
          %
          % output:
-         % ddir image data directory
+         %     ddir    image data directory
          
          ddir = fullfile(obj.BaseDirectory, obj.ImageDirectoryName);
       end
@@ -119,7 +117,7 @@ classdef FileHandler < handle
          % returns the results directorty for the experiment
          %
          % output:
-         % ddir result directory
+         %     ddir    result directory
          
          ddir = fullfile(obj.BaseDirectory, obj.ResultDirectoryName);
       end
@@ -129,68 +127,144 @@ classdef FileHandler < handle
       %%% ReadImage functionality 
  
       function fn = fileName(obj, varargin)
+         %
+         % fn = fileName(tagspec)
+         %
          % description:
-         %     returns the filename specified by tags
+         %     returns the filename specified by the tags
+         %
+         % input: 
+         %     tagspec  (optional) tag specification as struct or parameter list
+         %
+         % output:
+         %     fn       filename
+         %
+         % See also: FileHandler.readImageCommand, FileHandler.readImage, tags2name, tagformat
+         
+         fn = obj.ReadImageFileFormat;
+         fn = tags2name(fn, varargin{:});
+         fn = fullfile(obj.ImageDirectory, fn);
+      end
+      
+      function fns = files(obj, varargin)
+         %
+         % fn = files(tagspec)
+         %
+         % description:
+         %     returns the files specified by the tags
+         %
+         % input: 
+         %     tagspec  (optional) tag specification as struct or parameter list
          %
          % output:
          %     fn    filename
          %
-         % Experiment.readImageCommand, Experiment.readImage, tags2name, tagformat
+         % See also: FileHandler.fileTags, FileHandler.readImage, tags2name, tagformat    
          
-         fn = obj.ReadImageFileFormat;
-         tags = parseParameter(varargin{:});
+         fns = tagformat2files(obj.fileName(varargin{:})); 
+      end
+      
+      
+      function tags = fileTags(obj, varargin) 
+         %
+         % fn = fileTags(tagspec)
+         %
+         % description:
+         %     returns the list of all tags not specified in tagspec
+         %
+         % input: 
+         %     tagspec  (optional) tag specification as struct or parameter list
+         %
+         % output:
+         %     fn    filename
+         %
+         % See also: FileHandler.files, FileHandler.readImage, tags2name, tagformat  
          
-         if nargin > 1
-            fn = tags2name(fn, tags);
+         fn = obj.fileName(varargin{:});
+         fns = tagformat2files(fn); 
+         tags = name2tags(fn, fns);
+      end
+      
+      
+      
+      function tr = fileTagRange(obj, varargin) 
+         %
+         % fn = fileTags(tagspec)
+         %
+         % description:
+         %     returns the list of all tags not specified in tagspec
+         %
+         % input: 
+         %     tagspec  (optional) tag specification as struct or parameter list
+         %
+         % output:
+         %     tr       ranges of the tags as struct: name -> [min, max] or {list of stings}
+         %
+         % See also: FileHandler.files, FileHandler.readImage, tags2name, tagformat  
+         
+         tags = obj.fileTags(varargin{:});
+         tnames = fieldnames(tags);
+         tr = tags(1);
+         for i = 1:length(tnames)
+            if isnumeric([tags.(tnames{i})])
+               tr.(tnames{i}) = unique([tags.(tnames{i})]);
+            else
+               tr.(tnames{i}) = unique({tags.(tnames{i})});
+            end
          end
-         
-         fn = fullfile(obj.ImageDirectory, fn);
       end
-      
-      function fns = files(obj, varargin)      
-         fns = tagformat2files(obj.fileName(varargin{:})); 
-      end
-      
-      
-      function tags = fileTags(obj, varargin)      
-         fns = tagformat2files(obj.fileName(varargin{:})); 
-         tags = name2tags(obj.fileName(varargin{:}), fns);
-      end
-      
+
  
       function cmd = ReadImageCommand(obj, varargin)
+         %
+         %  cmd = ReadImageCommand(obj, varargin)
+         %
          % description:
-         % returns the command to open an image specified by tags
+         %     returns the command to open an image specified by tags
+         %
+         % input: 
+         %     tagspec  (optional) tag specification as struct or parameter list
          %
          % output:
          %     cmd the comand string the opens the image using eval(cmd)
          %
-         % See also:  Experiment.readImage, tags2name, tagformat
+         % See also:  FileHandler.readImage, tags2name, tagformat
          
-         tags = parseParameter(varargin{:});
          cmd = obj.ReadImageCommandFormat;
          cmd = strrep(cmd, '<file>', obj.fileName);
-         cmd = tags2name(cmd, tags);
+         cmd = tags2name(cmd, varargin{:});
 
       end
       
 
-      function tnames = ReadImageTagNames(obj)
+      function tnames = tagNames(obj)
+         %
+         % tnames = tagNames(obj)
+         %
+         % description:
+         %     returns a list of all tag names
+         %
+         % See also:  FileHandler.readImage, tags2name, tagformat
+         
+         
          cmd = obj.ReadImageCommand([]);
          tnames = tagformat2tagnames(cmd);
       end
-        
       
-      function data = readImage(obj, varargin)
+ 
+      function img = readImage(obj, varargin)
+         %
+         % img = readImage(obj, varargin)
+         %
          % description:
-         %     returns image data as generated by readDataCommand
+         %     returns image data as generated by eval(readDataCommand)
          %
          % output:
-         %     data    image data
+         %     img     image data
          %
-         % See also: Experiment.readImageCommand, tags2name, tagformat
+         % See also: FileHandler.readImageCommand, tags2name, tagformat
          
-         data = eval(obj.ReadImageCommand(varargin{:}));     
+         img = eval(obj.ReadImageCommand(varargin{:}));     
       end
 
       
@@ -212,7 +286,7 @@ classdef FileHandler < handle
          % note: 
          %     only saves one data object at a time
          %
-         % See also: loadResults
+         % See also: FileHandler.loadData
          
          fn = fullfile(obj.ResultDirectory, fname);
          
@@ -241,7 +315,7 @@ classdef FileHandler < handle
          % output:
          % result the results
          %
-         % See also: saveResults
+         % See also: FileHandler.saveData
          
          fn = fullfile(obj.ResultDirectory, fname);
          result = load(fn, varargin{:});
@@ -256,6 +330,7 @@ classdef FileHandler < handle
          % descrition:
          % returns text with information about the experiment
          %
+         % See also: FileHandler.info
     
          txt = '';
          txt = [txt, 'Directories:\n'];
@@ -285,6 +360,7 @@ classdef FileHandler < handle
          % descrition:
          % prints text with information about the experiment
          %
+         % See also: FileHandler.infoString
          
          fprintf(obj.infoString());
       end

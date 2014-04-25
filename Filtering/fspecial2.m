@@ -192,6 +192,39 @@ switch type
       sub = exp(-(x.*x/2/sigma_out(1)^2 + y.*y/2/sigma_out(2)^2));
       ker = ker - sub / sum(sub(:));
       
+      
+      
+   case 'cone'  % cone
+     
+      if nargin < 3  || isempty(varargin{1})
+         wout = 1;
+      else
+         wout = varargin{1};
+      end
+      
+      if nargin < 4 || isempty(varargin{2})
+         win = 0;
+      else
+         win = varargin{2};
+      end
+      
+      
+      add = mod(ksize + 1,2)/2;
+      radius = max(1.5, mo + add) + 10 * eps;
+      
+      [x,y] = ndgrid(-ol(1):or(1),-ol(2):or(2));
+      x = x + add(1); y = y + add(2);      
+         
+      ker = (1 - sqrt((x.^2 / radius(1)^2 + y.^2 / radius(2)^2)));
+      idx = ker <= 0;
+      ker = ker * (wout - win) + win;
+      ker(idx) = 0;
+      
+      if win >= 0 && wout >= 0
+         ker = ker/sum(ker(:));
+      end
+      
+      
    otherwise
         error('fspecial2: unknown filter type.')
         

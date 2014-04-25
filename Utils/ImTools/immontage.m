@@ -18,7 +18,7 @@ if nargin < 2 || isempty(normalize)
    normalize = 1;
 end
 
-im = impqlreshape(stack, [], 'matlab');
+im = impqlpermute(stack, [], 'matlab');
 if normalize
    im = double(im);
    im = im / max(im(:));

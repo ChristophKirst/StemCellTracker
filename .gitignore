@@ -1,9 +1,11 @@
 # Test Suite
-Test/
+# Test/
 
 # Code under development
 Develop/
 
+# Images
+Images/
 
 # Temporary Files
 *~

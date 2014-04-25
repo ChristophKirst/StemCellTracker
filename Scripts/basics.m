@@ -11,40 +11,37 @@ initialize
 %% Generate Experiment
 
 
-exp = Experiment('Name', 'Example', 'Date', datestr(now), 'Description', 'Test the Code',...
+exp = Experiment('name', 'Example', 'date', datestr(now), 'description', 'Test the Code',...
                  'BaseDirectory', './Test/Data/Experiment', ...
-                 'ImageDirectoryName', '../../Images/hESCells_tif_stack',...
+                 'ImageDirectoryName', '../../Images/hESCells_Stack',...
                  'ResultDirectoryName', '.', ...
-                 'ReadImageCommandFormat', 'imread(''<directory>/<file>'')',...
-                 'ImageFileFormat', 'W1F127T<time,4>Z<z,2>C1.tif', ...
-                 'ImageFormatNames', {'z', 'time'},...
-                 'ImageFormatRange', {1:15, 1});
+                 'ReadImageCommandFormat', 'imread(''<file>'')',...
+                 'ReadImageFileFormat', 'W1F127T<time,4>Z<zpos,2>C1.tif');
 
-exp.Info()
+exp.info()
 
-%% Save/Load some test data
- 
-sdata = rand(1,3);
+%% Info on Files
 
-exp.SaveResult('testdata.mat', sdata)
+exp.fileTagRange
 
-ldata = exp.LoadResult('testdata.mat');
-ldata - sdata
+
 
 %% Load Images an plot
 
-exp.ReadImageCommand([6, 1])
+exp.ReadImageCommand('time', 1, 'zpos', 6)
 
-img = exp.ReadImage([6, 1]);
+img = exp.readImage('time', 1, 'zpos', 6);
 size(img)
 
-figure(1); clf;
+figure(1); clf; imcolormap('r')
 implot(img)
 
 %% Read an Image Stack and plot in 3d
 
-for z = exp.ImageFormatRange{1}
-   img(:,:, z) = exp.ReadImage([z, 1]);
+tr = exp.fileTagRange;
+
+for z = tr.zpos
+   img(:,:, z) = exp.readImage('zpos', z, 'time', 1);
 end
 size(img)
 
@@ -57,13 +54,10 @@ implot3d(mat2gray(imgr));
 
 %% Simple 2d Segmentation
 
-% see other example scritps in ./Scrtips folder for more details, e.g.
-% for 2d segmentation click on segment2D.m and press Strg + d
-% for 3d segmentation click on segment3D.m and press Strg + d
-% for tracking click on tracking.m and press Strg + d 
+% see other scritps in ./Scripts and ./Scrtips/Examples for more details, e.g.
 
 %loading
-img = exp.ReadImage([6, 1]);
+img = exp.readImage('time', 1, 'zpos', 6);
 size(img)
 
 %% Masking
@@ -153,7 +147,7 @@ objs = label2Objects(imgpost, img, stats, param);
 
 frame = Frame('objects', objs, 't', 0);
 
-exp.Result = frame;
+exp.result = frame;
 
 
 %% plot some statistics
@@ -161,11 +155,21 @@ exp.Result = frame;
 figure(42)
 hist(double([frame(1).objects.intensity]), 255)
 
-%%
-
-exp.Info()
 
 
+%% Save 
 
+sfile = exp.saveExperiment('basic_example.mat')
+
+
+%% Load
+
+exp2 = loadExperiment(sfile);
+exp2.info
+
+
+exp2.name
+
+exp.result
 
 

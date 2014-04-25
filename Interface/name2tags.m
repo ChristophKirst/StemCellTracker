@@ -37,7 +37,7 @@ end
 
 m = length(name);
 for i = m:-1:1
-   regexp(name{i}, re, 'match')
+   %regexp(name{i}, re, 'match')
    tags(i) = regexp(name{i}, re, 'names');
 end
 

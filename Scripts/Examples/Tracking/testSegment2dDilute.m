@@ -16,6 +16,8 @@ fh = FileHandler('BaseDirectory',          './Test/Data/Experiment', ...
                  'ReadImageCommandFormat', 'imread(''<file>'')',...
                  'ReadImageFileFormat',    'Big1_CFP_<time>.tif');
 
+              'imaread_bf(''<file>'', setParameter(''z'', <z>, #saeries#))'''
+              
 fh.info()
 
 %%

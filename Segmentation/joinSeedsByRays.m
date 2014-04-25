@@ -21,6 +21,8 @@ function [imgjoin, varargout] = joinSeedsByRays(imglab, img, imggrad, param)
 %             .cutoff.distance         maximal distance between labels (= 20)
 %             .averaging.ksize         ksize to calculate reference mean intensity (=3)
 %             .addline                 add a line between joined label (true)
+%             .plot.profiles           plot individual profiles (false)
+%             .plot.maxprofiles        maximal number of profiles to plot (25)
 %
 % output:
 %    imgjoin  reduced joined seeds image
@@ -51,6 +53,8 @@ threshold_min        = getParameter(param, {'threshold', 'min'}, 0.0);
 threshold_max        = getParameter(param, {'threshold', 'max'}, inf);
 averaging_ksize      = getParameter(param, {'averaging', 'ksize'}, 3);
 addline              = getParameter(param, {'addline'}, 1);
+plprof               = getParameter(param, {'plot', 'profiles'}, false);
+nplprof              = getParameter(param, {'plot', 'maxprofiles'}, 25);
 
 % find center points
 centr = imstatistics(imglab, {'Centroid', 'PixelIdxList'});
@@ -99,11 +103,11 @@ for p = 1:npairs
    
    profile =  improfile(img, y, x, 2*round(dist(p)), 'bilinear');
    
-   if p < 100
-   figure(p + 30)
-   subplot(3,1,1)
-   col = hsv2rgb([p/npairs, 1, 1]);
-   plot(profile,'Color', col)
+   if plprof && p < nplprof
+      figure(p + 30)
+      subplot(3,1,1)
+      col = hsv2rgb([p/npairs, 1, 1]);
+      plot(profile,'Color', col)
    end
    
    % lover absolute threshold -> if we cross background dont join
@@ -122,10 +126,10 @@ for p = 1:npairs
       % chang in rel intensity
       profile = profile / min(means0(p1), means0(p2));
    
-      if p < 100
-      subplot(3,1,2)
-      col = hsv2rgb([p/npairs, 1, 1]);
-      plot(profile, 'Color', col)
+      if plprof && p < nplprof
+         subplot(3,1,2)
+         col = hsv2rgb([p/npairs, 1, 1]);
+         plot(profile, 'Color', col)
       end
       
       if max(profile)-min(profile) > threshold_change
@@ -136,7 +140,7 @@ for p = 1:npairs
       if checkgrad
          gradprofile = improfile(imggrad, y, x, 2*round(dist(p)), 'bilinear');
          
-         if p < 100
+         if plprof && p < nplprof
             subplot(3,1,3)
             col = hsv2rgb([p/npairs, 1, 1]);
             plot(gradprofile, 'Color', col)

@@ -17,7 +17,7 @@ size(img)
 
 ijplot3d(img, 'PixelDepth', 3)
 
-%% Read  Backgournd from Movie
+%% Read  Background from Movie
 imgback = imread_avi('./Test/Images/hESC_tripple_stack.avi', 'time', [81 100]);
 size(imgback)
 
@@ -162,17 +162,6 @@ implotlabeloutline(imgs2, imgseg);
 ijplot3d(imcolorize(imgseg), 'PixelDepth', 3)
 
 
-%%
-
-save('./Test/albert.mat')
-
-
-%%
-
-load('./Test/albert.mat')
-initialize
-
-
 %% Postprocess
 
 %%
@@ -223,10 +212,12 @@ ijplot3d(imgray2color(imgb, 'b'), 'PixelDepth' , 3)
 
 
 
+%%
+% save('./Test/albert.mat')
 
-
-
-
+%%
+%load('./Test/albert.mat')
+%initialize
 
 
 
