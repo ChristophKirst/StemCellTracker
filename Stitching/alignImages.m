@@ -10,11 +10,11 @@ function shifts = alignImages(imgs, param)
 %    imgs    images or image reading commands as cell array, the layout of the cell array should reflect 
 %            the neighbouring relations between the images
 %    param   (optional) parameter struct with entries:
-%            .method       'Optimization', 'SequentialShifts'
-%                          + parameters for methods align2ImagesByOptimization or align2ImagesBySequentialShifts
-%                          ('SequentialShifts')
+%            .method       'Optimization', 'SequentialShifts', 'RMS'
+%                          + parameters for methods align2ImagesByXXX
+%                          ('RMS')
 %            .alignment    'Single' = perform single alignment using specified method, 
-%                          'All' = perfom alignments in each primary direction of existingh neighbours
+%                          'All' = perfom alignments in each primary direction of existing neighbours
 %                          ('All')        
 %
 % output: 
@@ -55,8 +55,8 @@ if ~iscellstr(meth) || length(meth) ~= adim
 end
 
 for i = 1:adim
-   if ~any(strcmp({'Optimization', 'SequentialShifts'}, meth{i}))
-      error('alignImages: method %s not Optimization or SequentialShifts');
+   if ~any(strcmp({'Optimization', 'SequentialShifts', 'RMS'}, meth{i}))
+      error('alignImages: method %s not Optimization, SequentialShifts or RMS');
    end
 end
 

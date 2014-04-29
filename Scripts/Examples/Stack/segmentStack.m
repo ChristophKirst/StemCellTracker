@@ -60,7 +60,6 @@ figure(1); clf; colormap gray
 set(gcf, 'Name', 'Image - Background');
 implottiling(imgi(:,:,1:5:end, :))
 
-
 figure(2); clf
 set(gcf, 'Name', 'Image - Background');
 subplot(1,2,1)
@@ -81,6 +80,10 @@ imgth = mat2gray(imgth);
 figure(1); clf; colormap gray
 set(gcf, 'Name', 'Thresholded');
 implottiling(imgth(:,:,1:5:end))
+
+%%
+
+ijplot3d(imgth)
 
 
 %% Seeding 
@@ -152,6 +155,14 @@ figure(42); clf
 set(gcf, 'Name', 'Segmentation');
 implotlabeloutline(imgs3(:,:,1:zmaxfig), imgseg(:,:,1:zmaxfig));
 
+
+
+%%
+figure(42); clf
+set(gcf, 'Name', 'Segmentation');
+implotlabeloutline(imgs3(:,:,1:2:zmaxfig), imgseg(:,:,1:2:zmaxfig));
+
+
 %%
 figure(43); clf
 set(gcf, 'Name', 'Segmentation');
@@ -184,9 +195,10 @@ max(imgpost(:))
 
 
 %% 
-figure(47); clf
+figure(50); clf
 set(gcf, 'Name', 'Segmentation - Postprocessed');
-implotlabeloutline(imgi, imgpost);
+implotlabeloutline(imgi(:,:,1:3:zmax), imgpost(:,:,1:3:zmax));
+
 
 
 %%

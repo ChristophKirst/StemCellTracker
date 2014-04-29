@@ -55,7 +55,13 @@ class Test {
       //System.out.println(yy[1]);   
       
       
-      
+           
+   }
+   
+   public Object get() {
+      //byte [] x = new byte[6];
+      short [] x = new short[7];
+      return x;
    }
    
    

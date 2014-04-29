@@ -7,7 +7,7 @@ function ijcompile(force)
 %
 % input:
 %    force   force compilation
-%
+%+
 
 % check if we need to compile
 

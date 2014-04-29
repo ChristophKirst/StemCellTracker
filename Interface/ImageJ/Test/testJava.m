@@ -31,6 +31,11 @@ xx = repmat([1 2 3 4; 5 6 7 8], [1, 1, 3]);
 tt.testArray(xx)
 
 %%
+
+x = tt.get()
+class(x)
+
+%%
 ww = cast(xx, 'uint8');
 class(ww)
 
