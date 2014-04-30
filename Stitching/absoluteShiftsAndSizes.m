@@ -3,7 +3,7 @@ function [ashifts, asize] = absoluteShiftsAndSizes(shifts, imagesizes)
 % [ashifts, asize] = absoluteShiftsAndSizes(shifts, imagesizes)
 %
 % description:
-%     calculates absolute the full size of the algined image and absolute shifts of
+%     calculates the full size of the algined image and absolute shifts of
 %     the individual images give the relative shifts w.r.t to the first image
 %     and individual image sizes 
 
