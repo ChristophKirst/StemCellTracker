@@ -15,7 +15,7 @@ function imgroi = findRegionOfInfluence(imglab, param)
 %   imgroi     labeld imaged including the regoin of influecnes of the labels in imglab
 %
 % note:
-%   labeled regoins should not touch 
+%   labeled regions should not touch 
 
 if nargin < 2
    param = [];

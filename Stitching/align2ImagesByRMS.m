@@ -7,16 +7,11 @@ function shift = align2ImagesByRMS(img1, img2, param)
 %
 % input:
 %     img1,img2    images
-%     param        parameter struct wit entries
-%                  .overlap.min minimal overlap of images
+%     param        parameter struct with entries
+%                  .overlap.min   minimal overlap of images
 %
 % output:
 %     shift        the shift between origin of img1 to origin of img2 in pixel coordinates and pixel units
-
-
-%if (~ismatrix(img1) || ~ismatrix(img2))
-%   error('align2ImagesByPhaseCorrelation: 3d image alignment not implemented');
-%end
 
 if nargin < 3
    param = [];
@@ -30,6 +25,7 @@ si = max(s1,s2);
 
 img1 = padarray(img1, si - s1, 0, 'post');
 img2 = padarray(img2, si - s2, 0, 'post');
+
 img1  = padarray(img1, si, 0, 'both');
 img2  = padarray(img2, si, 0, 'both');
 img1 = double(img1); img2 = double(img2);

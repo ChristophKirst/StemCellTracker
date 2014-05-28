@@ -18,14 +18,18 @@ if nargin < 2
    format = 'string';
 end
 
-if isdir(filename)
-   fns = dir(fullfile(filename, '*.TIF'));
-   fns = cellfun(@(x) fullfile(filename, x), {fns.name},'UniformOutput', false);
-elseif exist(filename, 'file') == 2
-   fns = {filename};
+if ~iscellstr(filename)
+   if isdir(filename)
+      fns = dir(fullfile(filename, '*.TIF'));
+      fns = cellfun(@(x) fullfile(filename, x), {fns.name},'UniformOutput', false);
+   elseif exist(filename, 'file') == 2
+      fns = {filename};
+   else
+      fns = dir(filename);
+      fns = cellfun(@(x) fullfile(filename, x), {fns.name},'UniformOutput', false);
+   end
 else
-   fns = dir(filename);
-   fns = cellfun(@(x) fullfile(filename, x), {fns.name},'UniformOutput', false);
+   fns = filename;
 end
 
 t = cell(1, length(fns));
@@ -62,7 +66,7 @@ if ~isempty(fun)
    end
 end
 
-if ~isdir(filename)
+if ~iscell(filename) && ~isdir(filename)
    t = t{1};
 end
 
