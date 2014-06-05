@@ -34,7 +34,7 @@ elseif isunix()
    [status, apath] = system(['readlink -f ' name]);
    
    if status
-      error('absolutepath: could not determine absolute path!')
+      error('absolutepath: could not determine absolute path for ''%s!''', name)
    end   
    
    %apath = strtrim(apath);
@@ -44,7 +44,7 @@ elseif isunix()
    if ~isdir([apath filesep])
       apath = fileparts(apath);
       if ~isdir(apath)
-         error('absolutepath: could not determine absolute path!')
+         error('absolutepath: could not determine absolute path for ''%s!''', name)
       end
    end
 

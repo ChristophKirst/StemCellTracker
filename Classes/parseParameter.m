@@ -1,6 +1,6 @@
 function param = parseParameter(varargin)
 
-if nargin  == 0
+if nargin == 0
    param = [];
    return
 end

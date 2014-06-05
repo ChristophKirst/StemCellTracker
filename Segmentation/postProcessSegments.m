@@ -1,4 +1,4 @@
-function [imgpost, stats] = postProcessSegments(imglab, img, param)
+function [imgpost, stats] = postProcessSegments(imglab, varargin)
 %
 % [imgpost, stats] = postProcessSegments(imglab, img, param)
 %
@@ -25,15 +25,17 @@ function [imgpost, stats] = postProcessSegments(imglab, img, param)
 %
 % See also: regionprops, imrelabel, imclearborder, imfill
 
+
 if nargin < 2
     param = [];
     img = [];
-end
-
-if nargin == 2
-    if isstruct(img)
-        param = img;
-        img = [];
+else 
+    if isstruct(varargin{1}) || ischar(varargin{1})
+       param = parseParameter(varargin{:});
+       img = [];
+    else
+       img = varargin{1};
+       param = parseParameter(varargin{2:end});
     end
 end
 

@@ -47,8 +47,8 @@ alignfigures
 
 %% Load two images
 
-img1 = imread('./Test/Images/hESCells_tif_tiling/W1F034T0001Z05C1.tif');
-img2 = imread('./Test/Images/hESCells_tif_tiling/W1F035T0001Z05C1.tif');
+img1 = imread('./Test/Images/hESCells_tiling/W1F034T0001Z05C1.tif');
+img2 = imread('./Test/Images/hESCells_tiling/W1F035T0001Z05C1.tif');
 
 img1 = impqlpermute(img1, 'yx', 'pq');
 img2 = impqlpermute(img2, 'yx', 'pq');
@@ -135,8 +135,8 @@ plot2AlignedImages(mat2gray(img1), mat2gray(img2), sh)
 
 %% Load two images in y direction
 
-img1 = imread('./Test/Images/hESCells_tif_tiling/W1F034T0001Z05C1.tif');
-img2 = imread('./Test/Images/hESCells_tif_tiling/W1F038T0001Z05C1.tif');
+img1 = imread('./Test/Images/hESCells_tiling/W1F034T0001Z05C1.tif');
+img2 = imread('./Test/Images/hESCells_tiling/W1F038T0001Z05C1.tif');
 
 img1 = impqlpermute(img1, 'yx', 'pq');
 img2 = impqlpermute(img2, 'yx', 'pq');

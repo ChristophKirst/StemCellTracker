@@ -3,22 +3,21 @@
 #include <string.h>
 // #include <dlfcn.h>
 
-static PyObject *globals;
+static PyObject* globals;
 static int nlhs, nrhs;
-static mxArray **plhs;
-static const mxArray **prhs;
-static PyObject *np_array_fun;
-static PyObject *ndarray_cls;
+static mxArray** plhs;
+static const mxArray** prhs;
+static PyObject* np_array_fun;
+static PyObject* ndarray_cls;
 static bool debug = false;
 
-static PyObject *
-aview_write(PyObject *self, PyObject *args)
+static PyObject* aview_write(PyObject *self, PyObject *args)
 {
-    const char *what;
-    if (!PyArg_ParseTuple(args, "s", &what))
-        return NULL;
-    printf("%s", what);
-    return Py_BuildValue("");
+   const char *what;
+   if (!PyArg_ParseTuple(args, "s", &what))
+      return NULL;
+   printf("%s", what);
+   return Py_BuildValue("");
 }
 
 static PyMethodDef a_methods[] = {
@@ -381,6 +380,10 @@ void mexFunction(int nlhs_, mxArray *plhs_[], int nrhs_, const mxArray *prhs_[])
 		mxFree(cmd);
 		do_get();
 		return;
+   } else if (!strcmp(cmd, "restart")) {
+      mxFree(globals);
+		been_here = false;
+		return; 
 	} else if (!strcmp(cmd, "debugon")) {
 		debug = true;
 	} else if (!strcmp(cmd, "debugoff")) {
