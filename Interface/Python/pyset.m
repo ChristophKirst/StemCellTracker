@@ -7,7 +7,7 @@ function pyset(varname, val)
 %
 % See also: pyget
 
-v = py('set', varname);
+py('set', varname, val);
 
 end
 

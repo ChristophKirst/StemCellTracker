@@ -10,9 +10,9 @@ function stats = imstatistics(imglab, stats, statnames, img)
 % input:
 %     imglab        labeled image, assumed to be relabled with regions 1:max(imglab(:))
 %     statsname     name or cell of the statistics fields to calculate
-%                   regoinporps based statistics:
+%                   regionporps based statistics:
 %                   {'Volume', 'PixelIdxList', 'PixelList', 'PixelValues', 'BoundingBox', 'Centroid', 'WeightedCentroid'}
-%                   measurement statistics (additiona img input needed)
+%                   measurement statistics (additional img input needed)
 %                   {'MaxInstensity', 'MinInstensity', 'MeanIntensity', 'MedianIntensity', 'TotalIntensity', 'StdIntensity', 'VarIntensity'}
 %                   if 'XXXIntenisty' function lower(XXX) is applied to the intensity values of each labled region
 %                   additional statistics and measures:

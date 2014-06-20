@@ -28,7 +28,7 @@ figure(42); clf;
 implottiling({imgseg, imoverlaylabel(img, imglab)})
 
 
-%% Postprocess and Water shed
+%% Postprocess and Watershed
 
 imgmask = ~(imgseg == 1);
 
@@ -37,7 +37,7 @@ imgpost = postProcessSegments(imglab, 'volume.min', 10);
 figure(42); clf;
 implottiling({imgseg, imoverlaylabel(img, imgpost)})
 
-imgf = mat2gray(img); imgf = imgf - 2 * imgcls(:,:,3);
+imgf = mat2gray(img); imgf = imgf - 3 * imgcls(:,:,3);
 imgf(imgf < 0 ) = 0;
 imgmin = imimposemin(max(img(:)) - img, imgpost);
 imgws = watershed(imgmin);

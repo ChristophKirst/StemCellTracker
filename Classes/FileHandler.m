@@ -192,7 +192,7 @@ classdef FileHandler < handle
          % fn = fileTags(tagspec)
          %
          % description:
-         %     returns the list of all tags not specified in tagspec
+         %     returns the ranges of all tags not specified in tagspec
          %
          % input: 
          %     tagspec  (optional) tag specification as struct or parameter list
@@ -306,14 +306,14 @@ classdef FileHandler < handle
          % result = loadData(fname, varargin)
          %
          % description:
-         % load data from the result folder
+         %      load data from the result folder
          %
          % input:
-         % fname the file name relative to the ResultDirectory
-         % varargin arguments to load
+         %      fname the file name relative to the ResultDirectory
+         %      varargin arguments to load
          %
          % output:
-         % result the results
+         %      result the results
          %
          % See also: FileHandler.saveData
          
@@ -328,7 +328,7 @@ classdef FileHandler < handle
          % txt = InfoString()
          %
          % descrition:
-         % returns text with information about the experiment
+         %       returns text with information about the experiment
          %
          % See also: FileHandler.info
     
@@ -358,7 +358,7 @@ classdef FileHandler < handle
          % Info()
          %
          % descrition:
-         % prints text with information about the experiment
+         %      prints text with information about the experiment
          %
          % See also: FileHandler.infoString
          

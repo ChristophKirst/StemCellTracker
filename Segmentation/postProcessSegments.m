@@ -13,7 +13,7 @@ function [imgpost, stats] = postProcessSegments(imglab, varargin)
 %             .boundaries        clear objects on x,y boundaries (false)
 %             .fillholes         fill holes in each z slice after processing segments (true)
 %             .relabel           relabel from 1:nimglabnew (true)
-%             .smooth            smooth -- todo e.g. using vtk denoising library / java interface
+%             .smooth            smooth -- todoÖ e.g. using vtk denoising library / java interface
 % 
 % output:
 %    imgpost  post processed imglab

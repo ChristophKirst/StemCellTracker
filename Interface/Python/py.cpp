@@ -381,8 +381,11 @@ void mexFunction(int nlhs_, mxArray *plhs_[], int nrhs_, const mxArray *prhs_[])
 		do_get();
 		return;
    } else if (!strcmp(cmd, "restart")) {
-      mxFree(globals);
-		been_here = false;
+      if (been_here) {
+         Py_Finalize();
+         //delete globals;
+         been_here = false;
+      }
 		return; 
 	} else if (!strcmp(cmd, "debugon")) {
 		debug = true;

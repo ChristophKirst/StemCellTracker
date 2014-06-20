@@ -15,7 +15,7 @@ function [vertices, faces, normals] = imsurface(labeledimage, boundary)
 %     faces        faces
 %     normals      (optional) normals
 %
-% See also: imsurfaceplot3d, impixelsurface, isosurface, isonormals, patch
+% See also: implot3dsurface, impixelsurface, isosurface, isonormals, patch
 
 if nargin < 2
    boundary = zeros(1, ndims(labeledimage));
