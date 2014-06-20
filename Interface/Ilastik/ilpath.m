@@ -14,6 +14,7 @@ function [ipath, varargout] = ilpath(hintpath)
 %
 % See also: ilinitialize
 
+
 found = 0;
 
 % use hint
@@ -35,7 +36,7 @@ if ~found
       hintpath = dir('/usr/local/ilastik*');
       hintpath = hintpath([hintpath.isdir]);
    elseif ispc()
-      rapth = 'C:\Program Files\';
+      rpath = 'C:\Program Files\';
       hintpath = 'C:\Program Files\ilastik*';
    else
       error('ilpath: operating system not supported, modify ilpath.m!');
@@ -75,32 +76,62 @@ end
 
 
 %check if the path is a valid main Ilastik path based existence of ./ilastik/ilastikMain.py
-function ilrun = checkpath(ilpath)
+function [ilrun, ilroot, ilpy] = checkpath(ipath)
  
    ilrun = [];
-   if ~isdir(ilpath)
-      return
-   end
+   ilroot = [];
+   ilpy = [];
 
-   if ~isdir(fullfile(ilpath, 'ilastik'))
+   if ~isdir(ipath)
+      return
+   end
+ 
+   [ilroot, ilpy] = ilfilepatterns(ipath);
+
+   if ~isdir(ilroot)
       return
    end
    
-   if ~isfile(fullfile(ilpath, 'ilastik', 'ilastikMain.py'))
+   if ~isfile(ilpy)
       return
    end
    
-   ilrun = dir(fullfile(ilpath, 'run*'));
-   ilrun = ilrun(~[ilrun.isdir]);
-   if isempty(ilrun)
-      ilrun = [];
-      return
+   if ismac()
+      
+      [~, appn, appe] = fileparts(ipath);
+      ilrun = ['open ', appn, appe];
+   
+   elseif isunix()
+      
+      ilrun = dir(fullfile(ipath, 'run*'));
+      ilrun = ilrun(~[ilrun.isdir]);
+      
+      if isempty(ilrun)
+         ilrun = [];
+         return
+      else
+         ilrun = ilrun(1).name;
+      end
+      
    else
-      ilrun = ilrun(1).name;
+      error('ilpath: ilpath for windows not implemented yet!');
    end
+   
 
 end
 
+
+
+
+function [ilroot, ilpy] = ilfilepatterns(ipath)
+   if ismac()
+      ilroot = fullfile(ipath, '/Contents/Resources/lib/python2.7');
+   else
+      ilroot = ipath;
+   end
+   
+   ilpy = fullfile(ilroot, 'ilastik/ilastikMain.py');
+end
 
 
 % find imagej in ipath
@@ -111,10 +142,11 @@ function [rpath, ilrun] = findil(ipath)
    if ~isdir(ipath)
       ipath = fileparts(ipath);
    end
-        
-   ilrun = checkpath(ipath);
+   
+   [ilrun, ilroot, ~] = checkpath(ipath);
+
    if ~isempty(ilrun)
-      rpath = absolutepath(ipath);
+      rpath = absolutepath(ilroot);
       return;
    end
    
@@ -123,10 +155,10 @@ function [rpath, ilrun] = findil(ipath)
 
    ipathcomp = strsplit(ipath, filesep);
    for l = length(ipathcomp):-1:1
-      ipath = fullfile(ipathcomp{1:l});
-      ilrun = checkpath(ipath);
+      ipath = fullfile(ipathcomp{1:l});  
+      [ilrun, ilroot, ~] = checkpath(ipath);
       if ~isempty(ilrun)
-         rpath = absolutepath(ipath);
+         rpath = absolutepath(ilroot);
          return;
       end
    end
