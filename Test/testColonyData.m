@@ -175,7 +175,6 @@ title('cost matrix')
 
 
 %%
-
 figure(42); clf;
 plotMatchedTrajectories(frame, traj)
 
@@ -199,7 +198,7 @@ ts = TimeSeries('frames', frame, 'trajectories', traj);
 
 %% Save 
 exp.result = ts;
-exp.saveExperiment('tracking.mat');
+exp.saveExperiment('result.mat');
 
 
 
