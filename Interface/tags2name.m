@@ -19,30 +19,43 @@ function name = tags2name(tfrmt, varargin)
 %
 % See also: name2tags, tagformat, num2str0, tagformat2tagnames
 
-name = tfrmt;
+
 tags = parseParameter(varargin{:});
 
 if nargin < 2 || isempty(tags) || isemptystruct(tags)
+   name = tfrmt;
    return 
 end
 
-[tnames, tw, ~, torig] = tagformat2tagnames(tfrmt);
+[tnames, tsplit, tinfo] = tagformat2tagnames(tfrmt);
 
 tagnames = fieldnames(tags);
-name = tfrmt;
 
-for i = 1:length(tagnames)
-   k = find(ismember(tnames, tagnames{i}));
-   if isempty(k)
-      warning('tags2name: tag %s is not in the tag format', tagnames{i})
+res = repmat({''}, length(tsplit)-1, 1);
+for i = 1:length(tnames)
+   p = find(ismember(tagnames, tnames{i}));
+   if isempty(p)
+      for k = 1:length(tinfo(i).tag)
+         res{tinfo(i).pos(k)} = tinfo(i).tag{k};
+      end
    else
-      if tw{k} == 0
-         name = strrep(name, torig{k}, num2str(tags.(tagnames{i})));
-      else
-         name = strrep(name, torig{k}, num2str0(tags.(tagnames{i}), tw{k}));
+      p = p(1);
+      for k = 1:length(tinfo(i).tag)
+         tw = tinfo(i).width(k);
+         if tw == 0
+            res{tinfo(i).pos(k)} = num2str(tags.(tagnames{p}));
+         else
+            res{tinfo(i).pos(k)} = num2str0(tags.(tagnames{p}), tw);
+         end
       end
    end
-end   
+end
+
+name = tsplit{1};
+for i = 1:length(res);
+   name = [name,  res{i}, tsplit{i+1}]; %#ok<AGROW>
+end
+
 
 end
    

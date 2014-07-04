@@ -1,18 +1,15 @@
-function [tnames, twidth, ttype, torig] = tagformat2tagnames(tfrmt)
+function [tnames, tagsplit, taginfo] = tagformat2tagnames(tfrmt)
 
 % return tag information
 
 tnames = regexp(tfrmt, '<(?<name>.*?)>', 'names');
 tnames = {tnames.name};
+
+[tids, tide] =  regexp(tfrmt, '<(?<name>.*?)>');
+[torig, tagsplit] = regexp(tfrmt, '<(?<name>.*?)>', 'match', 'split');
+
+
 nnames = length(tnames);
-
-if nargout > 3
-   torig = tnames;
-   for i = 1:nnames
-      torig{i} = ['<' torig{i} '>'];
-   end
-end
-
 twidth = cell(1,nnames);
 ttype = cell(1, nnames);
 
@@ -35,6 +32,43 @@ for i = 1:nnames
    ttype{i} = nms{3};
    tnames{i} = nms{1};
 end
+
+
+% handle same tag appearing more than once
+
+tnamesall = tnames;
+tnames = {};
+taginfo = struct;
+
+
+j = 1;
+for i = 1:nnames
+   k = find(strcmp(tnamesall, tnamesall{i}));
+   if k(1) == i
+      tnames = [tnames, tnamesall(i)]; %#ok<AGROW>
+      
+      if nargout > 2
+         taginfo(j).name = tnamesall{i};
+         taginfo(j).istart = tids(k);
+         taginfo(j).iend = tide(k);
+         taginfo(j).tag = torig(k);
+         taginfo(j).pos = k;
+         taginfo(j).width = [twidth{k}];
+
+         % type should be the same
+         taginfo(j).type = ttype{k(1)};
+         
+         if any(~strcmp(ttype(k), ttype(k(1))))
+            error('tagforamt2tagnames: inconsistent types for tagname %s with multiple tag appearances',  tnamesall{i})
+         end
+         
+      end
+      
+      j = j + 1;
+
+   end
+end
+
 
 end
 

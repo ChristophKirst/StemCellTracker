@@ -53,7 +53,7 @@ if dim == 3 && size(img,3) == 3
    error('linearFilter: img must be gray scale img')
 end
 
-if nargin > paddoff && ischar(varargin{end})
+if nargin > paddoff %%&& ischar(varargin{end})
    padding = varargin{end};
 else
    padding = 'symmetric';

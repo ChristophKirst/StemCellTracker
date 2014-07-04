@@ -10,7 +10,7 @@ function [tfrmt, tnames, tags] = tagformat(fname, tagnames)
 %        example: img_T001_Z01.tif, img_T001_Z02.tif img_T002_Z01.tif, img_T002_Z02.tif -> img_T<tag1, 3>_Z<tag2, 2>.tif
 %
 % input:
-%      fname     directory or variable filename (e.g.  img_T*_Z*.tif)
+%      fname     directory, variable filename (e.g.  img_T*_Z*.tif)
 %      tagnames  (optional) use these names for the tags in order of appearance
 %
 % output:
@@ -20,20 +20,16 @@ function [tfrmt, tnames, tags] = tagformat(fname, tagnames)
 %
 % See also: tags2name, tagformat2tagnames, name2tags
 
-if ~ischar(fname)
-   error('tagformat: first argument not valid file or directory name');
-end
-
-if ~isdir(fname)
-   [dirname, fname] = fileparts(fname);
+if ischar(fname)
+   fns = dirr(fname);
 else
-   dirname = fname;
-   fname = '*';
+   fns = fname;
 end
 
-if ~isdir(dirname)
-   error('tagformat: %s not a valid directory', dirname);
+if ~iscellstr(fns) || isempty(fns)
+   error('tagformat: first argument not valid or not files found!');
 end
+
 
 if nargin < 2
    tagnames = {};
@@ -44,15 +40,8 @@ else
 end
 
 
-fns = dir(fullfile(dirname, fname));
-fns([fns.isdir]) = [];
-fns = {fns.name};
 
-if isempty(fns)
-   error('tagformat: no files in %s', fullfile(dirname, fname));
-end
-
-%filenames need to be of same size
+%filenames need to be of same size for this code to work
 if any(diff(cellfun(@length, fns)))
    error('tagformat: filenames not of same length');
 end
@@ -73,14 +62,34 @@ for i = 1:length(tags)
 end
 
 tfrmt = sp{1};
+s = length(tfrmt) + 1;
+
 for i = 2:length(sp)
+      
+      e = s + length(tags{i-1}) - 1;   
       %check for trailing zeros
       while tfrmt(end) == '0'
          tfrmt(end) = [];
          tags{i-1} = [tags{i-1} '*'];
+         s = s - 1;
       end
    
-      tfrmt = [tfrmt, '<' tagnames{i-1}, ',' num2str(length(tags{i-1})), '>' sp{i}]; %#ok<AGROW>
+      % get all tags and check for string vs number
+      tn = strfun(@(x) x(s:e), fns);
+      n = true;
+      try 
+         cellfun(@str2num, tn); 
+      catch
+         n = false;
+      end
+      
+      if n
+         tfrmt = [tfrmt, '<' tagnames{i-1}, ',' num2str(length(tags{i-1})), '>' sp{i}]; %#ok<AGROW>
+      else
+         tfrmt = [tfrmt, '<' tagnames{i-1}, ',s,' num2str(length(tags{i-1})), '>' sp{i}]; %#ok<AGROW>
+      end
+      
+      s = e + 1 + length(sp{i});
 end
 
 if nargout < 2

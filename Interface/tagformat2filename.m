@@ -1,11 +1,11 @@
 function fn = tagformat2filename(tfrmt)
 %
-% returns filname that are in accordance with the tag format
+% returns filename pattern that is in accordance with the tag format
 
-[tnames, ~, ~, torig] = tagformat2tagnames(tfrmt);
-fn = tfrmt;
-for i = 1:length(tnames)
-   fn = strrep(fn, torig{i}, '*');
+[~, tsplit, ~] = tagformat2tagnames(tfrmt);
+fn = tsplit{1};
+for i = 2:length(tsplit)
+   fn = [fn, '*', tsplit{i}]; %#ok<AGROW>
 end
 
 end

@@ -14,7 +14,7 @@ function [tags, ttypes] = name2tags(tfrmt, name, tagnames)
 
 % convert tagformat to regexpr
 
-[tnames, ~, ttype] = tagformat2tagnames(tfrmt);
+[tnames, ~, ti] = tagformat2tagnames(tfrmt);
 re = tagformat2regexp(tfrmt);
 
 if nargin == 3
@@ -46,7 +46,7 @@ for i = 1:length(tagnames);
    if isempty(k)
       error('name2tags: unable to locate tag %s', tagnames{i});
    end
-   ttypen{i} = ttype{k}; %#ok<AGROW>
+   ttypen{i} = ti(k(1)).type; %#ok<AGROW>
 end
 
 tags = rmfield(tags, setdiff(fieldnames(tags), tagnames));

@@ -22,7 +22,7 @@ exp.info()
 
 %% Info on Files
 
-exp.fileTagRange
+exp.findImageTagRange
 
 
 
@@ -38,7 +38,7 @@ implot(img)
 
 %% Read an Image Stack and plot in 3d
 
-tr = exp.fileTagRange;
+tr = exp.findImageTagRange;
 
 for z = tr.zpos
    img(:,:, z) = exp.readImage('zpos', z, 'time', 1);

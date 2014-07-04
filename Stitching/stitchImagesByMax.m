@@ -33,7 +33,7 @@ inds(inds == 0) = [];
 img = zeros(asize);
 
 for i = inds'
-   % overlapping regoin
+   % overlapping region
 
    iovl = strfind(flip(dec2bin(i)), '1');
    posi = find(imgi == i);

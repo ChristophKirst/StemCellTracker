@@ -3,70 +3,164 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%
 
 initialize()
-ilinitialize()
 
 
 %% Load Data
 
+
 exp = Experiment('name', 'Example', 'date', datestr(now), 'description', 'Sox 17 Tracking, Test',...
-                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Sox17/20140530T121749/', ...
-                 'ImageDirectoryName', 'Image/F025',...
+                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Data/Sox17/20140530T121749/', ...
+                 'ImageDirectoryName', 'Image/',...
                  'ResultDirectoryName', 'Results/', ...
                  'ReadImageCommandFormat', 'imread(''<file>'')',...
-                 'ReadImageFileFormat', 'W1F025T<time,4>Z<zpos,2>C1.tif');
+                 'ReadImageFileFormat', 'F<field,3>/W1F<field,3>T<time,4>Z<zpos,2>C1.tif');
 
 exp.info()
 
 
-%% Load Test Image and plot
+%% Load Frames
 
-%exp.ReadImageCommand('time', 1, 'zpos', 6)
+matout = matfile(exp.ResultFile('segmentation.mat'), 'Writable', true);
 
-img = exp.readImage('time', 4, 'zpos', 1);
-size(img)
+timax = 11;
+for ti = 1:timax;
+   fprintf('loading frame %g / %g\n', ti, timax)
+   frame(ti) = matout.(['T', num2str(ti+9,4)]);
+end
 
-figure(1); clf; imcolormap('g')
-implot(img)
-
-
-
-%% Background
+frame
 
 
-img = imread_stack(exp.fileName('time', 20, 'zpos', '1*'));
-size(img)
+%%
 
 
-{min(img(:)), max(img(:))}
-
-imgmean = mean(img(:,:,3:end), 3);
-
-%imgop = imopen(imgback, strel('disk', 24));
-
-imgback = medianFilter(imgmean, 10);
+% relabel joined segments
 
 
-{min(imgback(:)), max(imgback(:))}
+for t = 1:length(frame)
+   t
+   %objs = frame(t).objects();
+   imglab = frame(t).labeledImage();
+   imglab = bwlabeln(imglab > 0);
+   imglab = postProcessSegments(imglab, 'volume.min', 50);
+   
+   objs = label2DataObjects(imglab, imglab > 0, 'time', t);
+   framenew(i) = Frame('objects', objs, 't', t);
+end
+   
+  
 
-figure(10); clf
-implottiling({img(:,:,1), imgmean, imgback})
 
-zmax = exp.fileTagRange('time', 1);
-zmax = max([zmax.zpos])
+%% Tracking
 
-imgback = repmat(imgback, [1 1 zmax]);
+
+param.optimize = true;
+param.print.optimization = true;
+
+[match, cost] = matchObjects(frame(1), frame(2), param);
+
+figure(18)
+clf
+subplot(1,2,1)
+plotMatchedObjects(match)
+title('matches')
+subplot(1,2,2)
+plotMatchedCostMatrix(match, cost)
+title('cost matrix')
+
+
+
+%% match frames
+
+%method
+param.optimize = true;       % optimize match using an additional optimal coordinate transformation and second matching
+
+% cost matrix
+param.cost.creation  = [];   % costs for creating new objects ([])
+param.cost.deletion = [];    % costs for deleting objects ([])
+
+param.cutoff.cost = [];      % overall cost cutoff ([] = automatic)
+param.cutoff.dist = [];      % cutoff for spatial distance ([] = automatic)
+param.cutoff.time = -1;      % cutoff for temporal distances (-1 = ignore time differences)
+
+param.weight.dist = 1.0;          % weight for distances in space (1.0)
+
+param.weight.time.forward = 0.0;  % weight for positive time distances (0.0)
+param.weight.time.backward = 0.0; % weight for negative time distances (0.0)
+param.weight.volume = 100.0;        % weight for distances in volume (0.0)
+param.weight.intensity = 100.0;     % weight for distances in intensity (0.0)
+param.weight.type = Inf;          % weight for different types of objects (Inf)
+
+% printing
+param.print.load = 1;           % print info about loading the data files
+param.print.save = 1;           % print info about saving the data files
+
+param.print.match.frames  = 1;  % print info about matching the frames
+param.print.match.objects = 1;  % print results on matching the objects
+
+param.print.estimates = 1;      % print automatic determined estimates for cutoffs
+
+% figures
+param.figure.match = 0;          % generate figures for each match
+param.figure.trajectories = 1;   % generate figure displaying the trajectories
+param.figure.stats = 1;          % generate figure on statistics for the trajectories
+
+
+[match, cost] = matchObjects(frame(1), frame(2), param);
+
+figure(18)
+clf
+subplot(1,2,1)
+plotMatchedObjects(match)
+title('matches')
+subplot(1,2,2)
+plotMatchedCostMatrix(match, cost)
+title('cost matrix')
+
+
+%% full matching
+[matches, traj] = trackObjects(frame, param);
+
+
+%%
+
+figure(42); clf;
+
+plotMatchedTrajectories(frame, traj)
+
+
+%% Plot object moving in time
+
+imgtraj = traj(1).labeledImage();
+for t = 2:10
+   imgtraj = imgtraj + traj(t).labeledImage();
+end
+figure(42); clf
+implot(imgtraj)
+
+
+
+
+
+
+
+
+
+
+
 
 
 %% Plot Max-Projection for several times 
 
-trange= (1:35) + 3;
+trange= (10:20);
 
 img = zeros(512,512, length(trange));
+imgback = exp.loadData('background.mat');
 
 ti = 1;
 for t = trange
    t
-   imgin = imread_stack(exp.fileName('time', t, 'zpos', '**')) - imgback;
+   imgin = imread_stack(exp.ImageFile('field', 25, 'time', t, 'zpos', '**')) - imgback;
    img(:,:,ti) = max(imgin, [], 3); 
    ti = ti + 1;
 end
@@ -77,204 +171,84 @@ figure(5); clf; imcolormap('igray')
 implottiling(img)
 
 
+%% Max projection of Trajectories
 
-%% Plot a Single Stack
+%imgtrajmax = gray2rgb(iminvert(mat2gray(img)));
+imgtrajmax = iminvert(mat2gray(img));
 
-t = 33;
+%trajmax = 15;
+trajmax = length(traj)
 
-img = imread_stack(exp.fileName('time', t, 'zpos', '**'));
-size(img)
-
-img = img-imgback;
-
-
-figure(42 + t);clf
-%imgs = img - min(img(:));
-%imgs = mat2gray(imgs);
-%imgs(imgs < 0.1) = 0;
-imgs = img;
-imgs(imgs < 0) = 0;
-imgs = medianFilter(imgs,3);
-implot(imgs)
+cols = imcolormap('jet',trajmax);
+imgtrajobj = zeros(512,512, length(frame));
 
 
-
-%% Initialize the Classifier
-
-illoadclassifier(fullfile(exp.ResultDirectory, 'classifier3D_2.h5'))
-
-
-%% Initialize matfile to store results
-
-matout = matfile(fullfile(exp.ResultDirectory, 'segmentation.mat'), 'Writable', true)
-
-
-%% Loop over Time
-tagrange = exp.fileTagRange;
-
-%for t = tagrange.time
-%for t = [1, 2]
-
-t = 34;
-
-%% Read Image Stack
-
-filenames = exp.fileName('time', t, 'zpos', '**');
-
-img = imread_stack(filenames);
-img = mat2gray(img) * 255;
-size(img)
-
-%% Classify
-imgprob  = ilclassify(img);
-
-
-%%
-
-figure(1); clf
-[~,imgseg] = max(imgprob,[], 4);
-implot(imgseg)
-
-figure(2); clf;
-implottiling(imgseg)
-
-%%
-figure(42); clf;
-implottiling(imoverlaylabel(img, imgseg))
-
-
-%%
-%imglab = bwlabeln(imgprob(:,:,:,2) > 0.75);
-imglab = bwlabeln(imgseg==2);
-imglab = postProcessSegments(imglab, 'volume.min', 10);
-imglab = bwlabeln(imglab > 0);
-
-figure(45); clf; 
-implottiling(imoverlaylabel(img, imglab))
-
-
-%% Postprocess and 3D seed generation
-
-imglab2 = imglab;
-
-% fill holes
-for s = 1:size(imglab,3)
-   imglab2(:,:,s) = imfill(imglab(:,:,s), 'holes');
+for tid = 1:trajmax
+   objs = traj(tid).objects;
+   fids = traj(tid).frameids;
+   
+   for i = 1:length(objs)
+      imgobj = objs(i).labeledImage();
+      imgobj = tid * (imgobj > 0);
+      imgobj = max(imgobj, [], 3);
+      
+      t = fids(i);
+      %imgtrajmax(:, :, fids(i), :) = squeeze(imgtrajmax(:, :, fids(i), :)) + imgray2color(imgobj, cols(tid,:));
+      imgtrajobj(:,:,t) = max(imgtrajobj(:,:,t), imgobj);
+   end
 end
 
-% morphological transfrom
-for s = 1:size(imglab,3)
-   imglab2(:,:,s) = imerode(imglab2(:,:,s), strel('disk', 1));
+figure(42); clf
+implottiling(imoverlaylabel(imgtrajmax, imgtrajobj))
+
+
+%% Max-projection of Segmentation
+
+%trajmax = 15;
+tmax = length(frame);
+
+imgobj = zeros(512,512, tmax);
+%imgtrajmax = gray2rgb(iminvert(mat2gray(img)));
+imgmax = iminvert(mat2gray(img));
+
+for tid = 1:tmax
+
+   imgframe = frame(i).labeledImage();
+   imgframe = max(imgframe, [], 3);
+      
+   t = fids(i);
+   %imgtrajmax(:, :, fids(i), :) = squeeze(imgtrajmax(:, :, fids(i), :)) + imgray2color(imgobj, cols(tid,:));
+   imgmax(:,:,t) = max(imgmax(:,:,t), imgframe);
 end
 
-imgpost = postProcessSegments(imglab2, 'volume.min', 5);
+figure(45); clf
+implottiling(imoverlaylabel(imgtrajmax, imgtrajobj))
 
-imglab3 = bwlabeln(imgpost > 0);
-
-figure(42); clf;
-implottiling(imoverlaylabel(img, imglab3))
-
-
-
-%% Watershed
-
-% masking, might want to use differnt method, either another backgroudnclassifier or thresholding...
-imgmask = ~(imgseg == 1); 
-
-imgf = medianFilter(img, 3);
-imgf = mat2gray(imgf); 
-% imgf = imgf - * imgcls(:,:,:,3); imgf(imgf < 0) = 0;
 
 %%
-imgmin = imimposemin(max(imgf(:)) - imgf, imglab);
-imgws = watershed(imgmin);
-imgws = immask(imgws, imgmask);
-%imgws = imlabelseparate(imgws);
-imgws = postProcessSegments(imgws, 'volume.min', 10);
 
 figure(43); clf;
-implottiling(imoverlaylabel(img, imgws))
-
-
-%% 3D Visulaization
-
-figure(44); clf;
-implot(double(imgws))
-
-
-%%
-figure(45); clf;
-implot3dsurface(imgws)
-
-
-%% Create Objects and Frame
-
-objs = label2DataObjects(imgws, img);
-frame = Frame('objects', objs, 't', t, 'File', filenames);
-
-
-%%  Save Data To File
-
-matout.(['T', num2str(t,4)]) = frame;
-
-
-%% End Loop over times
+imgseg = frame(1).labeledImage();
+implottiling(imoverlaylabel(iminvert(mat2gray(img)), imgseg))
 
 
 
+%% Generate Time Series
+
+ts = TimeSeries('frames', frame, 'trajectories', traj);
+
+
+%% Save 
+exp.result = ts;
+exp.saveExperiment('tracking.mat');
 
 
 
+%% plot some statistics
 
-
-
-%% Some Tests
-
-test = imopen(imglab(:,:,5), strel('disk', 1));
-
-figure(43); clf;
-implottiling({imoverlaylabel(img(:,:,5), imglab(:,:,5)), imoverlaylabel(img(:,:,5), test)})
-
-
-%%
-figure(44); clf;
-implottiling(imgprob(:,:,:,2))
-
-%%
-
-imglabn = bwlabeln(imgprob(:,:,:,2) > 0.75);
-imglabn = postProcessSegments(imglabn, 'volume.min', 10);
-imglabn = bwlabeln(imglabn > 0);
-
-figure(45); clf; 
-implottiling(imoverlaylabel(img, imglabn))
-
-
-
-
-
-%% Time Loop
-end
-
-
-%%
-
-% create a test file
-
-hdf5write('/home/ckirst/Desktop/test.h5', '/results/test', [1 3 4 5])
-
-%%
-
-i = hdf5info('/home/ckirst/Desktop/test.h5')
-
-%%
-
-%%hdf5write('/home/ckirst/Desktop/test.h5', '/results/test2', [1 30], 'WriteMode', 'append')
-
-
-hdf5write('/home/ckirst/Desktop/test.h5', '/doll/test7', [1 30], 'WriteMode', 'append')
-
-%%
-
-
+figure(42); clf; 
+subplot(1,2,1)
+hist(double([frame(1).objects.intensity]), 15)
+subplot(1,2,2)
+hist(double([frame(1).objects.volume]), 15)
 

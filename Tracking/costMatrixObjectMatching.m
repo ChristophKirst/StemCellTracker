@@ -209,15 +209,15 @@ end
 % object creation and deletion
 
 if isempty(cost_creation)
-   creation_cost = estimateNonMatchingCost(cost, param);
+   cost_creation = estimateNonMatchingCost(cost, param);
 end
 if isempty(cost_deletion)
-   deletion_cost = creation_cost;
+   cost_creation = cost_creation;
 end
 
-cost(:,n1+1) = deletion_cost * ones(n0,1);
+cost(:,n1+1) = cost_creation * ones(n0,1);
 
-cost(n0+1,:) = creation_cost * ones(1,n1+1);
+cost(n0+1,:) = cost_creation * ones(1,n1+1);
 
 cost(n0+1,n1+1) = Inf;
 

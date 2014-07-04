@@ -29,19 +29,23 @@ fh.info()
 
 %%
 
-fh.ReadImageTagNames
+fh.TagNames
+
+
+fh.findImageFiles('time', 1)
+
 
 
 %%
 
-fns = fh.files'
+fns = fh.findImageFiles'
 
 
 %%
 
 fh.ReadImageCommand('time', 1)
-fh.fileName('time', 1)
-fh.fileName
+fh.ImageFile('time', 1)
+fh.ImageFile
 
 %%
 

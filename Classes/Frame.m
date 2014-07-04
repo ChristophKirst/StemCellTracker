@@ -10,7 +10,7 @@ classdef Frame < handle
       
       experiment = []; % reference to Experiment class
       %timeseries = []; % optional reference to the time series this frame belongs to
-      file       = []; % image to load specified either by row vector of file tags or direct filename 
+      source     = []; % image source
    end
    
    methods
@@ -51,7 +51,7 @@ classdef Frame < handle
             newobj(k).t          = obj(k).t;
             newobj(k).objects    = obj(k).objects.copy;
             newobj(k).experiment = obj(k).experiment; % shallo copy
-            newobj(k).file       = obj(k).file;
+            newobj(k).source     = obj(k).source;
             %newobj(k).timeseries = obj(k).timeseries;
          end 
       end
@@ -162,7 +162,20 @@ classdef Frame < handle
          end   
       end
       
+ 
+      function n = nobjects(obj)
+      %
+      % n = nobjects(obj)
+      %
+      % output:
+      %   n    number of objects in this frame
+      %
+         n = length(obj.objects);
+      end
+      
 
+      %%% Utils
+      
       function obj = transformCoordinates(obj, R, T, C)
       %
       % obj = transformCoordinates(obj, R, T, C)
@@ -174,15 +187,25 @@ classdef Frame < handle
       end
       
       
-      function img = readImage(obj)
+      function img = getImage(obj)
       %
       % img = readData()
       %
       % returns the image data of this frame
       %
-         img = obj.experiment.readData(obj.file);    
+         img = obj.source.getData();   
       end
 
+      function img = readData(obj) % only for compability with this version: todo remove
+      %
+      % img = readData()
+      %
+      % returns the image data of this frame
+      %
+         img = obj.getImage();   
+      end
+      
+      
 
       % image
       function imglab = labeledImage(obj)

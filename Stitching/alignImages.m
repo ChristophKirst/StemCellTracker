@@ -1,4 +1,4 @@
-function shifts = alignImages(imgs, param)
+function shifts = alignImages(imgs, varargin)
 %
 % shifts = alignImages(imgs, param)
 %
@@ -29,9 +29,9 @@ function shifts = alignImages(imgs, param)
 %
 % See also: align2ImagesByOptimization, align2ImagesBySequentialShift, plotAlignedImages
 
-if nargin < 2
-   param = struct();
-end
+
+param = parseParameter(varargin{:});
+
 
 if ~iscell(imgs)
    error('alignImages: expecting cell array as input imgs');

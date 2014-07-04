@@ -16,6 +16,11 @@ elseif ~iscell(cs) && isscalar(cs)
       c = ['<' class(cs) , '>'];
    end
 else
+   if isempty(cs)
+      c ='[]';
+      return
+   end
+ 
    si = size(cs);
    di = length(si);
    if di == 2 && si(2) == 1

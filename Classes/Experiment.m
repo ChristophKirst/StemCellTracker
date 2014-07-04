@@ -26,6 +26,8 @@ classdef Experiment < FileHandler
          % Experiment(..., fieldname, fieldvalue, ...)
          %
          
+         obj.date = datestr(now);
+         
          for i = 1:2:nargin
             if ~ischar(varargin{i})
                error('Experiment: invalid constructor input, expects char at position %g', i);

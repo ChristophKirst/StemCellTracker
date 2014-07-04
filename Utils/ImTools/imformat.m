@@ -26,44 +26,7 @@ function format = imformat(data)
 % note:
 %     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'
 
-cmaxsize = 3;  % max size for channel dimension
-
-dim = ndims(data);
-
-format = '';
-
-if dim < 2 || dim > 5
-   return
-end
-
-switch dim
-   case 2
-      format = 'pq';
-   case 3
-      if size(data,3) <= cmaxsize
-         format = 'pqc';
-      else
-         format = 'pql';
-      end
-   case 4
-      if size(data,3) <= cmaxsize
-         format = 'pqcl';
-      elseif size(data,4) <= cmaxsize
-         format = 'pqlc';
-      else
-         format = 'pqlt';
-      end
-   case 5
-      if size(data,3) <= cmaxsize
-         format = 'pqclt';
-      elseif size(data,4) <= cmaxsize
-         format = 'pqlct';
-      elseif size(data,5) <= cmaxsize
-         format = 'pqltc';
-      else
-         format = 'pqlct';
-      end     
-end
+format = imsize2format(size(data));
 
 end
       

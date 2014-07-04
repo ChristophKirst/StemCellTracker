@@ -1,4 +1,4 @@
-function img = stitchImages(imgs, shifts, param)
+function img = stitchImages(imgs, shifts, varargin)
 %
 % img = stitchImages(imgs, shifts, param)
 %
@@ -16,9 +16,7 @@ function img = stitchImages(imgs, shifts, param)
 %
 % See also: alignImages, stitchImagesByMean, stitchImagesByMax, stitchImagesByMin, stitchImagesByOverwrite
 
-if nargin < 3
-   param = [];
-end
+param = parseParameter(varargin{:});
 
 meth = getParameter(param, 'method', 'Max');
 if ~any(strcmp({'Mean', 'Max', 'Min', 'Overwrite'}, meth))

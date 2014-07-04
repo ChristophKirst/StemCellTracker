@@ -51,8 +51,6 @@ implottiling({imgseg, imgws, imoverlaylabel(img, imgws)})
 
 
 
-
-
 %% Test Basic Routines 
 
 initialize

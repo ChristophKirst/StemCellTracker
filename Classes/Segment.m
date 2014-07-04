@@ -64,7 +64,7 @@ classdef Segment < handle
          % [idx, isize] = pixelIdxList(obj);
          %
          % description:
-         %     return list of pixel indices that
+         %     return list of pixel indices and image size
          
          nobj = length(obj);
          idx = cell(1, nobj);

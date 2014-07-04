@@ -77,7 +77,7 @@ for i = 1:length(out_format)
    if ~isempty(sf)
       %shape(i) = size(img,sf(1));
    else
-      in_format(end+1) = sf;  %#ok<AGROW> % add to the end as this would introduce a new dimensions of size 1 in the original array
+      in_format(end+1) = out_format(i);  %#ok<AGROW> % add to the end as this would introduce a new dimensions of size 1 in the original array
    end
 end
 %shape 
@@ -100,6 +100,7 @@ end
 % now out_format and in_format have same size
 %in_format
 %out_format
+%ypos
 
 per = ones(1, length(in_format));
 for i = 1:length(in_format)

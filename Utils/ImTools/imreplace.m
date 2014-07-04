@@ -29,14 +29,9 @@ end
 
 isize = size(image);
 ssize = size(subimage);
+dim =  ndims(image);
 
-if numel(coords) ~= ndims(image) || numel(coords) ~= ndims(subimage) || any(coords > isize)
-   disp coords:
-   disp(coords)
-   disp ndims(image):
-   ndims(image)
-   disp ndims(subimage):
-   ndims(subimage)
+if numel(coords) ~= dim || dim ~= ndims(subimage) || any(coords > isize)
    error('imreplace: inconsistent image dimensions or positions!')
 end
 
@@ -44,7 +39,7 @@ if any(ssize + coords - 1 > isize)
    if chop
       ssize = min(ssize, isize - coords + 1);
       si = cell(1,length(ssize));
-      for i = 1:length(ssize)
+      for i = 1:dim
          si{i} = 1:ssize(i);
       end
       subimage = subimage(si{:});

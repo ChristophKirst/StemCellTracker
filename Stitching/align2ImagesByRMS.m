@@ -1,4 +1,4 @@
-function shift = align2ImagesByRMS(img1, img2, param)
+function shift = align2ImagesByRMS(img1, img2, varargin)
 %
 % shift = align2ImagesByRMS(img1, img2)
 %
@@ -8,14 +8,15 @@ function shift = align2ImagesByRMS(img1, img2, param)
 % input:
 %     img1,img2    images
 %     param        parameter struct with entries
-%                  .overlap.min   minimal overlap of images
+%                  .overlap.min   minimal overlap of images (50)
+%                  .overlap,max   maximal overlap considered (150)
+%                  .shift.max     maximal shift in secondary directions ([10, 10])
+%                  .shift.min     minimal shift in secondary directions ([-10, -10])
 %
 % output:
 %     shift        the shift between origin of img1 to origin of img2 in pixel coordinates and pixel units
 
-if nargin < 3
-   param = [];
-end
+param = parseParameter(varargin{:});
 
 minov = getParameter(param, 'overlap.min', 50);
 

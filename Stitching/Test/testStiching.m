@@ -47,8 +47,8 @@ alignfigures
 
 %% Load two images
 
-img1 = imread('./Test/Images/hESCells_tiling/W1F034T0001Z05C1.tif');
-img2 = imread('./Test/Images/hESCells_tiling/W1F035T0001Z05C1.tif');
+img1 = imread('./Test/Images/hESCells_Tiling/W1F034T0001Z05C1.tif');
+img2 = imread('./Test/Images/hESCells_Tiling/W1F035T0001Z05C1.tif');
 
 img1 = impqlpermute(img1, 'yx', 'pq');
 img2 = impqlpermute(img2, 'yx', 'pq');
@@ -112,8 +112,8 @@ implottiling({mat2gray(imgst), mat2gray(imgst2); mat2gray(imgst3),  mat2gray(img
 
 %% test alignment in z direction:
 
-img1 = imread('./Test/Images/hESCells_tif_stack/W1F127T0001Z04C1.tif');
-img2 = imread('./Test/Images/hESCells_tif_stack/W1F127T0001Z05C1.tif');
+img1 = imread('./Test/Images/hESCells_Stack/W1F127T0001Z04C1.tif');
+img2 = imread('./Test/Images/hESCells_Stack/W1F127T0001Z05C1.tif');
 
 figure(1); clf;
 implottiling({img1, img2});
@@ -135,8 +135,8 @@ plot2AlignedImages(mat2gray(img1), mat2gray(img2), sh)
 
 %% Load two images in y direction
 
-img1 = imread('./Test/Images/hESCells_tiling/W1F034T0001Z05C1.tif');
-img2 = imread('./Test/Images/hESCells_tiling/W1F038T0001Z05C1.tif');
+img1 = imread('./Test/Images/hESCells_Tiling/W1F034T0001Z05C1.tif');
+img2 = imread('./Test/Images/hESCells_Tiling/W1F038T0001Z05C1.tif');
 
 img1 = impqlpermute(img1, 'yx', 'pq');
 img2 = impqlpermute(img2, 'yx', 'pq');
@@ -171,7 +171,7 @@ clear imgs
 for i = 1:n1
    for j = 1:n2
       pos = 33 + (i-1) + 4 * (j-1);
-      fn = ['./Test/Images/hESCells_tif_tiling/W1F' num2str0(pos,3), 'T0001Z05C1.tif'];
+      fn = ['./Test/Images/hESCells_Tiling/W1F' num2str0(pos,3), 'T0001Z05C1.tif'];
       imgs{i,j} = imread(fn);
       imgs{i,j} = impqlpermute(imgs{i,j}, 'yx', 'pq');
    end
@@ -200,6 +200,7 @@ shifts = alignImages(imgsrow, setParameter('method' , 'SequentialShifts', 'overl
 
 %% plot
 
+clf
 plotAlignedImages(imgsrow, shifts)
 
 
@@ -207,6 +208,8 @@ plotAlignedImages(imgsrow, shifts)
 
 img = stitchImagesByMin(imgsrow, shifts);
 
+figure(1); clf; imcolormap('gray')
+implot(img)
 
 
 %%

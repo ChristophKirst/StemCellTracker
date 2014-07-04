@@ -515,8 +515,6 @@ classdef Trajectory < handle
       end
       
       
-      
-      
       function imglab = labeledImage(obj)
          if length(obj) ==1 
             objs = obj.objects;

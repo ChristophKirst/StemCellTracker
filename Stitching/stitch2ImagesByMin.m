@@ -15,9 +15,8 @@ function img = stitch2ImagesByMin(img1, img2, shift)
 %
 % See also: stitchImages, stitchImagesByMean, stitchImagesByOverwrite, alignImages
 
-%transform relative shift into absolute shift for img1 and img2
-dim = length(shift);
 
+dim = length(shift);
 
 % find overlap region
 si1 = size(img1);

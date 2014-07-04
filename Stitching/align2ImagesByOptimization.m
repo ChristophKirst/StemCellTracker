@@ -1,4 +1,4 @@
-function [shift, img] = align2ImagesByOptimization(img1, img2, param)
+function [shift, img] = align2ImagesByOptimization(img1, img2, varargin)
 %
 % img = align2ImagesByOptimization(img1, img2, param)
 %
@@ -20,9 +20,7 @@ function [shift, img] = align2ImagesByOptimization(img1, img2, param)
 %
 % See also:  align2ImagesByShift, stitch2ImagesByMean, stich2ImagesByWatershed, alignImages, stitchImages, imregister
 
-if nargin < 3
-   param = [];
-end
+param = parseParameter(varargin{:});
 
 si1 = size(img1);
 si2 = size(img2);

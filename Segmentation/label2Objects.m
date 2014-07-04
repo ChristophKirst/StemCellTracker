@@ -4,12 +4,12 @@ function [objects, varargout] = label2Objects(imglab, img, stats, param)
 % [objects, stats] = label2Objects(...)
 %
 % description:
-%    converts a labeld image and associated data to an array of Object classes
+%    converts a labeled image and associated data to an array of Object classes
 %    used for tracking and furtehr analysis
 %
 % input:
 %    imglab  labeled image (2D/3D)
-%    img     original grayscale image to measure basic properties from (2D/3D)
+%    img     original grayscale image (2D/3D) to measure basic properties from
 %    stats   (optional) previously calcualted statistics
 %    param   (optional) parameter struct with entries:
 %            .time      time for objects (0)
