@@ -1,6 +1,6 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% FUCCI in Neuronal Rosettes %%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%
+%%% FUCCI Analysis %%%
+%%%%%%%%%%%%%%%%%%%%%%
 
 
 clear all
@@ -8,22 +8,25 @@ close all
 
 initialize()
 
-addpath('./Scripts/User/Zeeshan');
+addpath('./Scripts/User/Alessia');
 
 
 
 %% Load Data
 
 exp = Experiment('name', 'Example', 'description', 'FUCCI ',...
-                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Data/Other/Zeeshan/', ...
-                 'ImageDirectoryName', 'FUCCI',...
+                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Data/Other/Alessia/', ...
+                 'ImageDirectoryName', 'Fucci/',...
                  'ResultDirectoryName', 'Results/', ...
                  'ReadImageCommandFormat', 'imread(''<file>'')',...
-                 'ReadImageFileFormat', 'FUCCI-triple_<channel,s>_s6_t<time>.TIF');
+                 'ReadImageFileFormat', 'Sample1_<channel,5,s>_s1/exp_Sample1_<channel,5,s>_s1_t<time>.TIF');
 
 exp.info()
 
+
 tags = exp.findImageTagRange
+
+
 times = tags.time;
 channelnames = tags.channel;
 
@@ -33,16 +36,45 @@ verbose = true;
 %% Inspect Data
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Load sngle image
+
+t = 1;
+imgdic = exp.readImage('time', t, 'channel', 'w2GFP')';
+
+figure(1); clf;
+implot(imgdic)
+
+size(imgdic)
+
 %% Generate Single Frame
 t = 1;
 
 %%
 img = fucci_load(exp, t);
 
-figure(1); clf;
-implot(img)
+figure(1); clf; colormap('gray')
+implottiling({img(:,:,1), img(:,:,2); img(:,:,3), sum(img, 3)})
 
 t = t+1
+
+
+%%
+
+imgs = sum(img(:,:,:),3);
+
+imgback = imopen(imgs, strel('disk', 80));
+
+%imgo = img3;
+%imgo(img3 > 0.75) = 0.75 ;
+
+figure(2); clf; colormap('gray')
+implottiling({imgs, imgback, imgs-imgback})
+
+
+%%
+
+img  = imgs- imgback;
+
 
 %%
 
@@ -50,7 +82,7 @@ t = 217
 
 img = fucci_load(exp, t);
 
-imgdic = exp.readImage('time', t, 'channel', 'w1DIC')';
+imgdic = exp.readImage('time', t, 'channel', 'w2GFP')';
 imgdic = mat2gray(imgdic);
 imgdic = gray2rgb(imgdic);
 
@@ -107,7 +139,7 @@ end
 
 
 
-
+img = 
 
 
 
@@ -117,7 +149,6 @@ end
 
 %% Init
 
-rc = exp.loadData('rosette_centers.mat');
 
 tstart = 1;
 tend = 217;
@@ -799,8 +830,8 @@ print(h,'-dpdf', exp.ResultFile(['resotte_radius_cells.pdf']))
 scalemin = [1,1,1]*2^16;
 scalemax = [1,1,1]*0;
 
-tstart = 7;
-tend = 217;
+tstart = 1;
+tend = 159;
 %tend = 7;
 tdelta = 8;
 timax = length(tstart:tdelta:tend);
@@ -808,12 +839,12 @@ timax = length(tstart:tdelta:tend);
 
 for t = times(tstart:tdelta:tend)
 
-   fprintf('time: %g  index: %d / %d\n', t, ti, timax); 
+   fprintf('time: %d / %d\n', t, timax); 
    
    % load image
-   imgB = imread(exp.fileName('time', t, 'channel', channelnames{1}))';
-   imgR = imread(exp.fileName('time', t, 'channel', channelnames{2}))';
-   imgG = imread(exp.fileName('time', t, 'channel', channelnames{3}))';
+   imgB = imread(exp.ImageFile('time', t, 'channel', channelnames{1}))';
+   imgR = imread(exp.ImageFile('time', t, 'channel', channelnames{2}))';
+   imgG = imread(exp.ImageFile('time', t, 'channel', channelnames{3}))';
 
    img(:,:,1) = imgR; img(:,:,2) = imgG; img(:,:,3) = imgB;
 

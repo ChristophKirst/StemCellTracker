@@ -68,7 +68,7 @@ implot(img2);
 % choose overlap close to and above the expected average
 
 tic 
-sh = align2ImagesByOptimization(mat2gray(img1), mat2gray(img2), setParameter('overlap.max', 50, 'direction', 'lr'))
+sh = align2ImagesByOptimization(mat2gray(img1), mat2gray(img2), setParameter('overlap.max', 100, 'direction', 'lr'));
 %sh = align2ImagesByOptimization(mat2gray(img1), mat2gray(img2), setParameter('overlap.max', 130, 'direction', 'lr'))
 toc
 
@@ -82,7 +82,7 @@ plot2AlignedImages(mat2gray(img1), mat2gray(img2), sh)
 
 tic
 %sh = align2ImagesBySequentialShifts(mat2gray(img1), mat2gray(img2), setParameter('overlap',[50, 10, 10], 'minoverlap', [30, -10, -10], 'direction', 'lr'))
-sh = align2ImagesBySequentialShifts(mat2gray(img1), mat2gray(img2), setParameter('overlap.max', 100, 'overlap.min', 30, 'shift.max', 10, 'shift.min',-10, 'direction', 'lr'))
+sh = align2ImagesBySequentialShifts(mat2gray(img1), mat2gray(img2), setParameter('overlap.max', 160, 'overlap.min', 30, 'shift.max', 10, 'shift.min',-10, 'direction', 'lr'))
 toc
 
 figure(3); clf;
@@ -223,7 +223,7 @@ plotAlignedImages(imgs, shifts)
 
 %% stitchImages
 
-img = stitchImagesByOverwrite(imgs, shifts);
+img = stitchImagesByMax(imgs, shifts);
 
 figure(8)
 implot(img/2^16)

@@ -27,10 +27,10 @@ function cost = costMatrixObjectMatching(data0, data1, param)
 %                .weight.volume           - weight for distances in volume (0.0)
 %                .weight.intensity        - weight for distances in intensity (0.0)
 %                .weight.type             - weight for different types of objects (Inf)
-%                .weight.join.volume      - weight for volume differnces of joining objects
+%                .weight.join.volume      - weight for volume differences of joining objects
 %                .weight.join.intensity   - weight for intensity differences for joining objects
 %                .weight.join.distance    - weight for distance differences for joining objects
-%                .weight.split.volume     - weight for volume differnces of splitting objects
+%                .weight.split.volume     - weight for volume differences of splitting objects
 %                .weight.split.intensity  - weight for intensity differences for splitting objects
 %                .weight.split.distance   - weight for distance differences for splitting objects
 %

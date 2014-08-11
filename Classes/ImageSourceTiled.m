@@ -6,8 +6,8 @@ classdef ImageSourceTiled < ImageSource
    properties 
       images = {};  % cell array of ImageSource classes specifiing the individual images
       shifts = {};  % relative shifts 
-      alignparam  = [];  % parameter need to stitch
-      stichparam  = [];  % parameter needed for alignement and stiching routines
+      alignparam  = [];  % parameter needed for stitching
+      stichparam  = [];  % parameter needed for alignement
    end
 
    methods

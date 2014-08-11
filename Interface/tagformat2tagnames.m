@@ -1,6 +1,17 @@
 function [tnames, tagsplit, taginfo] = tagformat2tagnames(tfrmt)
-
-% return tag information
+%
+% [tnames, tagsplit, taginfo] = tagformat2tagnames(tfrmt)
+%
+% description:
+%      return tag information for the tagformat
+%
+% input:
+%    tfrmt     tagformat string, e.e. <name,#chars,type>
+%
+% output:
+%    tnames    tag names
+%    tsplit    text strings between tags
+%    taginfo   info on tags (type, length etc)
 
 tnames = regexp(tfrmt, '<(?<name>.*?)>', 'names');
 tnames = {tnames.name};
@@ -24,7 +35,7 @@ for i = 1:nnames
       nms{3} = nms{2};
       nms{2} = '0';
    end
-   twidth{i} = str2double(nms{2});
+   twidth{i} = nms{2};
    
    if length(nms) < 3
       nms{3} = 'd';
@@ -32,6 +43,24 @@ for i = 1:nnames
    ttype{i} = nms{3};
    tnames{i} = nms{1};
 end
+
+
+% check syntax
+for i = 1:nnames
+   if ~any(ismember({'s', 'd'}, ttype{i}))
+      warning('tagformat2tagnames: syntax error: type %s is neither d(igit) nor s(tring)', ttype{i})
+      ttype{i} = 'd';
+   end
+   
+   tw = str2double(twidth{i});
+   if isnan(tw)
+      warning('tagformat2tagnames: syntax error: tag width %s not a integer number', twidth{i})
+      twidth{i} = 0;
+   else
+      twidth{i} = tw;
+   end
+end
+
 
 
 % handle same tag appearing more than once

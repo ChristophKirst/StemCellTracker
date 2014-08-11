@@ -19,8 +19,8 @@ classdef FileHandler < handle
    end
    
    properties (Dependent)
-      ImageDirectory;        % absolute image directory
-      ResultDirectory;       % absolute result directory  
+      %ImageDirectory;        % absolute image directory
+      %ResultDirectory;       % absolute result directory  
    end
       
       
@@ -102,7 +102,7 @@ classdef FileHandler < handle
     
 
       % directories 
-      function ddir = get.ImageDirectory(obj)
+      function ddir = ImageDirectory(obj, varargin)
          % description:
          % returns the image data directorty for the experiment
          %
@@ -110,9 +110,13 @@ classdef FileHandler < handle
          %     ddir    image data directory
          
          ddir = fullfile(obj.BaseDirectory, obj.ImageDirectoryName);
+         
+         if (nargin > 1) 
+            ddir = tags2name(ddir, varargin{:});
+         end
       end
       
-      function ddir = get.ResultDirectory(obj)
+      function ddir = ResultDirectory(obj, varargin)
          % description:
          % returns the results directorty for the experiment
          %
@@ -120,6 +124,10 @@ classdef FileHandler < handle
          %     ddir    result directory
          
          ddir = fullfile(obj.BaseDirectory, obj.ResultDirectoryName);
+         
+         if (nargin > 1) 
+            ddir = tags2name(ddir, varargin{:});
+         end
       end
 
       

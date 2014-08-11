@@ -4,11 +4,14 @@ classdef ImageSource < matlab.mixin.Copyable
    % 
    % decription:
    %     this class can be used to represent an Image independent of its actual source
-   %     use readImage to return the actual image data
+   %     use getData to return the actual image data
    %
    properties
-      size   = [];
-      format = '';
+      size   = [];                  % size of the image
+      format = '';                  % pql format of the image
+      
+      colors = [];                  % colors of the channels
+      tagnames = containers.Map();  % translation between names and tags, e.g. for channels 'dapi' -> ('channel' -> 1)
    end
      
    methods (Abstract)
@@ -42,9 +45,25 @@ classdef ImageSource < matlab.mixin.Copyable
          img = impqlpermute(img, obj.format, 'pqlct');
       end
       
+      
+      
+      
+      % information
       function info = infoString(obj)
          cls = class(obj);
          info = ['ImageSource:\nsource: ',  cls(12:end), '\nsize:   ', var2char(obj.size), '\nformat: ', var2char(obj.format)]; 
+         
+         if ~isempty(obj.tagnames)
+            info = [info '\ntagnames:'];
+            keys = obj.tagnames.keys;
+            vals = obj.tagnames.values;
+            for i = 1:obj.tagnames.length
+               info = [info, var2char(keys{i}), ' -> ' var2char(vals{i})]; %#ok<AGROW>
+            end
+         end
+         
+         
+         
       end
 
       function info(obj)
