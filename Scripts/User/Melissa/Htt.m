@@ -7,18 +7,22 @@ clear all
 clc
 initialize
 
+ilinitialize
+bfinitialize
+
 verbose = true;
 
+addpath('./Scripts/User/Melissa')
 
 
 %% Load Data
 
 exp = Experiment('name', 'Melissa', 'description', 'some random segmentation for Melissa',...
-                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Data/Other/Melissa/140805_Imaging/', ...
-                 'ImageDirectoryName', '140513_RUES2_500um_<sample>.tif_Files/',...
+                 'BaseDirectory', '/home/ckirst/Science/Projects/StemCells/Experiment/Data/Other/Melissa/', ...
+                 'ImageDirectoryName', 'Images/',...
                  'ResultDirectoryName', 'Results/', ...
-                 'ReadImageCommandFormat', 'imread(''<file>'')',...
-                 'ReadImageFileFormat', '140513_RUES2_500um_<sample>_p<tile,1>c<channel,1>.tif');
+                 'ReadImageCommandFormat', 'imread_bf(''<file>'', ''series'', <tile>, ''channel'', <channel>)',...
+                 'ReadImageFileFormat', '140513_RUES2<type,4,s>_500um_<sample>.zvi');
 
 exp.info()
 
@@ -27,29 +31,37 @@ tags = exp.findImageTagRange
 
 %%
 %for sample = [8]
-for sample = tags.sample
+sample = 8
+type = 'Ctrl';
 
-%% Plot Dapi 
+%for sample = tags.sample
 
-imgs = exp.findImageFiles('channel', 0, 'sample', sample);
-imgs = cellfun(@(x) imread(x), imgs, 'UniformOutput', false);
-size(imgs)
-imgs = reshape(imgs, 2,2);
-imgs = [imgs(2), imgs(4); imgs(1), imgs(3)];
+%% Plot Dapi Images
+
+for t = 1:4
+   imgs{t} = exp.readImage('type', type, 'sample', sample, 'tile', t, 'channel', 1);
+end
+imgs = [imgs(3), imgs(4); imgs(1), imgs(2)];
 
 
 figure(1); clf; imcolormap('blue')
 implottiling(imgs)
 
+%% Stitch
 
-%% Stich
+sh = httalign(imgs, false);
 
-sh = alignImages(imgs, 'overlap.max', 150, 'overlap.min', 100);
-figure(2); clf
-plotAlignedImages(imgs, sh)
 
-%%
-img = stitchImagesByMean(imgs, sh);
+% correct illumination etc
+
+for t = 1:4
+   imgsc{t} = imopen(imgs{t}, strel('disk', 20));
+   imgsc{t}  = imgs{t} - imgsc{t};
+end
+imgsc = reshape(imgsc, 2,2);
+
+img = stitchImagesByMean(imgsc, sh);
+
 figure(3); imcolormap('blue');
 implot(img)
 
@@ -62,6 +74,34 @@ img = imread([exp.ImageDirectory('sample', sample) 'stitch.tif']);
 img = img(:,:,1);
 %figure(3); clf;
 %implot(img)
+
+
+
+%% Segmenting without classification
+
+imgs = medianFilter(img, 3);
+imgs = mat2gray(imgs);
+
+%%
+%imgss = diskFilter(imgs, 15, 0, 1, -1);
+imgss = diskFilter(imgs, 10, 0, 1, -1);
+
+
+%%
+imgcl = imextendedmax(imgss, 0.05);
+
+imgcl = imdilate(imgcl, strel('disk', 2));
+imgcl = bwlabeln(imgcl);
+
+
+if verbose 
+   figure(31); clf
+   implottiling({img, imgs; imgss, imoverlay(mat2gray(img), imgcl)})
+end
+
+
+
+
 
 
 
@@ -92,15 +132,54 @@ implottiling({imgclsp(:,:,1), imgclsp(:,:,2), imgclsp(:,:,3)})
 %% Segmenta Cells
 
 
+
+
 %% seeds
-imgs = imgclsp(:,:,2)- 0.5 * imgclsp(:,:,3);
+imgs = imgclsp(:,:,2)- 0.5 * imgclsp(:,:,1);
 imgs(imgs < 0) = 0;
 imgs = mat2gray(imgs);
 
 %imgss = diskFilter(imgs, 15, 0, 1, -1);
 imgss = sphereFilter(imgs, 15);
 
-imgcl = imextendedmax(imgss, 0.05);
+imgcl = imextendedmax(imgss, 0.2);
+
+
+imgcl = imdilate(imgcl, strel('disk', 4));
+imgcl = bwlabeln(imgcl);
+
+
+if verbose 
+   figure(31); clf
+   implottiling({img, imgs; imgss, imoverlay(mat2gray(img), imgcl)})
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%
+
+%% seeds
+imgs = imgclsp(:,:,2)- 0.5 * imgclsp(:,:,1);
+imgs(imgs < 0) = 0;
+imgs = mat2gray(imgs);
+
+%imgss = diskFilter(imgs, 15, 0, 1, -1);
+imgss = sphereFilter(imgs, 15);
+
+imgcl = imextendedmax(imgss, 0.2);
 
 
 imgcl = imdilate(imgcl, strel('disk', 4));

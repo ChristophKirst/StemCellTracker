@@ -1,0 +1,1 @@
+classdef ImageInfo < matlab.mixin.Copyable

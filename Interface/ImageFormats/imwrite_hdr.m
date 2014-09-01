@@ -3,13 +3,13 @@ function [] = imwrite_hdr(data,varargin)
 % [] = imwrite_hdr(data,varargin)
 %
 %     usage:
-%            writeanalyze(data,filename,vsize)
-%            writeanalyze(data,filename,vsize,dtype)
-%            writeanalyze(data,isize,filename,vsize)
-%            writeanalyze(data,isize,filename,vsize,index)
-%            writeanalyze(data,isize,filename,vsize,dtype)
-%            writeanalyze(data,isize,filename,vsize,dtype,index)
-%            writeanalyze('header',isize,filename,vsize,dtype)
+%            imwrite_hdr(data,filename,vsize)
+%            imwrite_hdr(data,filename,vsize,dtype)
+%            imwrite_hdr(data,isize,filename,vsize)
+%            imwrite_hdr(data,isize,filename,vsize,index)
+%            imwrite_hdr(data,isize,filename,vsize,dtype)
+%            imwrite_hdr(data,isize,filename,vsize,dtype,index)
+%            imwrite_hdr('header',isize,filename,vsize,dtype)
 %
 %       data     - mri data
 %                  Data can be a matrix(3d,4d) or vector. If data is a 

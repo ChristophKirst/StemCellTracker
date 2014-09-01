@@ -1,0 +1,198 @@
+classdef AlignmentPair < matlab.mixin.Copyable
+   %
+   % AlignmentPair class representing two images with overlap to be aligned
+   %
+   
+   properties
+      from = [];         % first image id
+      to = [];           % second image id
+      orientation = '';  % orientation of images to be aligned: 'lr'=1=left-right, 'du'=2=down-up 'bt'=3=bottom-top, ''=0=no primary direction
+      shift = [0,0];     % shift between the images
+      quality = 1;       % quality of overlap used to detect empty image overlaps
+   end
+  
+   methods
+
+      function obj = AlignmentPair(varargin)
+         %
+         % AlignmentPair()
+         % AlignmentPair(from, to, orientation)
+         % AlignmentPair(from, to, shift)
+         % AlignmentPair(cellarray)
+         % AlignmentPair(struct)
+         % AlignmentPair(..., fieldname, fieldvalue, ...)
+         %
+         if nargin == 1 
+            if isa(varargin{1}, 'AlignmentPair') %% copy constructor
+               obj = copy(varargin{1});
+            elseif isa(varargin{1}, 'cell')
+               obj.fromCell(varargin{1});
+            elseif isa(varargin{1}, 'struct')
+               obj.fromStruct(varargin{1});
+            else
+               error('%s: not valid arguments for constructor', class(obj));
+            end
+         elseif nargin == 2 && all(cellfun(@isnumeric, varargin(1:2)))
+            obj.from = varargin{1};
+            obj.to   = varargin{2};
+         elseif nargin == 3 && all(cellfun(@isnumeric, varargin(1:2)))
+            obj.from = varargin{1};
+            obj.to   = varargin{2};
+            if ischar(varargin{3})
+               obj.orientation = varargin{3};  
+            else
+               obj.shift = varargin{3};  
+            end
+         else
+            for i = 1:2:nargin % constructor from arguments
+               if ~ischar(varargin{i})
+                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
+               end
+               if isprop(obj, varargin{i})
+                  obj.(varargin{i}) = varargin{i+1};
+               else
+                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
+               end
+            end
+         end
+         
+         obj.initialize();
+      end
+       
+      function initialize(obj)
+         for i = 1:length(obj)
+            obj(i).orientation = obj.orientation2number(obj(i).orientation);
+         end
+      end
+      
+      function n = orientation2number(~, o)
+         if ischar(o)
+            switch o
+               case 'lr'
+                  n = 1;
+               case 'du'
+                  n = 2;
+               case 'bt'
+                  n = 3;
+               case ''
+                  n = 0;
+               otherwise
+                  error('AlignmentPair: orientation %s is not lr, du or bt or empty', o);
+            end
+         elseif isempty(o)
+            n = 0;
+         elseif isnumeric(o)
+            n = o;
+         else
+            error('AlignmentPair: orientation is not lr, du or bt or empty: %s', var2char(o));
+         end
+      end
+
+      function d = dim(obj)
+         %
+         % d = dim(obj)
+         %
+         % descritpion:
+         %   dimension of alignment problem = dimension of shift vector
+         %
+         d = ndims(obj.shift);
+      end
+      
+      function obj = fromStruct(obj, st)
+         %
+         % obj = fromStruct(obj, st)
+         %
+         % descritpion:
+         %   initializes AlignmentPair array form struct array st
+         %
+         for i = 1:length(st)
+            obj(i).from  = st(i).from;         
+            obj(i).to    = st(i).to;        
+         end
+         
+         fields = {'orientation', 'shift', 'quality'};
+         for f = 1:length(fields)
+            fn = fields{f};
+            if isfield(st, fn)
+               for i = 1:length(st)
+                  obj(i).(fn) = st(i).(fn);
+               end
+            end
+         end  
+         
+         obj.initialize();
+      end
+
+      function obj = fromCell(obj, ca)         
+         %
+         % obj = fromCell(obj, st)
+         %
+         % descritpion:
+         %   initializes AlignmentPair form a pair of ids given as peraligned cell array
+         %
+         
+         si = size(ca);
+         obj.from = ca{1};
+         obj.to   = ca{2};
+         obj.orientation = find(si == 2, 1);
+      end
+      
+      function ca = toCell(obj)         
+         %
+         % ca = toCell(obj) 
+         %
+         % descritpion:
+         %   converts the data into cell array representation
+         %    
+         if obj.orientation > 0
+            pos = num2cell(ones(1,obj.dim));
+            ca{pos{:}} = obj.from;
+            pos{obj.orientation} = 2;
+            ca{pos{:}} = obj.to;
+         else
+            ca = {obj.from, obj.to};
+         end
+      end
+      
+      
+      function obj = align(obj, varargin)
+         %
+         % obj = align(obj, varargin)
+         %
+         % description:
+         %    aligns the two images using alignImagePair
+         %
+         % See also: alignImagePair
+         
+         obj = alignImagePair(obj, varargin{:});
+      end
+      
+      
+      function [ovl1, ovl2] = overlap(obj)
+         %
+         % [ovl1, ovl2] = overlap(obj)
+         %
+         % description:
+         %    returns overlap region of the two images from and to using shift
+         %
+         % See also: overlap2AlignedImages
+         
+         [ovl1, ovl2] = overlap2AlignedImages(obj.from, obj.to, obj.shift);
+      end
+         
+
+      function plot(obj)
+         %
+         % plot(obj)
+         %
+         % description:
+         %    visualizes the alignment using plot2AlignedImages
+         %
+         % See also: plot2AlignedImages
+         
+         plot2AlignedImages(obj.from, obj.to, obj.shift)
+      end
+      
+   end
+      
+end

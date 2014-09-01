@@ -1,4 +1,4 @@
-function [data, metatdata] = imread_bf(name, param) 
+function [data, metatdata] = imread_bf(name, varargin) 
 %
 % [data, metatdata] = imread_bf(name, param) 
 %
@@ -36,6 +36,7 @@ if ~exist(name, 'file')
    error('imread_bf: file does not exists: %s', name)
 end
 
+param = parseParameter(varargin{:});
 if nargin < 2
    param.gui = true;
 end
