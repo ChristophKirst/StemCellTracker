@@ -4,11 +4,13 @@ classdef Alignment < matlab.mixin.Copyable
    %
 
    properties
-      pairs = [];       % pairs of overlapping images (array of AlignmentPair classes)
-      sizes  = {};      % image sizes as cell array
-      asize = [];       % absolute image size of aligned images
+      pairs = [];      % pairs of overlapping images (array of AlignmentPair classes)
+      nodes = [];      % ids of images used for this alignment
       
-      images = {};      % (optional) image data
+      sizes = {};      % image sizes as cell array
+      asize = [];      % absolute image size of aligned images
+
+      images = {};      % (optional) image data sources
    end
   
    methods
@@ -51,10 +53,10 @@ classdef Alignment < matlab.mixin.Copyable
          % d = dim(obj)
          %
          % descritpion:
-         %   number of alignment dimensions
+         %   number of dimensions of the alignment shifts
          %
-         
-         if ~isemtpy(obj.pairs)
+
+         if ~isempty(obj.pairs)
             d = obj.pairs(1).dim();
          else
             d = 2;
@@ -62,9 +64,29 @@ classdef Alignment < matlab.mixin.Copyable
       end
       
       function n = npairs(obj)
+         %
+         % n = npairs(obj)
+         %
          n = length(obj.pairs);
       end
       
+      function n = nnodes(obj)
+         %
+         % n = nnodes(obj)
+         %
+         n = length(obj.nodes);
+      end
+
+      function id = pairIds(obj)
+         %
+         % id = pairIds(obj)
+         %
+         % descritpion:
+         %   returns all ids used in pairs
+         
+         id = unique([[obj.pairs.from], [obj.pairs.to]]);
+      end
+            
       function obj = fromCell(obj, ca)
          %
          % obj = fromCell(obj, ca)
@@ -108,6 +130,7 @@ classdef Alignment < matlab.mixin.Copyable
          obj.pairs = p;
          obj.images = ca(:);
          obj.sizes  = cellfunc(@size, obj.images);
+         obj.nodes = 1:length(obj.images);
       end
       
       
@@ -122,7 +145,8 @@ classdef Alignment < matlab.mixin.Copyable
          %   st  struct with .from, .to and additional information such as shift, orientation, quality
          %
          
-         obj.pairs = AlignmentPair(st);   
+         obj.pairs = AlignmentPair(st);
+         obj.nodes = obj.pairIds();
       end
       
             
@@ -137,47 +161,72 @@ classdef Alignment < matlab.mixin.Copyable
          %   ap  array of AlignmentPair classes 
 
          obj.pairs = AlignmentPair(ap);  % deep copy
+         obj.nodes = obj.pairIds();
       end
       
       
-      function sub = subAlignment(obj, pids)
+      function obj = removeLowQualityPairs(obj, thq)
          %
-         % sub = subAlignment(obj, pids)
+         % obj = removeLowQualityPairs(obj, thq)
          %
          % descritpion:
-         %   creates sub Alignment from pairs with ids pids
+         %   removes pairs whose quality is less than thq
          %
          % input:
-         %   pids  ids of pairs to use in sub
-              
-         sub = Alignment(obj.pairs(pids));
+         %   thq   quality threshold 
          
-         sub.sizes = obj.sizes;
-         sub.images = obj.images;
+         q = [obj.pairs.quality];
+         obj.pairs = obj.pairs(q > thq); 
       end
       
-      
-      function obj = relabel(obj)
+      function obj = reducePairs(obj)
          %
-         % obj = relabel(obj)
+         % obj = reduce(obj)
          %
          % description: 
-         %     relables the nodes to the nodes used in pairs and reduces the images and sizes arrays accordingly
-         %     resets asize
+         %     removes all paris not connecting two nodes in obj.nodes
+         %
+
+         iids = obj.nodes;
+          
+         id  = [obj.pairs.from];
+         ids = arrayfun(@(x) any(x==iids), id);
+                  
+         id  = [obj.pairs.to];
+         ids = and(ids, arrayfun(@(x) any(x==iids), id));
          
-         iids = unique([[obj.pairs.from], [obj.pairs.to]]);
+         obj.pairs = obj.pairs(ids);
+      end
+         
+
+      function obj = reduceImages(obj)
+         %
+         % obj = reduceImages(obj)
+         %
+         % description: 
+         %    relables nodes to 1:nnodes in nodes and pairs and orders/drops images accordingly
+         %
+
+         % make sure alignment is consistent
+         if ~isempty(setdiff(obj.pairIds, obj.nodes))
+            error('Alignment: there are image ids in pairs tthat do not appear in nodes: %s', var2char(setdiff(obj.pairIds, obj.nodes)));
+         end
+         
+         iids = obj.nodes;
          nids = 1:length(iids);
          
          idconv = zeros(1,max(iids));
          idconv(iids) = nids;
          
-         pi = [obj.pairs.from];
-         pi = num2cell(idconv(pi));
-         [obj.pairs.from] = pi{:};
+         if ~isempty(obj.pairs)
+            pi = [obj.pairs.from];
+            pi = num2cell(idconv(pi));
+            [obj.pairs.from] = pi{:};
          
-         pi = [obj.pairs.to];
-         pi = num2cell(idconv(pi));
-         [obj.pairs.to] = pi{:};
+            pi = [obj.pairs.to];
+            pi = num2cell(idconv(pi));
+            [obj.pairs.to] = pi{:};
+         end
          
          if ~isempty(obj.sizes)
             obj.sizes = obj.sizes(iids);  
@@ -187,10 +236,11 @@ classdef Alignment < matlab.mixin.Copyable
             obj.images = obj.images(iids);  
          end
          
+         obj.nodes = nids;
+         
          obj.asize = [];
       end
-      
-      
+
       function obj = imageSizes(obj)
          %
          % obj = imageSizes(obj)
@@ -201,8 +251,7 @@ classdef Alignment < matlab.mixin.Copyable
          obj.sizes = cellfunc(@size, obj.images);
       end
       
-      
-            
+        
       function obj = alignPairs(obj, varargin)
          %
          % alignPairs(obj, varargin)
@@ -232,19 +281,19 @@ classdef Alignment < matlab.mixin.Copyable
       end
 
 
-      function comp = connectedAlignments(obj, varargin)
+      function comp = connectedComponents(obj, varargin)
          %
-         % comp = connectedAlignments(obj, varargin)
+         % comp = connectedComponents(obj, varargin)
          %
          % descritpion:
-         %   given quality factors of piars retunrs cell array of Alignemnts with connected images
+         %   given quality factors of pairs returns cell array of Alignemnts with connected images
          %
          % input:
-         %   param   paramter as in connectedAlignments
+         %   param   parameter as in connectedAlignments
          %
-         % See also: conenctedAlignments
+         % See also: connectedAlignments
          
-         comp = connectedAlignments(obj);
+         comp = connectedAlignments(obj, varargin{:});
          
       end
 
@@ -258,8 +307,10 @@ classdef Alignment < matlab.mixin.Copyable
          % See also: overlapQuality, overlapStatisticsImagePair
          
          for p = 1:obj.npairs
-            stats = overlapStatisticsImagePair(obj.pairs(p), varargin{:});
-            obj.pairs(p).quality = overlapQuality(stats, varargin{:});
+            pp = obj.pairs(p).copy();
+            pp.from = obj.images{pp.from};
+            pp.to   = obj.images{pp.to}; 
+            obj.pairs(p).quality = overlapQuality(pp, varargin{:});
          end
       end
       
@@ -284,7 +335,7 @@ classdef Alignment < matlab.mixin.Copyable
          % obj = optimizePairwiseShifts(obj)
          %
          % description:
-         %    globally optimizes pairwise shifts by LMS
+         %    globally optimizes pairwise shifts 
          %
          % See also: optimizePairwiseShifts
          
@@ -307,6 +358,35 @@ classdef Alignment < matlab.mixin.Copyable
          [obj.pairs.shift] = shifts{:};
       end
       
+      
+      function shifts = imageShifts(obj)
+         %
+         % shifts = imageShifts()
+         %
+         % description:
+         %    returns absolute shifts of each image determined from pairwise shifts
+         %
+         % input:
+         %    anchor   (optional) = 1
+         %
+
+         if obj.nnodes == 1
+            shifts = {zeros(1,obj.dim)};
+            return
+         end
+         
+         [~, ic] = optimizePairwiseShifts(obj.pairs);
+         ic = round(ic);
+   
+         % transform consistent shifts to shifts 
+         shifts = num2cell(ic',2);
+         shifts = shifts(obj.nodes);
+         
+         sh = shifts{1};
+         for i = 1:numel(shifts)
+            shifts{i} = shifts{i} - sh;
+         end
+      end
 
       function plot(obj)
          %
@@ -316,10 +396,26 @@ classdef Alignment < matlab.mixin.Copyable
          %    visualizes the alignment using plotAlignedImages
          %
          % See also: plotAlignedImages
-         
-         plotAlignedImages(obj.images, reshape({obj.pairs.shifts}, size(obj.images)));
+                  
+         plotAlignedImages(obj.images(obj.nodes), obj.imageShifts);
       end
       
    end
-      
+   
+   
+   methods(Access = protected)
+       % Override copyElement method:
+      function cpObj = copyElement(obj)
+         % Make a shallow copy of all four properties
+         cpObj = copyElement@matlab.mixin.Copyable(obj);
+         % Make a deep copy of the pairs object
+         cpObj.pairs = copy(obj.pairs);
+      end
+   end
+   
+   methods(Access = private)
+   
+   
+   end
+   
 end

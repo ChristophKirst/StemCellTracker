@@ -9,7 +9,7 @@ function [shift, quality] = align2ImagesLeftRightByCorrelation(img1, img2, varar
 % input:
 %     img1,img2    images to align
 %     param        parameter struct with entries
-%                  mean    if true subtract mean (true)
+%                  .mean    if true subtract mean (true)
 %                  as in align2ImagesLeftRightParameter
 %
 % output:

@@ -179,7 +179,18 @@ classdef AlignmentPair < matlab.mixin.Copyable
          
          [ovl1, ovl2] = overlap2AlignedImages(obj.from, obj.to, obj.shift);
       end
+      
+      function [ovl1, ovl2] = overlapOnGrid(obj, varargin)
+         %
+         % [ovl1, ovl2] = overlapOnGird(obj)
+         %
+         % description:
+         %    returns overlap region of the two images using the overlap.max parameter and orientation
+         %
+         % See also: overlap2ImagesOnGird
          
+         [ovl1, ovl2] = overlap2ImagesOnGrid(obj.toCell, varargin{:});       
+      end
 
       function plot(obj)
          %

@@ -10,6 +10,10 @@ function varargout = plotAlignedImages(imgs, shifts)
 %    imgs    images
 %    shifts  shifts
 
+
+size(imgs)
+size(shifts)
+
 if ~iscell(imgs) || ~iscell(shifts) || any(size(imgs) ~= size(shifts))
    error('plotAlignedImages: inconsistent input');
 end
@@ -39,6 +43,8 @@ switch dim
          [0.25  0,     0.25],... 
          [0.125,0.25,  0   ],...
          [0.125,0,     0.25]};
+   otherwise
+      cols = {[0, 1, 0], [1, 0, 1]};
 end
 
 si = padright(size(imgs), 3, 1);
@@ -66,7 +72,7 @@ for k = 1:si(3)
                cs = mod((k-1) * 4 + 1, 8);
             else
                if si(1) == 1
-                  cs =  mod(cs + 1, cl);
+                  cs = mod(cs + 1, cl);
                else
                   cs = mod(cs + 2, cl);
                end

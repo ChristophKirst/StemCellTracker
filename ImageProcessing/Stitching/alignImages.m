@@ -15,14 +15,13 @@ function shifts = alignImages(imgs, varargin)
 %                             'global' = perform alignment given the individual pairwise alignments ('global')
 %            .alignment       'Optimization', 'RMS', 'Correlation', 'Hugin' ('RMS')
 %           
-%            parameters for methods align2ImagesOnGridByXXX
-%            other parameter as used by the various subroutines: alignImagesOnGird
+%            parameters used by align2ImagesOnGridByXXX
 %
 % output: 
 %    shifts  absolute shifts of images assuming [lower,left(,bottom)] of image in cell array starts a [0,0(,0)] 
 %            in pixel units and pixel coordinates
 %
-% See also: alignImages, plotAlignedImages
+% See also: Alignment, align2ImagesOnGrid, plotAlignedImages
 
 
 param = parseParameter(varargin{:});
@@ -82,7 +81,7 @@ function shifts = alignByGlobal(imgs, pairs, param)
       sh(np) = struct('from', -1, 'to', -1, 'shift', zeros(1,dim));
       
       for p = 1:np
-         pairs(p).shift =  fun(imgs{pair(p).from}, imgs{pair(2)}, param);
+         pairs(p).shift =  fun(imgs{pairs(p).from}, imgs{pairs(2).to}, param);
       end
  
       % globally optimize pairwise shifts

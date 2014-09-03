@@ -6,17 +6,16 @@ classdef ImageSource < matlab.mixin.Copyable
    %     this class can be used to represent an Image independent of its actual source
    %     use getData to return the actual image data
    %
-   properties
-      
+   properties   
       info = [];
-      
-      
-      
+
       size   = [];                  % size of the image
       format = '';                  % pql format of the image
       
       colors = [];                  % colors of the channels
       tagnames = containers.Map();  % translation between names and tags, e.g. for channels 'dapi' -> ('channel' -> 1)
+      
+      data = [];                    % (optional) cached image data
    end
      
    methods (Abstract)

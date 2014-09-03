@@ -8,7 +8,7 @@ function [shift, quality] = align2ImagesByRMS(img1, img2, varargin)
 % input:
 %     img1,img2    images
 %     param        parameter struct with entries
-%                  overlap.min    minimal overlap of the images
+%                  .overlap.min    minimal overlap of the images
 %
 % output:
 %     shift        the shift between origin of img1 to origin of img2 in pixel coordinates and pixel units

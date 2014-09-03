@@ -17,6 +17,7 @@ function [pwdist, icenters] = optimizePairwiseShifts(pwdist)
 npairs = length(pwdist);
 
 if npairs <= 0
+   icenters = [];
    return
 end
 

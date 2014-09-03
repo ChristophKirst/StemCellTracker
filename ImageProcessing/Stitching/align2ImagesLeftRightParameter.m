@@ -8,9 +8,9 @@ function [dim, s1, s2, minovl, maxovl, maxshift] = align2ImagesLeftRightParamete
 % input:
 %   imgs    images to align
 %   param   parameter struct with entries:
-%              overlap.max   maximal overlap of images in primary direction ([] = max image width)
-%              overlap.min   minimal overlap if images in primary direction (1)
-%              shift.max     maximal shift away form border in secondary dimensions ([10, 10]) 
+%              .overlap.max   maximal overlap of images in primary direction ([] = max image width)
+%              .overlap.min   minimal overlap if images in primary direction (1)
+%              .shift.max     maximal shift away form border in secondary dimensions ([10, 10]) 
 % output:
 %   various parsed and checked parameter
 %

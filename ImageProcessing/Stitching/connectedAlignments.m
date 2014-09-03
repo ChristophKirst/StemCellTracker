@@ -10,18 +10,20 @@ function comp = connectedAlignments(a, varargin)
 %    a         Alignment class
 %    param     parameter struct with entries
 %              .threshold.quality     quality threshold (-Inf)
+%              .reduce                reduce images in each sub-alignment and relabel (true)
 %
 % output:
-%    comp      conencted components as cell araay of Alignment classes
+%    comp      connected components as cell array of Alignment classes
 %
 % See also: Alignment
 
-if ~isa(alignm, 'Alignment')
+if ~isa(a, 'Alignment')
    error('connectedAlignments: expects Alignment class as input');
 end
 
 param = parseParameter(varargin{:});
 thq = getParameter(param, 'threshold.quality', -Inf);
+red = getParameter(param, 'reduce', -Inf);
 
 if thq == -Inf
    comp = {a};
@@ -31,23 +33,32 @@ end
 % construct adjacency matrix and find connected components
 
 e = [];
-for p = 1:alignm.npairs
+pairs = a.pairs;
 
-   if a.pairs(p).quality > thq
-      e = [e; [a.pairs(p).from, a.pairs(p).to]];
+for p = 1:a.npairs
+   if pairs(p).quality > thq
+      e = [e; [pairs(p).from, pairs(p).to]]; %#ok<AGROW>
    end
 end
 
-adj = edges2AdjacencyMatrix(e);
+adj = edges2AdjacencyMatrix(e, a.nnodes);
 c = adjacencyMatrix2ConnectedComponents(adj);
 
+% construct Alignment classes
 
-% construc Alignment classes
+nodes = a.nodes;
 
-comp = cell(1, length(c));
+for i = length(c):-1:1
+   as = a.copy();
+   as.nodes = nodes(c{i});
+   as.reducePairs();
+   as.removeLowQualityPairs(thq);
+   
+   if red
+      as.reduceImages();
+   end
 
-
-
-
+   comp(i) = as;
+end
 
 end

@@ -9,9 +9,7 @@ function [shift, quality] = align2ImagesLeftRightByRMS(img1, img2, varargin)
 % input:
 %     img1,img2    images to align
 %     param        parameter struct with entries 
-%                  as in align2ImagesLeftRightParameter
-%                  as 
-%                  
+%                  as in align2ImagesLeftRightParameter                  
 %
 % output:
 %     shift        the shift between origin of img1 to origin of img2 in pixel coordinates and pixel units

@@ -8,8 +8,8 @@ function [shift, quality] = align2ImagesByCorrelation(img1, img2, varargin)
 % input:
 %     img1,img2    images
 %     param        parameter struct with entries
-%                  overlap.min      minimal overlap of the images (1)
-%                  mean             subtract mean before calculating covariance (true)
+%                  .overlap.min      minimal overlap of the images (1)
+%                  .mean             subtract mean before calculating covariance (true)
 %
 % output:
 %     shift        the shift between origin of img1 to origin of img2 in pixel coordinates and pixel units
