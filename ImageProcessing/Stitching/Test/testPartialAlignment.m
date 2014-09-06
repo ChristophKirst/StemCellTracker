@@ -97,16 +97,12 @@ c = connectedAlignments(a, 'threshold.quality', 0.5, 'reduce', false)
 
 %%
 clc
-[c{1}.pairs.from]
-[c{1}.pairs.to]
 
-[c{2}.pairs.from]
-[c{2}.pairs.to]
-
-c{1}.nodes
-c{2}.nodes
-
-
+for i = 1:length(c)
+   [c(i).pairs.from]
+   [c(i).pairs.to]
+   c(1).nodes
+end
 
 
 
@@ -170,30 +166,30 @@ a.overlapQuality('threshold.max', 0.15, 'overlap.max', 80);
 clc
 sub = a.connectedComponents('threshold.quality', -eps, 'reduce', true);
 for i = 1:length(sub)
-   sub{i}
+   sub(i)
 end
 
 %% Align components
 
 tic
-sub{1}.alignPairs('overlap.max', 100, 'overlap.min', 80, 'shift.max', 20)
-sub{1}.optimizePairwiseShifts();
+sub(1).alignPairs('overlap.max', 100, 'overlap.min', 80, 'shift.max', 20)
+sub(1).optimizePairwiseShifts();
 toc
 
 figure(1); clf
-sub{1}.plot
+sub(1).plot
 
 %%
 
-sub{2}.alignPairs('overlap.max', 100, 'overlap.min', 80, 'shift.max', 20)
+sub(2).alignPairs('overlap.max', 100, 'overlap.min', 80, 'shift.max', 20)
 
 figure(2); clf
-sub{2}.plot
+sub(2).plot
 
 %%
 
 figure(3); clf
-implot(sub{2}.images{1})
+implot(sub(2).images{1})
 
 
 

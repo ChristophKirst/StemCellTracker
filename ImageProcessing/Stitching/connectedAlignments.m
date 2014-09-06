@@ -13,7 +13,7 @@ function comp = connectedAlignments(a, varargin)
 %              .reduce                reduce images in each sub-alignment and relabel (true)
 %
 % output:
-%    comp      connected components as cell array of Alignment classes
+%    comp      connected components as array of Alignment classes
 %
 % See also: Alignment
 
@@ -26,7 +26,7 @@ thq = getParameter(param, 'threshold.quality', -Inf);
 red = getParameter(param, 'reduce', true);
 
 if thq == -Inf
-   comp = {a};
+   comp = a;
    return
 end
 
@@ -58,7 +58,7 @@ for i = length(c):-1:1
       as.reduceImages();
    end
 
-   comp{i} = as;
+   comp(i) = as;
 end
 
 end
