@@ -23,7 +23,7 @@ end
 
 param = parseParameter(varargin{:});
 thq = getParameter(param, 'threshold.quality', -Inf);
-red = getParameter(param, 'reduce', -Inf);
+red = getParameter(param, 'reduce', true);
 
 if thq == -Inf
    comp = {a};
@@ -49,7 +49,7 @@ c = adjacencyMatrix2ConnectedComponents(adj);
 nodes = a.nodes;
 
 for i = length(c):-1:1
-   as = a.copy();
+   as = Alignment(a);
    as.nodes = nodes(c{i});
    as.reducePairs();
    as.removeLowQualityPairs(thq);
@@ -58,7 +58,7 @@ for i = length(c):-1:1
       as.reduceImages();
    end
 
-   comp(i) = as;
+   comp{i} = as;
 end
 
 end

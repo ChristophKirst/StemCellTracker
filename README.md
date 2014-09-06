@@ -12,10 +12,13 @@ ckirst@rockefeller.edu
 Usage
 -----
 
+just do it !
 
 Example
 -------
 
 
+
 Algorithm
 ---------
+

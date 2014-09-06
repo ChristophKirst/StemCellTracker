@@ -1,10 +1,10 @@
 classdef ImageSourceFile < ImageSource
    %
-   % ImageSourceFile class represents image stored a single file
+   % ImageSourceFile class represents image stored in a single file obtained by imread_bf(ifilename)
    % 
 
    properties 
-      filename = '';
+      ifilename    = '';                % the file name of the image  
    end
 
    methods
@@ -21,7 +21,7 @@ classdef ImageSourceFile < ImageSource
             if isa(varargin{1}, 'ImageSourceFile') %% copy constructor
                obj = copy(varargin{1});
             elseif ischar(varargin{1})
-               obj.filename = varargin{1};
+               obj.ifilename = varargin{1};
             else
                error('%s: invalid constructor input, expects char at position %g',class(obj), 1);
             end
@@ -33,83 +33,96 @@ classdef ImageSourceFile < ImageSource
                if isprop(obj, lower(varargin{i}))
                   obj.(lower(varargin{i})) = varargin{i+1};
                else
-                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
+                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
                end
             end
          end
          
-         if isempty(obj.filename)
+         if isempty(obj.ifilename)
             error('ImageSourceFile: filename needs to be specified');
          end
          
-         if ~isfile(obj.filename)
-            error('ImageSourceFile: filename does not point to a file');
+         if ~isfile(obj.ifilename)
+            error('ImageSourceFile: filename %s does not point to a file', obj.ifilename);
          end
-         
-         obj.initialize()
-         
+
       end
       
       
-      function img = getRawData(obj, varargin)
-         img = imread(obj.filename);
-      end
-      
-      function info = readInfo(obj, varargin)
-         info = imfinfo(obj.filename);
-      end
-      
-      function info = getInfo(obj, varargin)
-         basic = getInfo@ImageSource(obj);
-         info = obj.readInfo();
-         for f = fieldnames(basic)
-            info.(f) = basic.(f);
-         end
-      end
 
       
-      function siz = getSize(obj, varargin)
-         info = obj.readInfo();
-         
-         z = length(info);
-         w = info(1).Width;
-         h = info(1).Height;
-         
-         if nargin < 2
-            c = info(1).ColorType;
-            switch c
-               case 'grayscale'
-                  c = 1;
-               case 'truecolor'
-                  c = 3;
-               otherwise
-                  warning('ImageSourceFile: cannot infer channel number, assuming single channel, specify channel size directly');
-                  c = 1;
-            end
-         else
-            c = varargin{1};
-         end
-         
-         if c == 1
-            if z == 1
-               siz = [w, h];
-            else
-               siz = [w,h,z];
-            end
-         else
-            if z == 1
-               siz = [w,h,c];
-            else
-               siz = [w,h,z,c];
-            end
-         end
-         
+      function info = getInfo(obj, varargin)
+         info = imread_bf_info(obj.filename);
       end
       
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % access methods methods 
+      % to obtain non-cached cached/preset info
+      %
+      % usually overwritten by sepcific class
+      function img = getData(obj, varargin)
+         img = imread_bf(obj.filename);
+      end
       
+      function obj = setData(obj, varargin)  %#ok<INUSD> % set the image data
+         error('ImageSourceFile: writing of data not implemented!');
+      end
+
+      function s = getSize(obj, varargin)
+         
+         s = ;
+      end
+     
+      function obj = setSize(obj, varargin)
+         if nargin > 1
+           obj.iinfo.isize = varargin{1};
+         end
+      end
+     
+     
+      function f = getFormat(obj, varargin)
+         f = imsize2format(obj.size);
+      end
+     
+      function obj = setFormat(obj, varargin)
+         if nargin > 1
+           obj.iinfo.iformat = varargin{1};
+         end
+      end
+     
+     
+      function c = getColor(varargin)
+         c = 'gray';
+      end
+     
+      function obj = setColor(obj, varargin)
+         if nargin > 1
+           obj.iinfo.icolor = varargin{1};
+         end
+      end
+     
+     
+      function c = getClass(obj, varargin)
+         c = class(obj.data);
+      end
+     
+      function obj = setClass(obj, varargin)
+         if nargin > 1
+           obj.iinfo.iclass = varargin{1};
+         end
+      end
+     
+     
+      function i = getInfo(obj, varargin)
+         i = imread_bf_info(obj.ifilename, varargin{:});
+      end
+       
+      
+     
+      % infoString
       function info = infoString(obj)
          info = infoString@ImageSource(obj);
-         info = [info, '\nfilename: ', obj.filename];
+         info = [info, '\nfilename: ', obj.ifilename];
       end
 
    end

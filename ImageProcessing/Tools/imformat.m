@@ -26,7 +26,12 @@ function format = imformat(data)
 % note:
 %     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'
 
-format = imsize2format(size(data));
+
+if isnumeric(data)
+   format = imsize2format(size(data));
+else
+   format = iminfo2format(data);
+end
 
 end
       

@@ -21,6 +21,10 @@ if n <= l
    return
 end
 
-res = padarray(res, [0, n - l], val, 'post');
+if iscell(res)
+   res = padcell(res, n, val);
+else
+   res = padarray(res, [0, n - l], val, 'post');
+end
 
 end

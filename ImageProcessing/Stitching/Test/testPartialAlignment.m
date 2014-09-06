@@ -75,7 +75,7 @@ close all
 clc
 initialize
 
-%%
+%% create artifical disconnected alignment
 
 a = Alignment({1,2; 3,4; 5,6}')
 
@@ -83,16 +83,19 @@ a = Alignment({1,2; 3,4; 5,6}')
 [a.pairs.to]
 [a.pairs.orientation]
 
-
+% disconnetct to sets visa 'black' overlaps
 a.pairs(3).quality = 0;
 a.pairs(4).quality = 0;
 a.pairs(6).quality = 0;
 
 
+a.nodes
+
 %%
 
-c = connectedAlignments(a, 'threshold.quality', 0.5, 'relabel', true)
+c = connectedAlignments(a, 'threshold.quality', 0.5, 'reduce', false)
 
+%%
 clc
 [c{1}.pairs.from]
 [c{1}.pairs.to]
@@ -100,8 +103,8 @@ clc
 [c{2}.pairs.from]
 [c{2}.pairs.to]
 
-c{1}.ids
-c{2}.ids
+c{1}.nodes
+c{2}.nodes
 
 
 
@@ -213,7 +216,7 @@ clear imgs
 imax = -Inf;
 imin = Inf;
 ivar = 0;
-nt = 8;
+nt = 4;
 for i = 1:nt
    for j = 1:nt
       p = (j-1)*27 + i;
@@ -242,7 +245,7 @@ img = imgs{2};
 subplot(1,2,1)
 hist(img(:), 256)
 
-img = imgs{5};
+img = imgs{8};
 {max(img(:)), min(img(:))}
 subplot(1,2,2)
 hist(img(:), 256)

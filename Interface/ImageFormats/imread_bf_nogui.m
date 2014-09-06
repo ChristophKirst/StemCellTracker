@@ -1,21 +1,20 @@
-function [data, metatdata] = imread_bf(name, varargin) 
+function [data, metatdata] = imread_bf_nogui(name, varargin) 
 %
-% [data, metatdata] = imread_bf(name, param) 
+% [data, metatdata] = imread_bf_nogui(name, param) 
 %
 % description:
-%    import bio-format file by opening the loci importer gui
+%    import bio-format file using the loci tools
 %
 % input:
-%    name   (optional)   filename
-%    param  (optional)   struct with optional entries (if not present gui is opened, [] imports everything)
-%           .series      ids of series to import (if array data is cell array) ([] = all)
-%           .time /.t    ids of time frames to import [tid1, tid2, ...] ([] = all)
-%           .channel /.c ids of channels to import [cid1, cid2, ...] ([] = all)
-%           .z /.l       pixel ids in z / l direction ([] = all)
-%           .x /.p       pixel ids in x / p direction ([] = all)
-%           .y /.q       pixel ids in y / q direction ([] = all)
-%           .metadata    read meta data (true)
-%           .gui         open gui to select series (full image series is improted)
+%    name   filename
+%    param  (optional) parameter struct with entries
+%           .series    ids of series to import (if array data is cell array) ([])
+%           .time      ids of time frames to import as array [tid1, tid2, ...] ([] = all)
+%           .channel   ids of channels to import as array [cid1, cid2, ...] ([] = all)
+%           .z /.l     pixel ids in z / l direction ([])
+%           .x /.p     pixel ids in x / p direction ([])
+%           .y /.q     pixel ids in y / q direction ([])
+%           .metadata  return also meta data if true (true)
 %
 % output:
 %    data     image data
@@ -27,78 +26,16 @@ function [data, metatdata] = imread_bf(name, varargin)
 % See also: bfinitialize, imread, ijimage2mat
 
 
-% Prompt for a file if no input
-if nargin == 0
-  [file, path] = uigetfile(bffileextensions, 'Choose a file to open');
-  name = [path file];
-end
+% Prompt for a file if not input
 if ~exist(name, 'file')
    error('imread_bf: file does not exists: %s', name)
 end
 
 param = parseParameter(varargin{:});
-if nargin < 2
-   param.gui = true;
-end
 
-gui = getParameter(param, 'gui', false);
-
-if gui
-   data = importlocigui(name);
-else
-   [data, metatdata] = importlociseries(name, param);
-end
+[data, metatdata] = importlociseries(name, param);
 
 end
-
-
-
-% open file using java gui interface   
-function data = importlocigui(name)
-
-%get a loci importer
-lociimp = loci.plugins.LociImporter();
-imp = loci.plugins.in.Importer(lociimp);
-
-options = imp.parseOptions(name);
-if (lociimp.canceled) 
-   return
-end
-   
-process = loci.plugins.in.ImportProcess(options);
-imp.showDialogs(process);
-
-if (lociimp.canceled)
-   return
-end
-
-displayHandler = loci.plugins.in.DisplayHandler(process);
-displayHandler.displayOriginalMetadata();
-displayHandler.displayOMEXML();
-
-reader = loci.plugins.in.ImagePlusReader(process);
-imps = imp.readPixels(reader, options, displayHandler);
-
-%displayHandler.displayImages(imps);
-%displayHandler.displayROIs(imps);
-
-imp.finish(process);
-
-% convert image to data
-if length(imps) ==1 
-   data  = ijimage2mat(imps(1));
-else
-   for i = length(imps):-1:1
-      data{i} = ijimage2mat(imps(1));
-   end
-end
-
-end
-
-
-
-
-
 
 
 function [data, metadata] = importlociseries(name, param)
