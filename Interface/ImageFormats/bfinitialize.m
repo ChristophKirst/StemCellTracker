@@ -34,7 +34,7 @@ if ~status && nargin > 0
    end
 end
 
-%  automatic detection: check imagej's jars path
+% still not found: check imagej's jars path
 if ~status
     bfpath = ijpath;
     
@@ -52,14 +52,18 @@ if ~status
     end
 end
 
-%still not found, search in bfinitialize's folder
+% search in bfinitialize's folder
 if ~status
-   loci = findloci(fileparts(mfilename('fullpath')));
+   bfpath = fileparts(mfilename('fullpath'));
+   
+   loci = findloci(bfpath);
    if ~isempty(loci)
       javaaddjar(loci);
+      javaaddpath(bfpath); % for log4j.properties
       status = true;
    end
 end
+
 
 
 
@@ -74,8 +78,12 @@ else
       error('bfinitialize: found loci_tools.jar error while running it!')
    end
 
-end
+   % logger
+   %org.apache.log4j.BasicConfigurator.configure();
+   bfpath = fileparts(mfilename('fullpath'));
+   org.apache.log4j.PropertyConfigurator.configure([bfpath, filesep, 'log4j.properties']);
 
+end
 
 end
 

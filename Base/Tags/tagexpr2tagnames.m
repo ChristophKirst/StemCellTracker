@@ -1,23 +1,25 @@
-function [tnames, tagsplit, taginfo] = tagformat2tagnames(tfrmt)
+function [tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
 %
-% [tnames, tagsplit, taginfo] = tagformat2tagnames(tfrmt)
+% [tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
 %
 % description:
-%      return tag information for the tagformat
+%      return tag information for the tag expression texpr
 %
 % input:
-%    tfrmt     tagformat string, e.e. <name,#chars,type>
+%    texpr     tagexpr string, e.e. <name,#chars,type>
 %
 % output:
 %    tnames    tag names
 %    tsplit    text strings between tags
 %    taginfo   info on tags (type, length etc)
+%
+% See also: tagexpr
 
-tnames = regexp(tfrmt, '<(?<name>.*?)>', 'names');
+tnames = regexp(texpr, '<(?<name>.*?)>', 'names');
 tnames = {tnames.name};
 
-[tids, tide] =  regexp(tfrmt, '<(?<name>.*?)>');
-[torig, tagsplit] = regexp(tfrmt, '<(?<name>.*?)>', 'match', 'split');
+%[tids, tide] =  regexp(texpr, '<(?<name>.*?)>');
+[torig, tagsplit] = regexp(texpr, '<(?<name>.*?)>', 'match', 'split');
 
 
 nnames = length(tnames);
@@ -31,9 +33,13 @@ for i = 1:nnames
       nms{2} = '0';
    end
    
-   if length(nms) == 2 && any(ismember({'s', 'd'}, nms{2}))
-      nms{3} = nms{2};
-      nms{2} = '0';
+   if any(ismember({'s', 'd'}, nms{2}))
+      if length(nms) > 2
+         nms([3,2]) = nms(2:3);
+      else
+         nms{3} = nms{2};
+         nms{2} = '0';
+      end
    end
    twidth{i} = nms{2};
    
@@ -48,13 +54,13 @@ end
 % check syntax
 for i = 1:nnames
    if ~any(ismember({'s', 'd'}, ttype{i}))
-      warning('tagformat2tagnames: syntax error: type %s is neither d(igit) nor s(tring)', ttype{i})
+      warning('tagexpr2tagnames: syntax error: type %s is neither d(igit) nor s(tring)', ttype{i})
       ttype{i} = 'd';
    end
    
    tw = str2double(twidth{i});
    if isnan(tw)
-      warning('tagformat2tagnames: syntax error: tag width %s not a integer number', twidth{i})
+      warning('tagexpr2tagnames: syntax error: tag width %s not a integer number', twidth{i})
       twidth{i} = 0;
    else
       twidth{i} = tw;
@@ -78,8 +84,8 @@ for i = 1:nnames
       
       if nargout > 2
          taginfo(j).name = tnamesall{i};
-         taginfo(j).istart = tids(k);
-         taginfo(j).iend = tide(k);
+         %taginfo(j).istart = tids(k);
+         %taginfo(j).iend = tide(k);
          taginfo(j).tag = torig(k);
          taginfo(j).pos = k;
          taginfo(j).width = [twidth{k}];
@@ -88,7 +94,16 @@ for i = 1:nnames
          taginfo(j).type = ttype{k(1)};
          
          if any(~strcmp(ttype(k), ttype(k(1))))
-            error('tagforamt2tagnames: inconsistent types for tagname %s with multiple tag appearances',  tnamesall{i})
+            error('tagexpr2tagnames: inconsistent types for tagname %s with multiple appearances',  tnamesall{i})
+         end
+         
+         % for strings the length must be the same
+         
+         if ttype{k(1)} == 's' 
+            tw = [twidth{k}];
+            if any(tw ~= tw(1))
+               error('tagexpr2tagnames: string tag with tagname %s has multiple appearances with different lengths!',  tnamesall{i});
+            end
          end
          
       end

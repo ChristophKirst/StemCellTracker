@@ -1,4 +1,4 @@
-function implot2d(img, varargin)
+function img = implot2d(img, varargin)
 %
 % implot2d(img, varargin)
 %

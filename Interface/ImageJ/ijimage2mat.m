@@ -18,7 +18,7 @@ if ~isa(ijplus, 'ij.ImagePlus')
    error('ijimage2mat: expect ij.ImagePlus class as input image, got: %s!', class(ijplus));
 end
    
-siz = ijplus.getDimensions()'
+siz = ijplus.getDimensions()';
 data = zeros(siz);
 
 imgs = ijplus.getImageStack.getImageArray;
@@ -28,7 +28,7 @@ for i = 1:prod(siz(3:end))
 end
 
 %imagej usually stores data as
-%p,q,c,l,t
-data = impqlpermute(data, 'pqclt', 'pqlct');
+%y,x,c,l,t
+data = impqlpermute(data, 'qpclt', 'pqlct');
 
 end

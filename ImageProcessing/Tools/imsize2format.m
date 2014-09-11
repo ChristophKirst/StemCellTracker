@@ -21,7 +21,7 @@ function format = imsize2format(isize)
 %     'pqlct' = p x q x l x c x t matrix (4D multi channel image, time last)
 %     'pqlct' = p x q x l x t x c matrix (4D multi channel image, channel last)
 %     ''  = not supported format
-%     p = x pixel coordinate, q = z pixel coordinate, l = z pixel coordinate, c = color, t = time
+%     p = x pixel coordinate, q = y pixel coordinate, l = z pixel coordinate, c = color, t = time
 %
 % note:
 %     'pql' = 'pqt', 'pqcl' = 'pqct', 'pqlc' = 'pqtc'

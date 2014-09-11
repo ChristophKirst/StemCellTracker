@@ -115,13 +115,13 @@ end
 function clim = cscale(imgs)
    
    img = imgs{1};
-   cmax = max(img(:));
-   cmin = min(img(:));
+   cmax = double(max(img(:)));
+   cmin = double(min(img(:)));
 
    for i = 2:numel(imgs)
       img = imgs{i};
-      cmax = max(cmax, max(img(:)));
-      cmin = min(cmin, min(img(:)));
+      cmax = max(cmax, double(max(img(:))));
+      cmin = min(cmin, double(min(img(:))));
    end
    
    clim = [cmin, cmax];

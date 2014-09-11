@@ -4,7 +4,9 @@ classdef ImageSourceFile < ImageSource
    % 
 
    properties 
-      ifilename    = '';                % the file name of the image  
+      ifilename    = '';                % the file name of the image
+      ireader      = @imread_bf;        % the reading routine used to 
+      iinforeader  = @imread_bf_info    % the reading routine to obtain the info of the image
    end
 
    methods
@@ -49,80 +51,33 @@ classdef ImageSourceFile < ImageSource
       end
       
       
-
-      
-      function info = getInfo(obj, varargin)
-         info = imread_bf_info(obj.filename);
-      end
-      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % access methods methods 
       % to obtain non-cached cached/preset info
-      %
-      % usually overwritten by sepcific class
+
       function img = getData(obj, varargin)
-         img = imread_bf(obj.filename);
+         img = obj.ireader(obj.ifilename);
       end
       
-      function obj = setData(obj, varargin)  %#ok<INUSD> % set the image data
-         error('ImageSourceFile: writing of data not implemented!');
+      function obj = setData(obj, varargin) % set the image data
+         warning('ImageSourceFile: writing image data not suported, changes not propagated to disk!');
+         obj.idata  = varargin{1}; 
+         obj.chache = true;
+         i = imdata2info(obj.idata);
+         obj.setInfo(i);
       end
 
-      function s = getSize(obj, varargin)
-         
-         s = ;
-      end
-     
-      function obj = setSize(obj, varargin)
-         if nargin > 1
-           obj.iinfo.isize = varargin{1};
-         end
-      end
-     
-     
-      function f = getFormat(obj, varargin)
-         f = imsize2format(obj.size);
-      end
-     
-      function obj = setFormat(obj, varargin)
-         if nargin > 1
-           obj.iinfo.iformat = varargin{1};
-         end
-      end
-     
-     
-      function c = getColor(varargin)
-         c = 'gray';
-      end
-     
-      function obj = setColor(obj, varargin)
-         if nargin > 1
-           obj.iinfo.icolor = varargin{1};
-         end
-      end
-     
-     
-      function c = getClass(obj, varargin)
-         c = class(obj.data);
-      end
-     
-      function obj = setClass(obj, varargin)
-         if nargin > 1
-           obj.iinfo.iclass = varargin{1};
-         end
-      end
-     
-     
       function i = getInfo(obj, varargin)
-         i = imread_bf_info(obj.ifilename, varargin{:});
+         i = obj.iinforeader(obj.ifilename, varargin{:});
       end
-       
-      
-     
+
+
       % infoString
-      function info = infoString(obj)
-         info = infoString@ImageSource(obj);
-         info = [info, '\nfilename: ', obj.ifilename];
+      function istr = infoString(obj)
+         istr = infoString@ImageSource(obj, 'File');
+         istr = [istr, '\nfilename:   ', obj.ifilename];
+         istr = [istr, '\nreader:     ', func2str(obj.ireader)];
+         istr = [istr, '\ninforeader: ', func2str(obj.iinforeader)]; 
       end
 
    end

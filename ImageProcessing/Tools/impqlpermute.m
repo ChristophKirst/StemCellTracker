@@ -1,4 +1,4 @@
-function pimg = impqlpermute(img, in_format, out_format)
+function img = impqlpermute(img, in_format, out_format)
 %
 % img = impqlpermute(img, in_format, out_format)
 %
@@ -11,10 +11,10 @@ function pimg = impqlpermute(img, in_format, out_format)
 %     out_format (optional) format of output image, special names: 'matlab' = 'qpclt', 'imgj' = pqclt', ('matlab' = 'qpclt')
 %
 % output:
-%     pimg       reshaped image
+%     img       reshaped image
 %
 % note:
-%     'x' = 'p', 'y' = reverse 'q', 'z' = 'l'
+%     'x' = 'p', 'y' = reverse 'q', 'z' = reverse 'l'
 %
 % See also: imformat
 
@@ -56,16 +56,29 @@ out_format = strrep(out_format, 'x', 'p');
 out_format = strrep(out_format, 'z', 'l');
 
 %reverse in y if requested
-ypos = strfind(in_format, 'y');
-if ~isempty(ypos)
-   pimg = flip(img, ypos);
-   in_format(ypos) = 'q';
-else
-   pimg = img;
+yposin = strfind(in_format, 'y');
+if ~isempty(yposin)
+   img = flip(img, yposin);
+   in_format(yposin) = 'q';
+%else
+%   pimg = img;
 end
 ypos = strfind(out_format, 'y');
 if ~isempty(ypos)
    out_format(ypos) = 'q';
+end
+
+
+zposin = strfind(in_format, 'z');
+if ~isempty(zposin)
+   img = flip(img, zposin);
+   in_format(yposin) = 'l';
+%else
+%   pimg = pimg;
+end
+zpos = strfind(out_format, 'z');
+if ~isempty(zpos)
+   out_format(zpos) = 'l';
 end
 %in_format
 %out_format
@@ -90,7 +103,7 @@ end
 for i = 1:length(in_format)
    sf = strfind(out_format, in_format(i));
    if isempty(sf) % removing of dimensions only if it is of size 1 (squeeze)
-      if size(pimg,i) == 1
+      if size(img,i) == 1
          out_format = [out_format, in_format(i)]; %#ok<AGROW> %% appending it effectively removes dimensions of size 1
       else
          error('impqlpermute: dimension %s not specified in output format %of but is non-trivial', in_format(i), out_format);
@@ -109,13 +122,20 @@ end
 %per
 
 % premute and reshape the img coordinates
-pimg = permute(pimg, per);
+img = permute(img, per);
 
 %reverse in y if requested
 if ~isempty(ypos)
    ypos = strfind(out_format, 'q');
-   pimg = flip(pimg, ypos);
+   img = flip(img, ypos);
 end
+
+%reverse in y if requested
+if ~isempty(zpos)
+   zpos = strfind(out_format, 'q');
+   img = flip(img, zpos);
+end
+
 
 end
    

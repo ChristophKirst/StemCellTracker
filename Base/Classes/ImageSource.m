@@ -6,7 +6,7 @@ classdef ImageSource < matlab.mixin.Copyable
    %     this class can be used to represent an Image independent of its actual source
    %     use obj.data to return the actual image data
    %
-   % required functions: size, format, class, color, tagmap
+   % required functions: size, format, class, color, label
    %
    
    % Note: for translation to python, the cache structure should be via a global imge cache class
@@ -15,7 +15,7 @@ classdef ImageSource < matlab.mixin.Copyable
    properties   
       iinfo  = [];          % info about image with properties/fields: .isize, .iformat, .icolors, .iclass, .icoords
       
-      icache = false;       % (optional) weather to cache the data or not
+      icache = true;        % (optional) weather to cache the data or not
       idata  = [];          % (optional) cached image data
    end
         
@@ -46,7 +46,7 @@ classdef ImageSource < matlab.mixin.Copyable
                end
             end
    
-            % obj.initialize();           
+            %obj.initialize();           
          end
       end
       
@@ -54,10 +54,16 @@ classdef ImageSource < matlab.mixin.Copyable
          obj.iinfo = obj.getInfo();
       end
       
+      function initializeInfo(obj)
+         if isempty(obj.iinfo)
+            obj.iinfo = obj.getInfo();
+         end
+      end
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % base methods
       %
-      % usually not overwriten by super class
+
       function d = data(obj, varargin)
          if obj.icache % basic caching
             if ~isempty(obj.idata)
@@ -70,14 +76,18 @@ classdef ImageSource < matlab.mixin.Copyable
             d = obj.getData(varargin{:});
          end
       end
+      
+      function c = celldata(obj, varargin)
+         c = {obj.data};  % trivial here
+      end
+      
+      function cs = cellsize(obj, varargin)
+         cs = obj.iinfo.icellsize;
+      end
          
-      function s = size(obj, varargin)
-         if isempty(obj.iinfo.isize)
-            s = obj.getSize(varargin{:});
-            obj.iinfo.isize = s;
-         else 
-            s = obj.iinfo.isize;
-         end
+      function s = size(obj)
+         %obj.initializeInfo;
+         s = obj.iinfo.isize;
       end
       
       function d = ndims(obj)
@@ -88,190 +98,199 @@ classdef ImageSource < matlab.mixin.Copyable
          d = imsdims(obj.format);
       end
   
-      function f = format(obj, varargin)
-         if isempty(obj.iinfo.iformat)
-            f = obj.getFormat(varargin{:});
-            obj.iinfo.iformat = f;
-         else 
-            f = obj.iinfo.iformat;
-         end
+      function f = format(obj)
+         %obj.initializeInfo;
+         f = obj.iinfo.iformat;
       end
    
       function c = class(obj)
-         if isempty(obj.iinfo)
-            obj.iinfo = obj.getInfo();
-         end
+         %obj.initializeInfo;
          c = obj.iinfo.iclass;
       end
        
       function c = color(obj)
-         if isempty(obj.iinfo)
-            obj.iinfo = obj.getInfo();
-         end
+         %obj.initializeInfo;
          c = obj.iinfo.icolor;
       end
       
       function s = scale(obj)         
-         if isempty(obj.iinfo)
-            obj.iinfo = obj.getInfo();
-         end
+         %obj.initializeInfo;
          s = obj.iinfo.iscale;
       end
 
-      function l = label(obj, varargin)
-         if isempty(obj.iinfo)
-            obj.iinfo = obj.getInfo();
-         end
-         l = obj.iinfo.ilabel;
+      function l = keys(obj)
+         %obj.initializeInfo;
+         l = obj.iinfo.ikeys;
+      end 
+      
+      function l = name(obj)
+         %obj.initializeInfo;
+         l = obj.iinfo.iname;
       end 
 
       function i = info(obj)
-         if isempty(obj.iinfo)
-            obj.iinfo = obj.getInfo();
-         end
+         %obj.initializeInfo;
          i = obj.iinfo;
       end
       
       
-      % following base methods do not test for caching out of lazyness!
+
       function p = sizeP(obj)
+         %obj.initializeInfo;
          p = obj.iinfo.sizeP;
       end
       function q = sizeQ(obj)
+         %obj.initializeInfo;
          q = obj.iinfo.sizeQ;
       end
       function l = sizeL(obj)
+         %obj.initializeInfo;
          l = obj.iinfo.sizeL;
       end
       function c = sizeC(obj)
+         %obj.initializeInfo;
          c = obj.iinfo.sizeC;
       end
       function t = sizeT(obj)
+         %obj.initializeInfo;
          t = obj.iinfo.sizeT;
       end
+
       
-      
+      % cell sizes for certain super classes
+%       function u = sizeU(~)
+%          u = 0;
+%       end   
+%       function v = sizeV(~)
+%          v = 0;
+%       end   
+%       function w = sizeW(~)
+%          w = 0;
+%       end
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % access methods methods 
-      % to obtain non-cached cached/preset info
+      % access methods 
+      % to obtain non-cached/preset info
       %
       % usually overwritten by sepcific super class
       
       function d = getData(obj, varargin)  % obtain the image data
-         d = obj.idata;     % trivial here ->  to be implemented depending on ImageSource subclass
+         d = obj.idata;     % trivial here ->  to be implemented depending on ImageSource superclass
       end
-      
       function obj = setData(obj, varargin)  % set the image data
-         if nargin > 1
-           obj.idata = varargin{1};
-         end
+         obj.idata = varargin{1};
       end
  
+      
       function s = getSize(obj, varargin)
-         s = size(obj.data);
+         obj.initializeInfo();
+         s = obj.iinfo.isize;
       end
-     
       function obj = setSize(obj, varargin)
-         if nargin > 1
-           obj.iinfo.isize = varargin{1};
-         end
-      end
-     
-     
-      function f = getFormat(obj, varargin)
-         f = imsize2format(obj.size);
-      end
-     
-      function obj = setFormat(obj, varargin)
-         if nargin > 1
-           obj.iinfo.iformat = varargin{1};
-         end
-      end
-     
-      function c = getColor(varargin)
-         c = {'gray'};
-      end
-     
-      function obj = setColor(obj, varargin)
-         if nargin > 1
-            if iscell(varargin{1})
-               obj.iinfo.icolor = varargin{1};
-            else
-               obj.iinfo.icolor = varargin(1);
-            end
-         end
-      end
-     
-     
-      function c = getClass(obj, varargin)
-         c = class(obj.data);
-      end
-     
-      function obj = setClass(obj, varargin)
-         if nargin > 1
-           obj.iinfo.iclass = varargin{1};
-         end
+         obj.initializeInfo();
+         obj.iinfo.isize = varargin{1};
       end
       
-      function n = getName(obj, varargin) %#ok<INUSD>
-         n = '';
+      
+      function f = getFormat(obj, varargin)
+         obj.initializeInfo();
+         f = obj.iinfo.iformat;
+      end
+      function obj = setFormat(obj, varargin)
+         obj.initializeInfo();
+         obj.iinfo.iformat = varargin{1};
       end
      
+      
+      function c = getColor(varargin)
+         obj.initializeInfo();
+         c = obj.iinfo.icolor;
+      end
+      function obj = setColor(obj, varargin)
+         obj.initializeInfo();
+         if iscell(varargin{1})
+            obj.iinfo.icolor = varargin{1};
+         else
+            obj.iinfo.icolor = varargin(1);
+         end
+      end
+     
+      
+      function c = getClass(obj, varargin)
+         obj.initializeInfo();
+         c = obj.iinfo.iclass;
+      end
+      function obj = setClass(obj, varargin)
+         obj.initializeInfo();
+         obj.iinfo.iclass = varargin{1};
+      end
+      
+      
+      function n = getName(obj, varargin)
+         obj.initializeInfo();
+         n = obj.iinfo.iname;
+      end
       function obj = setName(obj, varargin)
          obj.iinfo.iname = varargin{1};
       end
-
-      function obj = setLabel(obj, varargin)
-         obj.iinfo.ilabel = varargin{1};
-      end
+      
+      
+%       function k = getKeys(obj, varargin)
+%          obj.initializeInfo();
+%          k = obj.iinfo.ikeys;
+%       end
+%       function obj = setKeys(obj, varargin)
+%          obj.initializeInfo();
+%          obj.iinfo.ikeys = varargin{1};
+%       end
+%       
+%       function k = getKey(obj, varargin)
+%          obj.initializeInfo();
+%          k = obj.iinfo.ikeys.getKey(varargin{:});
+%       end
+%       function obj = setKey(obj, varargin)
+%          obj.initializeInfo();
+%          obj.iinfo.ikeys.setKey(varargin{:});
+%       end
      
-     
+      
       function i = getInfo(obj, varargin)
-         % get all info at once
-         d = obj.data;
-         
-         i = ImageInfo();
-         i.isize   = size(d);
-         i.iformat = imsize2format(i.isize);
-         i.iclass  = class(d);
-         i.icolor  = obj.getColor();
-         i.pqlctsizeFromFormatAndSize;
+         % get all info at once         
+         i = imdata2info(obj.data);
       end
-     
       function obj = setInfo(obj, varargin)
-         if nargin > 1
-           obj.iinfo = varargin{1};
-         end
+         obj.iinfo = varargin{1};
       end
 
-      % label extraction
-      function d = extract(obj, label)
-         if ~isempty(obj.iinfo.ilabel)
-            d = obj.iinfo.ilabel.data(label, obj.data, obj.format);
-         else
-            warning('%s: cannot find label %s, return full image data!', class(obj), label);
-            d = obj.data;
-         end
-      end
-
-      % information / visulaization 
-      function info = infoString(obj)
-         cls = class(obj);
-         info = ['ImageSource: ',  cls(12:end)];
-         info = [info, '\nsize:   ', var2char(obj.size)];
-         info = [info, '\nformat: ', var2char(obj.format)];
-         info = [info, '\nclass:  ', var2char(obj.class)];
-         info = [info, '\ncolor:  ', var2char(obj.color)];
-
-%          if ~isempty(obj.label)
-%             info = [info '\ntagmap:  '];
-%             keys = obj.ilabel.keys;
-%             vals = obj.ilabel.values;
-%             for i = 1:obj.tagmap.length
-%                info = [info, var2char(keys{i}), ' -> ' var2char(vals{i})]; %#ok<AGROW>
-%             end
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % data extraction using a key
+%       
+%       function d = extract(obj, label)
+%          if ~isempty(obj.iinfo.ilabel)
+%             d = obj.iinfo.ilabel.data(label, obj.data, obj.format);
+%          else
+%             warning('%s: cannot find label %s, returning full image data!', class(obj), label);
+%             d = obj.data;
 %          end
+%       end
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % information / visulaization 
+      function istr = infoString(obj, varargin)
+         if nargin > 1
+            cls = varargin{1};
+         else
+            cls = '';
+         end
+         istr = ['ImageSource: ',  cls];
+         if ~isempty(obj.name)
+            istr = [istr, '\nname:   ', var2char(obj.name)];
+         end
+         istr = [istr, '\nsize:   ', var2char(obj.size)];
+         istr = [istr, '\nformat: ', var2char(obj.format)];
+         istr = [istr, '\nclass:  ', var2char(obj.class)];
+         istr = [istr, '\ncolor:  ', var2char(obj.color)];
+%         istr = [istr, '\n', obj.label.infoString];
       end
 
       function print(obj)
@@ -280,24 +299,7 @@ classdef ImageSource < matlab.mixin.Copyable
       
       
       function plot(obj)
-         if obj.sizeC == 1
-            imcolormap(obj.color{1});
-            implot(obj.data);
-         elseif obj.sizeC == 3
-            if isequal(obj.color, {'r', 'g', 'b'})
-               implot(obj.data)
-            else
-               % TODO: handle special color settings here
-               implot(obj.data);
-            end
-         else
-            % TODO: handle non-standard channels here
-            implot(obj.data);
-         end
-         
-         if isentry(obj.iinfo, 'iname')
-            set(gcf, 'Name', var2char(obj.iinfo.iname));
-         end 
+         implotis(obj);
       end
 
    end

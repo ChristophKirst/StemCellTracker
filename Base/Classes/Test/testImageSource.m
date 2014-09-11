@@ -7,11 +7,21 @@ clear classes
 close all
 clc
 
-%% Basic Functionality
+initialize
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ImageSource - base class
 
 %% create base class with some data in memory
 
+clc
+
 img = ImageSource(rand(10,20))
+img.setName('test');
+img.info
+
+img.print
+
 img.info
 
 %%
@@ -31,9 +41,8 @@ figure(1);
 img.setName('test image');
 img.plot
 
-
 figure(2)
-img.setColor('red')
+img.setColor('gray')
 img.plot
 
 
@@ -42,8 +51,83 @@ img.setColor('blue')
 img.plot
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%
-%% Labeled data access
+%% ImageSourceFile
+
+
+clear all
+clear classes
+close all
+clc
+
+initialize
+bfinitialize
+
+
+%% accessing a single file
+clc
+is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
+is.initialize;
+
+is
+
+%%
+
+is.print
+
+
+%%
+
+is.icache = false;
+
+size(is.idata)
+
+img = is.data;
+
+figure(1)
+is.setColor('r');
+is.plot
+
+% no caching 
+size(is.idata)
+
+
+%%
+
+is.icache = true;
+
+size(is.idata)
+
+img = is.data;
+
+figure(1)
+is.setColor('r');
+is.plot
+
+% now dat is cached
+size(is.idata)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Data acess via Keywords: todo
 
 
 clear all
@@ -54,10 +138,10 @@ clc
 
 %%
 
-ImageFormatIndex('c', 1)
+ImageDataIndex('c', 1)
 
 %%
-d = ImageFormatIndex('c', 1, 't', 7)
+d = ImageDataIndex('c', 1, 't', 7)
 
 {d.icoordinate}
 {d.iindex}
@@ -65,26 +149,31 @@ d = ImageFormatIndex('c', 1, 't', 7)
 %%
 clc
 
-ifl = ImageFormatLabel('dapi', {'c', 2, 't', 2:4})
+idl = ImageDataLabel('dapi', {'c', 2, 't', 2:4})
 
-ifi = ifl.ilabel('dapi')
-ifi(2)
+idi = idl.ilabel('dapi')
+idi(2)
 
+idi.indices('pqct')
 
-ifi.indices('pqct')
+idi.infoString
 
 
 %%
 
 img = ImageSource(rand(10,20))
 
-ifl = ImageFormatLabel('dapi', {'p', 5})
-img.setLabel(ifl)
+idl = ImageDataLabel('dapi', {'p', 5}, 'hello', {'p', 4:6, 'q', 7:9})
 
-img.label
+img.setLabel(idl)
+
+img.label.infoString
+
+img.print
 
 %%
 img.extract('dapi') - img.idata(5,:)
 
+img.extract('hello') - img.idata(4:6, 7:9)
 
-%% 
+

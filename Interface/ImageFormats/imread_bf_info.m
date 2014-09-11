@@ -11,6 +11,15 @@ function iinfo = imread_bf_info(fname, varargin)
 %            .metadata  include meta data in iinfo (true)
 %            .table     transform metadata to a table (true)
 %            .struct    return sturct instead of ImageInfo class (false)
+%            .array     return image info for each series separately (false, i.e. assuming it is the same for all series, e.g. for a tiled image)
+%            .squeeze   return info assuming data is squezed by imread_bf (true)
+%            sub image specs as passed imread_bf to determine the returned size
+%            .series      ids for seris (if array data is cell array) ([] = all)
+%            .time /.t    ids of time frames to import [tid1, tid2, ...], {tmin, tmax} ([] = all)
+%            .channel /.c ids of channels to import [cid1, cid2, ...] {cmin, cmax} ([] = all)
+%            .z /.l       pixel ids in z / l direction {zmin, zmax} ([] = all)
+%            .x /.p       pixel ids in x / p direction {xmin, xmax} ([] = all)
+%            .y /.q       pixel ids in y / q direction {ymin, ymax} ([] = all)
 %
 % output:
 %    iinfo   struct/ImageInfo class containing the info of the image, for multiple series an array of this class is returned
@@ -19,13 +28,13 @@ function iinfo = imread_bf_info(fname, varargin)
 %    the loci_tools.jar must be present in the javaclasspath
 %    use bfinitialize to initialize the loci tools.
 %
-% See also: ImageInfo, imread_bf, bfinitialize, imread
+% See also: imread_bf, ImageInfo, bfinitialize, imread
 
 if nargin == 0
   [file, path] = uigetfile(bffileextensions, 'Choose a file to open');
   fname = [path file];
 end
-if ~exist(fname, 'file')
+if ~isfile(fname)
    error('imread_bf_info: file does not exists: %s', fname)
 end
 
@@ -45,57 +54,136 @@ r = loci.formats.ChannelSeparator(r);
 r.setMetadataStore(loci.formats.MetadataTools.createOMEXMLMetadata());
 r.setId(fname);
 
-numSeries = r.getSeriesCount();
+sq = getParameter(param, 'squeeze', true);
+ar = getParameter(param, 'array',   false);
 
-if ~getParameter(param, 'struct', false)
-   iinfo(numSeries) = ImageInfo();
+
+
+seriesid = getParameter(param, 'series', []);
+if isempty(seriesid)
+   seriesid = 1:r.getSeriesCount();
 end
+numSeries = length(seriesid);
 
-for s = numSeries:-1:1
+if ar
+   
+   if ~getParameter(param, 'struct', false)
+      iinfo(numSeries) = ImageInfo();
+   end
 
-   %%% read a single series 
-   iinfo(s).iseries = s;
+   for s = seriesid
+      %%% read a single series
+      iinfo(s).iseries = s;
+      
+      r.setSeries(s - 1);
+      iinfo(s).inimages = r.getImageCount();
+      
+      % dimensions
+      isizePQLCT = [0,0,0,0,0];
+      
+      isizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
+      isizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
+      isizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
+      isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
+      isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
 
-   r.setSeries(s - 1);
-   iinfo(s).inimages = r.getImageCount();
+      iinfo(s).isizePQLCT = isizePQLCT;
+      isize = iinfo(s).isizePQLCT;
+      iformat = 'pqlct';
+   
+      if sq
+         iinfo(s).isize = isize(isize ~= 1); % size after squeezing
+         iinfo(s).iformat = iformat(isize ~=1); % format after squeeze
+      else
+         iinfo(s).isize = isize;
+         iinfo(s).iformat = iformat;
+      end
+
+      iinfo(s).iclass = 'double'; % bf read always returns double !
+      
+      % meta data
+      if meta
+         iinfo(s).imetadata  = r.getMetadata();   %metadata as java hashtable % %m=r.getMetadataStore()
+         
+         iinfo(s) = determineScale(iinfo(s));
+         iinfo(s) = determineColor(iinfo(s));
+         
+         if tab
+            % readout of java hashtable
+            %rawNames = iinfo(s).metadata.keySet.toArray;
+            %rawValues= iinfo(s).metadata.values.toArray;
+            
+            parameterNames  = cell(iinfo(s).imetadata.keySet.toArray);
+            parameterValues = cell(iinfo(s).imetadata.values.toArray);
+            
+            % make a table out of it
+            iinfo(s).imetadata = table(parameterNames, parameterValues, 'VariableNames', {'Parameter', 'Value'});
+         end
+      else
+         iinfo(s).imetadata = [];
+      end
+      
+   end
+
+else
+
+   %%% single series 
+   iinfo.iseries = 1:numSeries;
+
+   r.setSeries(0);
+   iinfo.inimages = r.getImageCount();
 
    % dimensions
-   iinfo(s).isizePQLCT = [r.getSizeY(), r.getSizeX(), r.getSizeZ(), r.getSizeC(), r.getSizeT()];
+   % dimensions
+   isizePQLCT = [0,0,0,0,0];
    
-   isize = iinfo(s).isizePQLCT;
-   iinfo(s).isize = isize(isize ~= 1); % size after squeezing
+   isizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
+   isizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
+   isizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
+   isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
+   isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
    
+   iinfo.isizePQLCT = isizePQLCT;
+   
+   isize = iinfo.isizePQLCT;
    iformat = 'pqlct';
-   iinfo(s).iformat = iformat(isize ~=1); % format after squeeze
    
-   iinfo(s).iclass = 'double'; % bf read always returns double !
+   if sq
+      iinfo.isize = isize(isize ~= 1); % size after squeezing
+      iinfo.iformat = iformat(isize ~=1); % format after squeeze
+   else      
+      iinfo.isize = isize;
+      iinfo.iformat = iformat; 
+   end
+   
+   iinfo.iclass = 'double'; % bf read always returns double !
 
    % meta data
    if meta
-      iinfo(s).imetadata  = r.getMetadata();   %metadata as java hashtable % %m=r.getMetadataStore()
+      iinfo.imetadata  = r.getMetadata();   %metadata as java hashtable % %m=r.getMetadataStore()
     
-      iinfo(s) = determineScale(iinfo(s));
-      iinfo(s) = determineColor(iinfo(s));
+      iinfo = determineScale(iinfo);
+      iinfo = determineColor(iinfo);
       
       if tab
          % readout of java hashtable
          %rawNames = iinfo(s).metadata.keySet.toArray;
          %rawValues= iinfo(s).metadata.values.toArray;
    
-         parameterNames  = cell(iinfo(s).imetadata.keySet.toArray);
-         parameterValues = cell(iinfo(s).imetadata.values.toArray);
+         parameterNames  = cell(iinfo.imetadata.keySet.toArray);
+         parameterValues = cell(iinfo.imetadata.values.toArray);
    
          % make a table out of it
-         iinfo(s).imetadata = table(parameterNames, parameterValues, 'VariableNames', {'Parameter', 'Value'});
+         iinfo.imetadata = table(parameterNames, parameterValues, 'VariableNames', {'Parameter', 'Value'});
       end   
    else
-      iinfo(s).imetadata = [];
+      iinfo.imetadata = [];
    end
  
 end
-
 end
-            
+
+
    
         
    
@@ -110,7 +198,7 @@ function iinfo = determineScale(iinfo)
    if ~isempty(xr)
       yr = iinfo.imetadata.get('YResolution');
 
-      iinfo.iscale = [yr, xr];
+      iinfo.iscale = [xr, yr];
       %iinfo.iscaleFormat = 'pq';
       iinfo.iunit =  iinfo.imetadata.get('ResolutionUnit');
 
@@ -149,7 +237,7 @@ function iinfo = determineColor(iinfo)
          case 'RGB'
             c = {'r', 'g', 'b'};
          otherwise
-            c = repmat({'gray'}, 1, iinfo.sizeC);
+            c = imcolorlist(iinfo.isizePQLCT(4));
       end
 
       iinfo.icolor = c;
@@ -157,7 +245,8 @@ function iinfo = determineColor(iinfo)
       return
    end
 
-
+   iinfo.icolor = imcolorlist(iinfo.isizePQLCT(4));
+   
    %TODO:
    %ZVI
    %LIF
@@ -166,5 +255,35 @@ end
  
 
    
+
+function si = getSize(param, name, nameshort, isize)
+      
+   if isentry(param, name)
+      si = getParameter(param, name, []);
+   else
+      si = getParameter(param, nameshort, []);
+   end
+   
+
+   if isempty(si)
+      si = isize;
+   elseif iscell(si)
+      if length(si) ~= 2
+         error(['imread_bf_info: ', name, ' indices not a cell of {minid,maxid} but %s!'], var2char(si))
+      end
+      
+      if isempty(si{2}) || ischar(si{2}) || si{2} > isize  % char = 'end'
+         si{2} = isize;
+      end
+      if isempty(si{1}) || ischar(si{1}) || si{1} < 1
+         si{1} = 1;
+      end
+      si = si{2} - si{1};
+   end
+ 
+   if si > isize || si < 1
+      error(['imread_bf_info: ', name, ' size out of range !'])
+   end
+end
    
             

@@ -1,4 +1,4 @@
-function implot(img, varargin)
+function img = implot(img, varargin)
 %
 % implot(img, varargin)
 %
@@ -16,9 +16,9 @@ imf = imformat(img);
 
 switch imf
    case {'pq', 'pqc'}
-      implot2d(img, varargin{:});
+      img = implot2d(img, varargin{:});
    case {'pql', 'pqlc'}
-      implot3d(img, varargin{:});
+      img = implot3d(img, varargin{:});
    otherwise
       error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);
 end

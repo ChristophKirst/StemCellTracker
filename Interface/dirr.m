@@ -3,18 +3,18 @@ function names = dirr(foldername, varargin)
 % names = dirr(foldername, param)
 %
 % description:
-%     returns absolute filenames of all fildes in the folder/file specification foldername
+%     returns absolute filenames of all files in the folder/file specification foldername
 %
 % input:
 %     foldername    name of folder and files that can contain * for places holders in filenames as well as directories
 %     param         parameter structure with entries
 %                   .directories    include directory names in result (false)
 %                   .files          include files in result (true)
-%                   .recursive      propagate into sub directories after final folder is matched
+%                   .recursive      propagate into sub directories after final folder is matched (false)
 %                   .dots           include '.' and '..' in dirctories (false)
 %
 % output:
-%     fnames        all filenames that match foldername
+%     fnames        all filenames that match foldername as cellstr array
 
 
 % split into subdirectories
@@ -121,6 +121,8 @@ else
       end
    end
 end
+
+names = names'; % we wnat a row vector for readability etc
 
 end
    

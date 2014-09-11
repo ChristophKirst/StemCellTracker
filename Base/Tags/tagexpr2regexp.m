@@ -1,8 +1,17 @@
-function tfrmt = tagformat2regexp(tfrmt)
+function texpr = tagexpr2regexp(texpr)
 %
-% returns regular expression for a tag format
+% texpr = tagexpr2regexp(texpr)
+%
+% description:
+%    returns regular expression for a tag format
+%
+% input:
+%    texpr   tag expression
+%   
+% output:
+%    texpr    regular expression
 
-[tnames, tsplit, tinfo] = tagformat2tagnames(tfrmt);
+[tnames, tsplit, tinfo] = tagexpr2tagnames(texpr);
 
 % replace . with \.
 tsplit = strfun(@(x) strrep(x, '.', '\.'), tsplit);
@@ -28,9 +37,9 @@ for i = 1:length(tnames)
    end  
 end
 
-tfrmt = tsplit{1};
+texpr = tsplit{1};
 for i = 1:length(res);
-   tfrmt = [tfrmt,  res{i}, tsplit{i+1}]; %#ok<AGROW>
+   texpr = [texpr,  res{i}, tsplit{i+1}]; %#ok<AGROW>
 end
 
 end
