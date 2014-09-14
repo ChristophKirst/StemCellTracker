@@ -13,7 +13,7 @@ classdef ImageSource < matlab.mixin.Copyable
    %       that links ImageSource classes to the cached image
    %
    properties   
-      iinfo  = [];          % info about image with properties/fields: .isize, .iformat, .icolors, .iclass, .icoords
+      iinfo  = ImageInfo;   % info about image with properties/fields: .isize, .iformat, .icolors, .iclass, .icoords
       
       icache = true;        % (optional) weather to cache the data or not
       idata  = [];          % (optional) cached image data
@@ -29,7 +29,7 @@ classdef ImageSource < matlab.mixin.Copyable
             if isa(varargin{1}, 'ImageSource') %% copy constructor
                obj = copy(varargin{1});
             elseif isnumeric(varargin{1})
-               obj.idata = varargin{1};
+               obj.iimage = varargin{1};
                obj.initialize;
             else
                error('%s: not valid arguments for constructor', class(obj));
@@ -51,7 +51,7 @@ classdef ImageSource < matlab.mixin.Copyable
       end
       
       function initialize(obj, varargin)
-         obj.iinfo = obj.getInfo();
+         obj.initializeInfo();
       end
       
       function initializeInfo(obj)
@@ -64,18 +64,51 @@ classdef ImageSource < matlab.mixin.Copyable
       % base methods
       %
 
+      function s = datasize(obj)
+         %obj.initializeInfo;
+         s = obj.iinfo.idatasize;
+      end
+ 
+      function f = dataformat(obj)
+         %obj.initializeInfo;
+         f = obj.iinfo.idataformat;
+      end
+
+            
+      function s = rawsize(obj)
+         %obj.initializeInfo;
+         s = obj.iinfo.irawsize;
+      end
+      
+      function f = rawformat(obj)
+         %obj.initializeInfo;
+         f = obj.iinfo.irawformat;
+      end
+      
+      
       function d = data(obj, varargin)
          if obj.icache % basic caching
             if ~isempty(obj.idata)
                d = obj.idata;
             else
                d = obj.getData(varargin{:});
+%                df = obj.dataformat(varargin{:});
+%                rf = obj.rawformat(varargin{:});
+%                if ~isequal(rf, df)
+%                   d = impqlpermute(d, rf, df);
+%                end
                obj.idata = d;
             end
          else
             d = obj.getData(varargin{:});
+%             df = obj.dataformat(varargin{:});
+%             rf = obj.rawformat(varargin{:});
+%             if ~isequal(rf, df)
+%                d = impqlpermute(d, rf, df);
+%             end
          end
       end
+
       
       function c = celldata(obj, varargin)
          c = {obj.data};  % trivial here
@@ -84,28 +117,23 @@ classdef ImageSource < matlab.mixin.Copyable
       function cs = cellsize(obj, varargin)
          cs = obj.iinfo.icellsize;
       end
-         
-      function s = size(obj)
-         %obj.initializeInfo;
-         s = obj.iinfo.isize;
+
+      function cf = cellformat(obj, varargin)
+         cf = obj.iinfo.icellformat;
       end
       
       function d = ndims(obj)
-         d = length(obj.size);
+         d = length(obj.datasize);
       end
       
       function d = sdims(obj)
-         d = imsdims(obj.format);
+         d = imsdims(obj.dataformat);
       end
-  
-      function f = format(obj)
-         %obj.initializeInfo;
-         f = obj.iinfo.iformat;
-      end
+
    
-      function c = class(obj)
+      function c = dataclass(obj)  % we dont use class here as this would overwrte the class routine
          %obj.initializeInfo;
-         c = obj.iinfo.iclass;
+         c = obj.iinfo.idataclass;
       end
        
       function c = color(obj)
@@ -135,25 +163,25 @@ classdef ImageSource < matlab.mixin.Copyable
       
       
 
-      function p = sizeP(obj)
+      function p = datasizeP(obj)
          %obj.initializeInfo;
-         p = obj.iinfo.sizeP;
+         p = obj.iinfo.datasizeP;
       end
-      function q = sizeQ(obj)
+      function q = datasizeQ(obj)
          %obj.initializeInfo;
-         q = obj.iinfo.sizeQ;
+         q = obj.iinfo.datasizeQ;
       end
-      function l = sizeL(obj)
+      function l = datasizeL(obj)
          %obj.initializeInfo;
-         l = obj.iinfo.sizeL;
+         l = obj.iinfo.datasizeL;
       end
-      function c = sizeC(obj)
+      function c = datasizeC(obj)
          %obj.initializeInfo;
-         c = obj.iinfo.sizeC;
+         c = obj.iinfo.datasizeC;
       end
-      function t = sizeT(obj)
+      function t = datasizeT(obj)
          %obj.initializeInfo;
-         t = obj.iinfo.sizeT;
+         t = obj.iinfo.datasizeT;
       end
 
       
@@ -174,64 +202,68 @@ classdef ImageSource < matlab.mixin.Copyable
       %
       % usually overwritten by sepcific super class
       
-      function d = getData(obj, varargin)  % obtain the image data
+      function d = getData(obj)  % obtain the image data
          d = obj.idata;     % trivial here ->  to be implemented depending on ImageSource superclass
       end
-      function obj = setData(obj, varargin)  % set the image data
-         obj.idata = varargin{1};
-      end
- 
       
-      function s = getSize(obj, varargin)
+      function obj = setData(obj, d)  % set the image data
+         obj.idata = d;
+      end
+
+      
+      function s = getDataSize(obj)
          obj.initializeInfo();
-         s = obj.iinfo.isize;
+         s = obj.iinfo.idatasize;
       end
-      function obj = setSize(obj, varargin)
+      
+      function obj = setDataSize(obj, si)
          obj.initializeInfo();
-         obj.iinfo.isize = varargin{1};
+         obj.iinfo.idatasize = si;
       end
-      
-      
-      function f = getFormat(obj, varargin)
+
+      function f = getDataFormat(obj)
          obj.initializeInfo();
          f = obj.iinfo.iformat;
       end
-      function obj = setFormat(obj, varargin)
+      function obj = setDataFormat(obj, frmt)
          obj.initializeInfo();
-         obj.iinfo.iformat = varargin{1};
+         obj.iinfo.setFormat(frmt);
       end
      
       
-      function c = getColor(varargin)
+      function c = getColor(obj)
          obj.initializeInfo();
          c = obj.iinfo.icolor;
       end
-      function obj = setColor(obj, varargin)
+      function obj = setColor(obj, col)
          obj.initializeInfo();
-         if iscell(varargin{1})
-            obj.iinfo.icolor = varargin{1};
+         if iscell(col)
+            obj.iinfo.icolor = col;
          else
-            obj.iinfo.icolor = varargin(1);
+            obj.iinfo.icolor = num2cell(col);
          end
       end
      
       
-      function c = getClass(obj, varargin)
+      function c = getDataClass(obj)
          obj.initializeInfo();
-         c = obj.iinfo.iclass;
+         c = obj.iinfo.idataclass;
       end
-      function obj = setClass(obj, varargin)
+   
+      function obj = setDataClass(obj, cls)
          obj.initializeInfo();
-         obj.iinfo.iclass = varargin{1};
+         obj.iinfo.idataclass = cls;
       end
       
       
-      function n = getName(obj, varargin)
+      function n = getName(obj)
          obj.initializeInfo();
          n = obj.iinfo.iname;
       end
-      function obj = setName(obj, varargin)
-         obj.iinfo.iname = varargin{1};
+   
+      function obj = setName(obj, nm)
+         obj.initializeInfo();
+         obj.iinfo.iname = nm;
       end
       
       
@@ -256,11 +288,18 @@ classdef ImageSource < matlab.mixin.Copyable
       
       function i = getInfo(obj, varargin)
          % get all info at once         
-         i = imdata2info(obj.data);
+         i = imdata2info(obj.idata);
       end
-      function obj = setInfo(obj, varargin)
-         obj.iinfo = varargin{1};
+      
+      function obj = setInfo(obj, info)
+         obj.iinfo = info;
       end
+
+      
+      function obj = clearCache(obj)
+         obj.idata = [];
+      end
+      
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % data extraction using a key
@@ -286,9 +325,9 @@ classdef ImageSource < matlab.mixin.Copyable
          if ~isempty(obj.name)
             istr = [istr, '\nname:   ', var2char(obj.name)];
          end
-         istr = [istr, '\nsize:   ', var2char(obj.size)];
-         istr = [istr, '\nformat: ', var2char(obj.format)];
-         istr = [istr, '\nclass:  ', var2char(obj.class)];
+         istr = [istr, '\nsize:   ', var2char(obj.datasize)];
+         istr = [istr, '\nformat: ', var2char(obj.dataformat)];
+         istr = [istr, '\nclass:  ', var2char(obj.dataclass)];
          istr = [istr, '\ncolor:  ', var2char(obj.color)];
 %         istr = [istr, '\n', obj.label.infoString];
       end

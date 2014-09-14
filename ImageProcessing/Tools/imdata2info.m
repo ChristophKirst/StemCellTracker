@@ -6,9 +6,12 @@ function i = imdata2info(d)
 %    infers image infomration form a nuemrical array and retunrs it as ImageInfo class
 
 i = ImageInfo();
-i.isize   = size(d);
-i.iformat = imsize2format(i.isize);
-i.iclass  = class(d);
+i.idatasize   = size(d);
+i.idataformat = imsize2format(i.isize);
+i.idataclass  = class(d);
+i.irawformat  = i.idataformat;
+i.irawsize    = i.idatasize;
+
 cl = 1;
 id = find(i.iformat == 'c', 1, 'first');
 if ~isempty(id)

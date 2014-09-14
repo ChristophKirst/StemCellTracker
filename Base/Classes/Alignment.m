@@ -10,7 +10,7 @@ classdef Alignment < matlab.mixin.Copyable
       sizes = {};      % image sizes as cell array
       asize = [];      % absolute image size of aligned images
 
-      images = {};      % (optional) image data sources
+      images = {};     % (optional) image data sources
    end
   
    methods
@@ -176,7 +176,7 @@ classdef Alignment < matlab.mixin.Copyable
          %   thq   quality threshold 
          
          q = [obj.pairs.quality];
-         obj.pairs = obj.pairs(q > thq); 
+         obj.pairs = obj.pairs(q >= thq); 
       end
       
       function obj = reducePairs(obj)

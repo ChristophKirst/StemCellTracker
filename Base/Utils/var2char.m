@@ -17,7 +17,11 @@ elseif ~iscell(cs) && isscalar(cs)
    end
 else
    if isempty(cs)
-      c ='[]';
+      if iscell(cs)
+         c = '{}';
+      else
+         c ='[]';
+      end
       return
    end
  

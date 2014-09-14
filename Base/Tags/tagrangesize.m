@@ -13,6 +13,12 @@ function si = tagrangesize(tagrs)
 %
 % See also: tagexpr
 
+
+if isempty(tagrs)
+   si = 0;
+   return
+end
+
 names = fieldnames(tagrs);
 nnames = length(names);
 

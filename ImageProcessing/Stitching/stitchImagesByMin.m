@@ -18,8 +18,11 @@ function img = stitchImagesByMin(imgs, shifts)
 isizes = cellfunc(@size, imgs);
 [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes);
 
-% find split into overlapping rectangles
+% find split into non-overlapping rectangles
 [regs, ids] = stitchImagesOverlapRegions(ashifts, isizes);
+
+var2char(regs)
+var2char(ids)
 
 
 % compose image

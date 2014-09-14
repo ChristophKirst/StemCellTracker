@@ -46,10 +46,13 @@ if ~iscell(imgs)
    switch imformat(imgs)
       case 'pql'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), ones(size(imgs,3),1));
+         imgs = imgs(:);
       case 'pqlc'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), ones(size(imgs,3),1), size(imgs,4));
+         imgs = imgs(:);
       case 'pqcl'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), size(imgs,3), ones(size(imgs,4),1));  
+         imgs = imgs(:);
       otherwise
          imgs = {imgs};
          
@@ -58,6 +61,7 @@ if ~iscell(imgs)
          end
    end
    %size(imgs)  
+   %class(imgs)
 else
    if isempty(clim)
       clim = cscale(imgs);

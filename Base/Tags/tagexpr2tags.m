@@ -65,8 +65,8 @@ if check
       names2 = {names2};
    end
    
-   names
-   names2
+   %names
+   %names2
   
    ids = ~cellfun(@isequal, names(:), names2(:));
    

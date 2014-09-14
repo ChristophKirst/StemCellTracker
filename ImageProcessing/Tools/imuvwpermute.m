@@ -1,84 +1,78 @@
-function img = impqlpermute(img, in_format, out_format)
+function img = imuvwpermute(img, in_format, out_format)
 %
-% img = impqlpermute(img, in_format, out_format)
+% img = imuvwpermute(img, in_format, out_format)
 %
 % description: 
-%     takes a image and moves them into a format out_format assuming the in_format
+%     takes a cell array and permutes it from in_format to out_format (in_format = 'uvw' by default)
 %
 % input:
 %     img        input image
 %     in_format  (optional) format of input image as characters (imformat(stack))
-%     out_format (optional) format of output image, special names: 'matlab' = 'qpclt', 'imgj' = pqclt', ('matlab' = 'qpclt')
+%     out_format (optional) format of output image, special names: 'matlab' = 'yuw'
 %
 % output:
 %     img       reshaped image
 %
 % note:
-%     'x' = 'p', 'y' = reverse 'q', 'z' = reverse 'l'
+%     'x' = 'u', 'y' = reverse 'v', 'z' = reverse 'w'
 %
-% See also: imformat
+% See also: impqlpermute
 
 if nargin < 2 || isempty(in_format)
    in_format = imformat(img);
+   in_format = strrep(in_format, 'p', 'u');
+   in_format = strrep(in_format, 'q', 'v');
+   in_format = strrep(in_format, 'l', 'w');
 end
 if nargin < 3 || isempty(out_format)  % autoconvert to matlab img format
    out_format = 'matlab';
 end
 
 if strcmp(in_format, 'matlab')
-   in_format = 'qpclt';
+   in_format = 'yuw';
 end
 if strcmp(out_format, 'matlab')
-   out_format = 'qpclt';
-end
-if strcmp(in_format, 'imagej')
-   in_format = 'pqclt';
-end
-if strcmp(out_format, 'imagej')
-   out_format = 'pqclt';
+   out_format = 'yuw';
 end
 
 if length(unique(in_format)) ~= length(in_format)
-   error('impqlpermute: labels appear more than one in input format: %s', in_format)
+   error('imuvwpermute: labels appear more than one in input format: %s', in_format)
 end
 if length(unique(out_format)) ~= length(out_format)
-   error('impqlpermute: labels appear more than one in output format: %s', out_format)
+   error('imuvwpermute: labels appear more than one in output format: %s', out_format)
 end
 
-%if length(in_format) ~= ndims(img) % matlab is inconssitent if last dimension is 1 
-%   error('impqlpermute: input img and format inconsistent!')
-%end
 
-in_format = strrep(in_format, 'x', 'p');
-%in_format = strrep(in_format, 'z', 'l');
+in_format = strrep(in_format, 'x', 'u');
+%in_format = strrep(in_format, 'z', 'w');
 
 out_format = strrep(out_format, 'x', 'p');
-%out_format = strrep(out_format, 'z', 'l');
+%out_format = strrep(out_format, 'z', 'w');
 
 %reverse in y if requested
 yposin = strfind(in_format, 'y');
 if ~isempty(yposin)
    img = flip(img, yposin);
-   in_format(yposin) = 'q';
+   in_format(yposin) = 'v';
 %else
 %   pimg = img;
 end
 ypos = strfind(out_format, 'y');
 if ~isempty(ypos)
-   out_format(ypos) = 'q';
+   out_format(ypos) = 'v';
 end
 
 
 zposin = strfind(in_format, 'z');
 if ~isempty(zposin)
    img = flip(img, zposin);
-   in_format(yposin) = 'l';
+   in_format(yposin) = 'w';
 %else
 %   pimg = pimg;
 end
 zpos = strfind(out_format, 'z');
 if ~isempty(zpos)
-   out_format(zpos) = 'l';
+   out_format(zpos) = 'w';
 end
 %in_format
 %out_format
@@ -106,7 +100,7 @@ for i = 1:length(in_format)
       if size(img,i) == 1
          out_format = [out_format, in_format(i)]; %#ok<AGROW> %% appending it effectively removes dimensions of size 1
       else
-         error('impqlpermute: dimension %s not specified in output format %of but is non-trivial', in_format(i), out_format);
+         error('imuvwpermute: dimension %s not specified in output format %of but is non-trivial', in_format(i), out_format);
       end
    end
 end
@@ -126,13 +120,13 @@ img = permute(img, per);
 
 %reverse in y if requested
 if ~isempty(ypos)
-   ypos = strfind(out_format, 'q');
+   ypos = strfind(out_format, 'v');
    img = flip(img, ypos);
 end
 
 %reverse in y if requested
 if ~isempty(zpos)
-   zpos = strfind(out_format, 'l');
+   zpos = strfind(out_format, 'w');
    img = flip(img, zpos);
 end
 

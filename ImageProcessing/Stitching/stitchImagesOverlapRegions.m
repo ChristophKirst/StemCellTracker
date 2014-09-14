@@ -22,6 +22,13 @@ regs = {};
 ids  = {};
 for i = 1:n
    [regs, ids] = addOverlapRegion(regs, ids, ashifts{i}, isizes{i}, i); 
+   
+%    disp(i)
+%    var2char({'regs', regs})
+%    var2char({'ids',  ids })
+%    disp ====================================
+   
+   
 end
 
 end
@@ -30,18 +37,22 @@ end
 function [regsnew, idsnew] = addOverlapRegion(regs, ids, shift, isize, id)
    
    dim = length(isize);
-   
+
+   % try too add the full new region first
    regsadd = {[shift + 1; shift + isize]};
 
+   % these are non-overlapping rectangles to bechecked for overlap with regsadd
    regscheck = regs;
    idscheck  = ids;
 
+   % rectables that will now have any further overlap with regsadd
    regsnew   = {};
    idsnew    = {};
 
    i = 1;
    while ~isempty(regscheck) && ~isempty(regsadd)
  
+      % chek the next one in list
       rc = regscheck{1};
       
       %check if overlap with any of the regoins to be added
@@ -53,20 +64,35 @@ function [regsnew, idsnew] = addOverlapRegion(regs, ids, shift, isize, id)
          
          if ~isempty(ov) % overlapping region is save to add to new list and remove form check and add list after splitting
             
-            split = splitRegion(rc, ov, dim);
-
             
+            % split region to check
+            split = splitRegion(rc, ov, dim);
+            
+%             var2char({'regsadd', regsadd})
+%             var2char({'regscheck', regscheck})
+%             var2char({'ra', ra, 'rc', rc})
+%             var2char({'split',   split})
+
+            % add id of immage to add to overlapping region -> cannot overlap with other regoin -> safe to put into new list
             regsnew{i} = split{1}; %#ok<AGROW>
             idsnew{i}  = [idscheck{1}, id]; %#ok<AGROW>
             i = i + 1;
             
+            % other non-overlapping regoins from split need to beckeched anew
             regscheck = [split(2:end), regscheck(2:end)];
             idscheck  = [repmat(idscheck(1), 1, length(split)-1), idscheck(2:end)];
             
+            
+            % split added region
             split = splitRegion(ra, ov, dim);
           
-            regsadd = [split(2:end), regsadd(2:end)];
+            % add all non-verlapping regions to the tob be added list
+%             var2char({'regsadd before: ' , regsadd})
+%             var2char({'split ra: ' , split})
+             regsadd = [regsadd(1:a-1), split(2:end), regsadd(a+1:end)];
+%             var2char({'regsadd after: ' , regsadd})
             
+            % start cehcking anew
             found = true;
             break;
             
@@ -82,12 +108,11 @@ function [regsnew, idsnew] = addOverlapRegion(regs, ids, shift, isize, id)
          idscheck  = idscheck(2:end);
       end
       
-%       disp 'next round check'
-%       var2char(regscheck)
-%       disp add
-%       var2char(regsadd)
-%       disp new
-%       var2char(regsnew)
+
+%       var2char({'check', regscheck})
+%       var2char({'add', regsadd})
+%       var2char({'new', regsnew})
+%       disp -----------------------------------------
     
    end
 
@@ -99,7 +124,7 @@ end
 
 
 
-%splits a rectangle r given the overlap regoin o \subset r
+%splits a rectangle r given the overlap region o \subset r
 function split = splitRegion(r, o, dim)
    if dim ==2
       split = splitRegoin2D(r,o);
@@ -176,10 +201,13 @@ function ov = findOverlap(a,b)
    ov = zeros(2,length(a1));
    ov(1,:) = max(a1,b1);
    ov(2,:) = min(a2,b2);
-   
+
    if any(ov(2,:)-ov(1,:) < 0)
       ov = [];
    end
+   
+   
+  % {var2char(a), var2char(b), var2char(ov)}
 
 end
 

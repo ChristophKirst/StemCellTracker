@@ -24,7 +24,7 @@ img = mat2gray(img);
 size(img)
 
 figure(1);
-implot(img)
+implot(img);
 
 imgs{1,1} = img(1:230,1:250);
 imgs{2,1} = img(200:end,20:260);
@@ -61,7 +61,7 @@ sh = align2ImagesOnGridByRMS(aimgs, 'overlap.max', 160, 'shift.max', 70)
 sh = {[0,0]; sh};
 
 figure(3); clf
-plotAlignedImages(aimgs, sh)
+plotAlignedImages(aimgs, sh);
 
 
 %%
@@ -134,7 +134,7 @@ img = mat2gray(img);
 size(img)
 
 figure(1);
-implot(img)
+implot(img);
 
 clear imgs
 imgs{1,1} = img(1:230,1:250);
@@ -174,7 +174,7 @@ plotAlignedImages(imgs, sh)
 %% Primary
 
 clc
-sh = alignImagesOnGrid(imgs, 'overlap.max', 100, 'shift.max', 50, 'align', 'RMS', 'method', 'primary');
+sh = alignImagesOnGrid(imgs, 'overlap.max', 100, 'shift.max', 20, 'align', 'RMS', 'method', 'primary');
 var2char(sh)
 
 %figure(2);
@@ -195,7 +195,7 @@ img = mat2gray(img);
 size(img)
 
 figure(1);
-implot(img)
+implot(img);
 
 imgs{1,1} = img(1:180,1:190);
 imgs{2,1} = img(160:320,5:170);
@@ -206,7 +206,7 @@ imgs{3,2} = img(305:end,154:335);
 imgs{1,3} = img(2:190, 320:end);
 imgs{2,3} = img(175:335, 315:end);
 imgs{3,3} = img(312:end, 312:end);
-as cell array
+
 
 figure(2);
 implottiling(imgs, 'link', false);
@@ -215,7 +215,7 @@ implottiling(imgs, 'link', false);
 %% Global 
 
 tic
-sh = alignImagesOnGrid(imgs, 'overlap.max', 80, 'shift.max', 30);
+sh = alignImagesOnGrid(imgs, 'overlap.max', 80, 'shift.max', 30, 'align', 'RMS');
 toc
 var2char(sh)
 
@@ -269,7 +269,7 @@ img = mat2gray(img);
 size(img)
 
 figure(1);
-implot(img)
+implot(img);
 
 clear imgs
 imgs{1} = img(1:280,1:290);
@@ -292,13 +292,12 @@ plotAlignedImages(imgs, sh)
 %% Overlapping Pairs 
 
 clc
-
-pairs{1} = [1, 2];
-pairs{2} = [1, 3];
-pairs{3} = [2, 3];
+clear pairs
+pairs(1).from = 1; pairs(1).to = 3;
+pairs(2).from = 2; pairs(2).to = 3;
 
 tic
-sh = alignImages(imgs, 'pairs', pairs, 'overlap.max', 100, 'shift.max', 50);
+sh = alignImages(imgs, 'pairs', pairs, 'overlap.max', 500, 'shift.max', 200);
 toc
 var2char(sh)
 

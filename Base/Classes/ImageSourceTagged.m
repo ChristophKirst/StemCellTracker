@@ -4,7 +4,7 @@
    % 
 
    properties 
-      icommand       = '';  % tagged command to load the data
+      ireadcommand   = '';  % tagged command to load the data
       iinfocommand   = '';  % tagged command to get ImageInfo of each tagged individual data / image (e.g. 'imread_bf_info(<file>)') should always retunr consistent image format keeping singelton dimensions !
       ifilename      = '';  % tagged filename in case tag <file> appears in command or infocommand
       
@@ -12,7 +12,7 @@
       itagformat     = {};  % specifies how tags are associated with certain dimensions, '' = cell coordinates -> ordered by order in tagranges
       itaginternal   = [];  % specifies the tags that are internally obtained via the read command (1) or need to be looped over externally (0 = default)
       
-      %icommandformatordering  = ''; % format ordering in which the read routine returns the data, '' = pqlct
+      %ireadformatordering  = ''; % format ordering in which the read routine returns the data, '' = pqlct
       %isingletagformat = []; % format the read routine returns data when all internal tags are singeltons
    end
 
@@ -49,6 +49,8 @@
                end
             end
          end
+         
+         obj.icache = false; % for tagging simple caching is usaually not a good idea
       end
       
       % infer properties from a list of image files
@@ -58,13 +60,13 @@
          obj.ifilename      = texpr;
          
          obj.itagranges     = tags2tagranges(tags);
-         obj.itagformat     = obj.tagformatFromTags(tags);
+         obj.itagformat     = obj.tagformatFromTagRanges(tags);
          obj.itaginternal   = zeros(1, length(obj.itagformat)); % by default no internal parameter
          
-         obj.icommand       = getParameter(param, 'command', 'imread_bf(<file>)');
-         obj.iinfocommand   = getParameter(param, 'infocommand', 'imread_bf_info(<file>)');
+         obj.ireadcommand   = getParameter(param, 'command', 'imread_bf(''<file>'')');
+         obj.iinfocommand   = getParameter(param, 'infocommand', 'imread_bf_info(''<file>'')');
  
-         obj.XX % some sort of init
+         obj.iinfo          = obj.getInfo();
       end
       
       % infer properties from a file tagformat
@@ -73,22 +75,63 @@
          
          obj.ifilename      = filename;
          
-         obj.itags          = tags2tagranges(tagexpr2tags(filename, param), 'check', true);
-         obj.itagformat     = obj.tagformatFromTags(tags);
+         obj.itagranges     = tags2tagranges(tagexpr2tags(filename, [], param), 'check', true);
+         obj.itagformat     = obj.tagformatFromTagRanges();
          obj.itaginternal   = zeros(1, length(obj.itagformat));
          
-         obj.icommand       = getParameter(param, 'command', 'imread_bf(<file>)');
-         obj.iinfocommand   = getParameter(param, 'infocommand', 'imread_bf_info(<file>)');
+         obj.ireadcommand   = getParameter(param, 'command', 'imread_bf(''<file>'')');
+         obj.iinfocommand   = getParameter(param, 'infocommand', 'imread_bf_info(''<file>'')');
          
-         obj.XX
+         obj.iinfo          = obj.getInfo();
       end
+      
+      
+      % infer settings form read command and filename -> readcommand tags are considered internal data tags !
+      function obj = fromReadcommandAndFilename(obj, varargin)
+         param = parseParameter(varargin);
          
+         filename = obj.ifilename;
+         readcmd  = obj.ireadcommand;
+         
+         if isempty(obj.iinfocommand)
+            if ~isempty(strfind(readcmd, 'imread_bf'))
+               obj.iinfocommand = strrep(readcmd, 'imread_bf', 'imread_bf_info');
+            else
+               obj.iinfocommand = getParameter(param, 'infocommand', 'imread_bf_info(''<file>'')');
+            end
+         end
+
+         intdtags = setdiff(tagexpr2tagnames(readcmd), {'file'});
+         
+         % the range should be predifined -> ways to infer those but for speed etc we keep it simple
+         tgrs = obj.itagranges;
+         
+         if isempty(tgrs)
+            error('%s: cannot infer internal data ranges, specify range of internal data tag rages in itagranges!', class(obj));
+         elseif ~isempty(setdiff(intdtags, fieldnames(tgrs)))
+            error('%s: cannot infer internal data ranges, specify range of internal data tags %s used in read command!', class(obj), var2char(setdiff(intdtags, fieldnames(tgrs))));
+         end
+
+         obj.itagranges     = tags2tagranges(tagexpr2tags(filename, [], param), 'check', true);
+         obj.itagranges     = parseParameter(obj.itagranges, tgrs);
+ 
+         obj.itagformat     = obj.tagformatFromTagRanges(); 
+         obj.itaginternal   = ismember(fieldnames(obj.itagranges), intdtags)';
+
+         obj.iinfo          = obj.getInfo();
+         
+      end
+      
+
       % infer tag dimensions form the tags
-      function tfrmt = tagformatFromTags(obj)
-         tnames = obj.tagnames(obj);
+      function tfrmt = tagformatFromTagRanges(obj)
+         tnames = obj.tagnames;
          
          shortnames = num2cell('pqlct');
          longnames  = {'x', 'y', 'z', 'channel', 'time'};
+         
+         cellnames = 'uvwrs';
+         ci = 1;
          
          ntnames = length(tnames); 
          tfrmt = cell(1, ntnames);
@@ -96,15 +139,60 @@
             ids = or(ismember(shortnames, tnames{i}), ismember(longnames, tnames{i}));
             if any(ids)
                tfrmt{i} = shortnames{find(ids, 1, 'first')};
+            else
+               %tfrmt{i} = '';
+               tfrmt{i} = cellnames(ci);
+               ci = ci + 1;
             end
          end
-      end 
+      end
       
+      
+      function initializeTagformat(obj)
+         cellnames = 'uvwrs';
+         tfrmt = obj.itagformat;
+         cellnames = setdiff(cellnames, cell2mat(tfrmt));
+         
+         k = 1;
+         for i = 1:length(tfrmt)
+            if isempty(tfrmt{i})
+               tfrmt{i} = cellnames(k);
+               k = k + 1;
+            end  
+         end
+         
+         obj.itagformat = tfrmt;
+      end
+      
+      
+      function initializeInfo(obj, varargin)
+         obj.iinfo = obj.getInfo(varargin{:});
+      end
+
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% tag routines
-  
+      
+      
+      function obj = setTagRange(obj, name, range)
+      %
+      % obj = setTagRange(obj, name, range)
+      %
+
+         if ~ismember(name, obj.tagnames)
+            error('ImagesourceTagged: setTagRange: %s is not a tag!', name);
+         end
+
+         if ~iscell(range)
+            range = num2cell(range);
+         end
+         obj.itagranges.(name) = range;
+       
+         obj.iinfo = obj.getInfo();
+      end
+      
+
       % parse optional additonal tag input and reduce tag ranges accordingly
       function tagrs = parseTagRanges(obj, varargin)
          if nargin < 2
@@ -113,12 +201,12 @@
             tagrs = parseParameter(varargin);
             
             % sort tags and remove non-tags
-            tagrs = rmfield(tagrs, setdiff(fieldnames(tagrs), filednames(obj.itagranges)));
-            tagrs = catstruct(obj.itagranges, tagrs);
+            tagrs = rmfield(tagrs, setdiff(fieldnames(tagrs), fieldnames(obj.itagranges)));
+            tagrs = parseParameter(obj.itagranges, tagrs);
          end
       end
       
-      % return tag values from index that lies in 1:ntags
+      % return tag values from index id in 1:ntags
       function tvs = ind2tagvalues(obj, id, varargin)
          tagrs = obj.parseTagRanges(varargin{:});
          tvs   = ind2tagvalues(tagrs, id);
@@ -130,7 +218,11 @@
       end
 
       function tnames = tagnames(obj)
-         tnames = fieldnames(obj.itagranges);
+         if isempty(obj.itagranges)
+            tnames = {};
+         else
+            tnames = fieldnames(obj.itagranges);
+         end
       end  
       
       function s = tagrangesize(obj, varargin)
@@ -138,15 +230,16 @@
          s     = tagrangesize(tagrs);
       end
       
-      function n = ntags(obj)
-         n = prod(obj.tagrangesize);
+      function n = ntags(obj, varargin)
+         tagrs = obj.parseTagRanges(varargin{:});
+         n = prod(tagrangesize(tagrs));
       end
       
       
       
 % Todo: handle cell size/datasize changes !!      
 %       function obj = addTags(obj, tags)
-%          obj.itagranges = catstruct(obj.itagranges, tags);
+%          obj.itagranges = parseParameter(obj.itagranges, tags);
 %       end
 % 
 %       function obj = removeTags(obj, tagnames)
@@ -167,8 +260,8 @@
 
       % returns command format by replacing specified tags      
       function cmd = command(obj, varargin)
-         cmd = strrep(obj.icommand, '<file>', obj.ifilename);
-         cmd = tagexpr2string(cmd, varargin);
+         cmd = strrep(obj.ireadcommand, '<file>', obj.ifilename);
+         cmd = tagexpr2string(cmd, varargin{:});
       end
 
       % returns command with tag index i given tag sepcs
@@ -179,7 +272,7 @@
       
       function cmd = infocommand(obj, varargin)
          cmd = strrep(obj.iinfocommand, '<file>', obj.ifilename);
-         cmd = tagexpr2string(cmd, varargin);
+         cmd = tagexpr2string(cmd, varargin{:});
       end
      
       function cmd = ind2infocommand(obj, i, varargin)
@@ -188,7 +281,7 @@
       
       
       function fn = filename(obj, varargin)
-         fn = tagexpr2string(obj.ifilename, obj.parseTagRanges(varargin));
+         fn = tagexpr2string(obj.ifilename, varargin{:});
       end    
       
       function fn = ind2filename(obj, i, varargin)
@@ -196,12 +289,6 @@
       end
       
 
-      
-     
-      
-
-
-      
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -211,43 +298,48 @@
          % single image info
          tag = obj.ind2tag(1);         % first tag specs -> internal tags are singeltons and assumedto be removed by the infocommand in returned info.iformat and isize!
          cmd = obj.infocommand(tag);
+         fprintf('ImageSourceTagged: evaluating command: %s\n', cmd);
          info = eval(cmd);
       end
       
 
-      function [info, objinfo] = getInfo(obj, varargin) 
+      function info = getInfo(obj, varargin) 
          info = ImageInfo(varargin{:});
          
          % get info of the first data set
-         dinfo = getDataInfo(); % info for a single tag, internal tags are singeltons !
+         dinfo = obj.getDataInfo(); % info for a single tag, internal tags are singeltons !
          
-         % internal daata format for internal data tags being singeltons
-         singletagintfrmt = dinfo.iformat;
-         objinfo.isingletagformat = singletagintfrmt;
-
+         % internal raw data format for internal data tags being singeltons
+         singletagintfrmt = dinfo.irawformat;
+         %objinfo.isingletagformat = singletagintfrmt;
 
          % full internal data format 
-         tint = obj.taginternal;
-         tfrmt = obj.tagformat;
-         tfrmt(cellfun(@length, tfrmt)==0) = {'u'}; % replace empty slots with dummy -> extenion: with uvwrs 
-         itfrmt = cell2mat(tfrmt(tint));
+         tint = obj.itaginternal > 0;
+         tfrmt = obj.itagformat;
+         tfrmt(cellfun(@length, tfrmt)==0) = {'u'}; % replace empty slots with dummy -> todo: full extension: with uvwrs 
+         if any(tint) 
+            itfrmt = [tfrmt{tint}];
+         else
+            itfrmt = '';
+         end
          
          if any(ismember(singletagintfrmt, itfrmt))
             error('%s: getInfo: raw internal data and internal data tag formats overlap: %s <> %s', class(obj), var2char(singletagintfrmt), var2char(itfrmt));
          end
          
-         fullintfrmt = setdiff('pqlct', setdiff('pqlct', [singletagintfrmt, itfrmt]));
+         fullintfrmt = setdiff('pqlct', setdiff('pqlct', [singletagintfrmt, itfrmt]), 'stable');
           
          
          % full format including external tags contributing to data
-         etfrmt = setdiff(tfrmt, itfrmt);
-         fullfrmt = setdiff('pqlct', setdiff('pqlct', [fullintfrmt, etfrmt]));
+         etfrmt = setdiff(cell2mat(tfrmt), itfrmt, 'stable');
+     
+         fullfrmt = setdiff('pqlct', setdiff('pqlct', [fullintfrmt, etfrmt]), 'stable');
          
-         info.iformat = fullfrtm;
-         info.irawformat = fullfrmt;
+         info.idataformat = fullfrmt;
+         info.irawformat  = fullfrmt;
           
          % data and cell size
-         dsi = dinfo.isize;
+         dsi = dinfo.idatasize;
          tsi = tagrangesize(obj.itagranges);
          
          % ids of single tag data dims in full format
@@ -255,17 +347,27 @@
          % ids of tags in full format
          [tids, tpos] = ismember(fullfrmt, cell2mat(tfrmt)); tpos = tpos(tids);
          
-         isize = ones(1, length(fullformat));
+         isize = ones(1, length(fullfrmt));
          isize(stdids) = dsi(stdpos);
          isize(tids)   = tsi(tpos);
          
-         obj.isize = isize;
+         info.idatasize = isize;
+         info.irawsize  = isize;
          
          info.pqlctsizeFromFormatAndSize();
          
          % cell format and size
-         obj.icellformat = ''; % sorted by occurence in tag expression 
-         obj.icellsize = tsi(setdiff(1:length(tsi), tpos)); % remainig tag sizes 
+         info.icellformat = ''; % sorted by occurence in tag expression 
+         info.icellsize = tsi(setdiff(1:length(tsi), tpos)); % remainig tag sizes 
+         
+         % copy other info
+         info.iseries    = dinfo.iseries;
+         info.inimages   = dinfo.inimages;
+         info.idataclass = dinfo.idataclass;
+         info.imetadata  = dinfo.imetadata;
+         info.iscale     = dinfo.iscale;
+         info.iunit      = dinfo.iunit;
+         info.icolor     = dinfo.icolor;
       end
       
       
@@ -274,346 +376,324 @@
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data access
       
+      % assumption on the read command is that it returns raw data ordered accroding to pqlct
+      % with singelton dimensions removed
       
-      % ids in tagranges that map to data dims (both internal and external data tags)
-      % optional output pos is the position in iformat of the corresponding tag ids 
-      function [ids, pos] = datatagids(obj)
+      % ids in tagranges that map to raw dims (both internal and external data tags)
+      % optional output pos is the position in iformat of the corresponding tag ids and zero if not member of the data  
+      function [ids, pos] = rawtagids(obj)
          tfrmt = obj.itagformat;
-         [ids, pos] = ismember(tfrmt, num2cell('pqlct'));
-         pos = pos(ids);
+         [ids, pos] = ismember(tfrmt, num2cell('pqlct'));  % ids are the ids of pqlct in tfrmt, pos(ids) ar the positions of tfrmt in pqlct
+         %pos = pos(ids);
          %ids = find(ids);
       end
       
       % return the tag names of the data dimensions (both internal and external data tags)
-      function dn = datatagnames(obj)
-         dn = obj.fieldnames;
-         dn = dn(obj.datatagids);
+      function dn = rawtagnames(obj)
+         dn = obj.tagnames();
+         dn = dn(obj.rawtagids);
       end
       
+      function dn = datatagnames(obj)
+          dn = obj.rawtagnames;
+      end
+
       
       % return the tag ranges of the data dimensions (both internal and external data tags)
-      function tgrs = datatagsranges(obj, varargin)
+      function [tgrs, ids, pos] = rawtagsranges(obj, varargin)
          tgrs = obj.parseTagRanges(varargin{:});
-         ids = obj.celltagids;
+         [ids, pos] = obj.celltagids;
          fnames = fieldnames(tgrs);
          tgrs = rmfield(tgrs, fnames(ids));
       end
 
       % ids in tagranges that map to cell dims
+      % optional output pos is the position in icellformat of the corresponding tag ids 
       function [ids, pos] = celltagids(obj)
          tfrmt = obj.itagformat;
          ids = ~ismember(tfrmt, num2cell('pqlct'));
-         %if nargout > 1
-         %   pos = 1:sum(ids); % we dont have uvwrs coords implemented yet -> change here !!
-         %end
+         if nargout > 1
+            pos = zeros(1,length(ids));
+            pos(ids) = 1:sum(ids); % we dont have uvwrs coords implemented yet -> change here !!
+         end
       end
       
       % return the tag ranges of the data dimensions
       function cn = celltagnames(obj)
-         cn = obj.fieldnames();
+         cn = obj.tagnames();
          cn = cn(obj.celltagids);
       end
 
       % return the tag ranges of the cell dimension
-      function tgrs = celltagranges(obj, varargin)
+      function [tgrs, ids, pos] = celltagranges(obj, varargin)
          tgrs = obj.parseTagRanges(varargin{:});
-         ids = obj.datatagids;
+         [ids, pos] = obj.rawtagids;
          fnames = fieldnames(tgrs);
          tgrs = rmfield(tgrs, fnames(ids));
       end
        
       
-      % ids of internal / external data tags that map to data dims
-      function ids = datatagidsinternal(obj, varargin)
-         ids = obj.datatagids(varargin{:});
-         ids = and(ids, obj.taginternal);
+      % internal / external data tags that map to data dims
+      function [ids, pos] = rawtagidsinternal(obj)
+         [ids, pos] = obj.rawtagids();
+         ids = and(ids, obj.itaginternal);
+         pos(~ids) = 0;
       end
       
-      function [tgrs, ids] = datatagrangesinternal(obj, varargin)
+      function [tgrs, ids, pos] = rawtagrangesinternal(obj, varargin)
          tgrs = obj.parseTagRanges(varargin{:});
-         ids = obj.datatagidsinternal(tgrs);
+         [ids, pos] = obj.rawtagidsinternal();
          fnames = fieldnames(tgrs);
          tgrs = rmfield(tgrs, fnames(~ids));
       end
       
       
-      function ids = datatagidsexternal(obj, varargin)
-         ids = obj.datatagids(varargin{:});
-         ids = and(ids, ~obj.taginternal);
+      function [ids, pos] = rawtagidsexternal(obj, varargin)
+         [ids, pos] = obj.rawtagids(varargin{:});
+         ids = and(ids, ~obj.itaginternal);
+         pos(~ids) = 0;
       end
 
-      function [tgrs, ids] = datatagrangesexternal(obj, varargin)        
+      function [tgrs, ids, pos] = rawtagrangesexternal(obj, varargin)        
          tgrs = obj.parseTagRanges(varargin{:});
-         ids = obj.datatagidsexternal(tgrs);
+         [ids, pos] = obj.rawtagidsexternal();
          fnames = fieldnames(tgrs);
          tgrs = rmfield(tgrs, fnames(~ids));
       end
       
 
+      
       %%% data 
       
-      function d = data(obj, varargin)
+      
+      %getData routine: assumptions: tag framework set
+      %                              read command returns pqlct ordering with singeltons removed
+      %                              asssumes iinfo is initialized (e.g. via getInfo)
+      function d = getData(obj, varargin)
+         
          tgrs = obj.parseTagRanges(varargin{:});
          
          % check if all cell tags are singeltons
          ctrgs = obj.celltagranges(tgrs);
-         csi = tagrangesize(ctrgs);   
+         csi   = tagrangesize(ctrgs);   
          if any(csi ~= 1)
             error('%s: data: in order to return data array all cell tags %s need to be specified', class(obj), var2char(obj.celltagnames))
          end
+         ctag = ind2tag(ctrgs, 1);
 
          % obtain internal and external data tags and single cell tags
-         [datatrgsint, intids] = obj.datatagrangesinternal(tgrs);
-         [datatrgsext, extids] = obj.datatagrangesexternal(tgrs);
-         %datatgrs    = catstruct(datatrgsint, datatrgsext);
+         [rawtagrsint, ~]      = obj.rawtagrangesinternal(tgrs);
+         [rawtagrsext, extids] = obj.rawtagrangesexternal(tgrs);
+         %datatgrs    = parseParameter(rawtagrsint, rawtagrsext);
 
          
          % determine size of the data
-         si = obj.size;     % full data size
-         frmt = obj.format; % full data format
+         si   = obj.iinfo.irawsize;     % full raw data size
+         frmt = obj.iinfo.irawformat; % full raw data format
+         if isempty(frmt)
+            si   = obj.iinfo.idatasize;
+            frmt = obj.iinfo.idataformat;
+         end
      
+         tfrmt = obj.itagformat;
+         
          tsi = tagrangesize(tgrs); 
-         [tids, tpos] = ismember(obj.itagformat, frmt); tpos = tpos(tids);
+         [tids, tpos] = ismember(tfrmt, num2cell(frmt)); tpos = tpos(tids);
          si(tpos) = tsi(tids);
 
-         d = zeros(si);
+         d = zeros(si);  % initialize data using pqlct ordering, no singelton removed
 
          % constant internal data tags
-         consttrgs = parseParameter(datatrgsint, ctrgs);
+         consttrgs = parseParameter(rawtagrsint, ctag);
          
-         % prepare constant part of data signment format
+         % prepare constant part of data asignment format
          asgn = repmat({':'}, 1, length(frmt));
          
-         % internal tag sizes
-         
-         for n = 
-         
-         % ids that get replaced by indices given the external tag id
-         asgnids =        
-         
-         
+         % external data positions
+         [~, epos] = ismember(frmt, [tfrmt{extids}]);
+         epos = epos > 0;
 
          % load data: loop over external tags
-         nexttags = prod(tagrangesize(datatrgsext));
+         nexttags = prod(tagrangesize(rawtagrsext));
          for t = 1:nexttags
             
-            datatagext  = ind2tag(datatrgsext, t);
+            [datatagext, dids] = ind2tag(rawtagrsext, t);
             
-            cmd = obj.commad(consttrgs, datatagext); 
+            cmd = obj.command(consttrgs, datatagext); 
+            
+            %fprintf('ImageSourceTagged: evaluating command: %s\n', cmd);
             dr = eval(cmd);
 
-
-         % replace specified external tags with corresponding ids
-         
-         
-         
-         % remove singelton internal dimensions
-         
-
-         
-         
-         
-     
-         tsi = tagrangesize(tgrs); 
-         [tids, tpos] = ismember(obj.itagformat, frmt); tpos = tpos(tids);
-         si(tpos) = tsi(tids);
-         
-         
-         
-         
-         
-         
-         % remove singeltons and for full tag ranges put {:}
-         singletagfrmt = obj.iinfo.irawformat;
-         
-         
- 
-      
-   
-         % determine cell size
-         
-         
-         % determine data size
-         
-         
-         % load data: loop over tags and asign to correct data
-         
-         
-         
-         
-         
-         
-                    asgn = obj.dataAsignment(datatrgsint, extdatatag);
+            % replace specified external tags with corresponding ids
+            asgn(epos) = num2cell(dids);
             d(asgn{:}) = dr;
          end
-   
-      end
-      
-      
+
+         % order according to output format
+         d = impqlpermute(d, frmt, obj.info.idataformat);
+         
+         % remove singeltons
+         d = squeeze(d);
          
       end
       
-      
-      
-      
-      
-      
-      
-      
-
-      % format of image data
-
-      % data part of the image format
-      % cell part of the tag format
-      
-%       function texpr = formattag(obj)
-%          % tag part of the image format
-%          texpr = cell2mat(obj.itagdims);
-%          texpr = setdiff(texpr, 'uvwrs');
-%       end
-%       
-%       function dfrmt = formatdata(obj)
-%          dfrmt = setdiff(obj.format, obj.formattag);
-%       end
-      
-%       function cfrmt = formatcell(obj)
-%          cfrmt = 'uvwrs';
-%          cfrmt = cfrmt(1:(length(obj.itagdims) - length(obj.formattag)));
-%       end
-      
-      
-
-
-      % positions
-%       % pos (and member ship) of tags in image format
-%       % pos of data in image format
-% 
-%       function p = tagpos(obj)  % tags not part of image data have pos 0 !
-%          p = ismember(obj.tagdims, num2cell(obj.format));
-%       end
-%       
-%       function p = datapos(obj)
-%          p = obj.tagpos;
-%          p = p(
-%       end
-
-      
-      
-      
-            % indices: 
-
-%       function ids = tagids(obj)
-%          % indices of tags dims in image format
-%          ids = find(ismember(obj.format, obj.formattag));
-%       end
-%       
-%       function ids = dataids(obj)
-%          % indices of data dims in image format
-%          ids = find(~ismember(obj.format, obj.formattag));
-%       end
-% 
-      % sizes:
-      % size of tag dimensions
-      % size of tag dimensions in image
-      % size of data dimensions in image
-      % size of cell dimensions
-      % number of tags in total
-
-
-%       
-%       function s = tagsize(obj)
-%          s = obj.size;
-%          s = s(obj.tagids);
-%       end
- 
-%       function s = datasize(obj)
-%          s = obj.size(ids);
-%          s = s(obj.dataids);
-%       end
-%       
-%       function s = sizecell(obj)
-%          s = obj.tagrangesize(ids);
-%          s = s(obj.celltagids);
-%       end
-
-
-      
-      
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% data access
-      
-
-      
-
-  
-%       % size of the cell array that will be returned given optional tag specs 
-%       function cs = cellsize(obj, varargin)
-%          tagrs = obj.parseTagRanges(varargin{:});
-%          cs = tagsize(tagrs);
-%          ids = cellfun(@length, setdiff(obj.tagdims, {'u', 'v', 'w', 'r', 's'})) == 0;
-%          cs = cs(ids);
-%          cs(cs == 1) = [];
-%       end
-%       
-%       % size of the data array that will be returned given optional tag specs 
-%       function ds = datasize(obj, varargin)
-%          
-%          %          s = obj.size(ids);
-%          %          s = s(obj.dataids);
-%          
-%          tagrs = obj.parseTagRanges(varargin{:});
-% 
-%          ds = tagsize(tagrs);
-%          ids = ~(cellfun(@length, setdiff(obj.tagdims, {'u', 'v', 'w', 'r', 's'})) == 0);
-%          cs = cs(ids);
-%          cs(cs == 1) = [];
-%       end
-      
-      
-
-
- 
-      function s = size(obj, varargin)
-         if nargin == 1
-            s = size@ImageSource(obj);
+      function c = getCellData(obj, varargin)
+         tgrs = obj.parseTagRanges(varargin{:});
+         
+         % check if all cell tags are singeltons
+         ctrgs = obj.celltagranges(tgrs);
+         csi   = tagrangesize(ctrgs);
+         if length(csi) == 1
+            c = cell(csi,1);
          else
-            trgs = parseTagRanges(varargi{:}n);
+            c = cell(csi); 
+         end
             
-            tsize = obj.tagsize(tag);
+         ncells = prod(csi);
 
+    
+         % obtain internal and external data tags and single cell tags
+         [rawtagrsint, ~]      = obj.rawtagrangesinternal(tgrs);
+         [rawtagrsext, extids] = obj.rawtagrangesexternal(tgrs);
+
+         % determine size of the data
+         si   = obj.iinfo.irawsize;     % full raw data size
+         frmt = obj.iinfo.irawformat; % full raw data format
+         if isempty(frmt)
+            si   = obj.iinfo.idatasize;
+            frmt = obj.iinfo.idataformat;
+         end
+     
+         tfrmt = obj.itagformat;
+         
+         tsi = tagrangesize(tgrs); 
+         [tids, tpos] = ismember(tfrmt, num2cell(frmt)); tpos = tpos(tids);
+         si(tpos) = tsi(tids);
+
+         d = zeros(si);  % initialize data using pqlct ordering, no singelton removed
+         
+         % prepare constant part of data asignment format
+         asgn = repmat({':'}, 1, length(frmt));
+         
+         % external data positions
+         [~, epos] = ismember(frmt, [tfrmt{extids}]);
+         epos = epos > 0;
+         
+         nexttags = prod(tagrangesize(rawtagrsext));
+         
+         for ci = 1:ncells
+            ctag = ind2tag(ctrgs, ci);
+
+            % constant internal data tags
+            consttrgs = parseParameter(rawtagrsint, ctag);
+         
+            % load data: loop over external tags
+
+            for t = 1:nexttags
             
+               [datatagext, dids] = ind2tag(rawtagrsext, t);
+            
+               cmd = obj.command(consttrgs, datatagext); 
+            
+               %fprintf('ImageSourceTagged: evaluating command: %s\n', cmd);
+               dr = eval(cmd);
+
+               % replace specified external tags with corresponding ids
+               asgn(epos) = num2cell(dids);
+               d(asgn{:}) = dr;
+            end
+
+            % order according to output format
+            d = impqlpermute(d, frmt, obj.info.idataformat);
+         
+            % remove singeltons
+            d = squeeze(d);
+            
+            c{ci} = d;
          end
       end
       
+      
+      function d = data(obj, varargin)
+         if nargin > 1 && isnumeric(varargin{1}) % acces by id
+            tag = obj.ind2tag(varargin{:});
+            d = obj.getData(tag);
+         else
+            d = obj.getData(varargin{:});
+         end
+      end
+            
+         
+      function d = celldata(obj, varargin)
+         if nargin > 1 && isnumeric(varargin{1}) % acces by id
+            tag = obj.ind2tag(varargin{:});
+            d = obj.getCellData(tag);
+         else
+            d = obj.getCellData(varargin{:});
+         end
+      end
 
       
       
+      % data routine should work out of the box using getData
       
       
+      function si = datasize(obj, varargin)
+         if nargin < 2
+            si = obj.iinfo.idatasize;
+         else
+            si = obj.iinfo.idatasize;
+            tgrs = obj.parseTagRanges(varargin{:});
+            tsi = tagrangesize(tgrs);
+            [tids, tpos] = ismember(obj.itagformat, num2cell(obj.dataformat));
+            tpos = tpos(tids);
+            si(tpos) = tsi(tids);
+            si(si==1) = [];
+         end
+      end
       
       
+      function df = dataformat(obj, varargin)
+         if nargin < 2
+            df = obj.iinfo.idataformat;
+         else
+            df = obj.iinfo.idataformat;
+            tgrs = obj.parseTagRanges(varargin{:});
+            tsi = tagrangesize(tgrs) < 2;
+            [tids, tpos] = ismember(obj.itagformat, num2cell(df));
+            tids = and(tsi, tids > 0);
+            df(tpos(tids)) = [];
+         end
+      end
       
       
-      
-      
-      
+      function cs = cellsize(obj, varargin)
+         if nargin < 2
+            cs = obj.iinfo.icellsize;
+         else
+            ctrgs = obj.celltagranges(varargin{:});
+            cs   = tagrangesize(ctrgs);
+         end
+      end
+
+      function cs = cellformat(varargin)
+         cs = '';
+      end
       
 
-
-
-
-      
-      
+    
       
       function info = infoString(obj)
          info = infoString@ImageSource(obj);
-         info = [info, '\nfilename:   ', obj.ifilename];
-         info = [info, '\ncommand:    ', obj.icommand];
-         info = [info, '\ninfocommand:', obj.iinfocommand]; 
-         info = [info, '\ndataformat: ', obj.idataformat];
-         info = [info, '\ntagexpr:  ', obj.itagexpr];
-         info = [info, '\nntags:      ', var2char(obj.ntags)];
-         info = [info, '\ntagsize:    ', var2char(obj.tagrangesize)];
+         info = [info, '\nfilename:    ', obj.ifilename];
+         info = [info, '\nreadcommand: ', obj.ireadcommand];
+         info = [info, '\ninfocommand: ', obj.iinfocommand]; 
+
+         info = [info, '\nntags:       ', var2char(obj.ntags)];
+         info = [info, '\ntagnames:    ', var2char(obj.tagnames)];
+         info = [info, '\ntagrangesize:', var2char(obj.tagrangesize)];
+         info = [info, '\ntagformat:   ', var2char(obj.itagformat)];
+         info = [info, '\ntaginternal: ', var2char(obj.itaginternal)];
       end
 
    end

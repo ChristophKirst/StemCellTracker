@@ -4,10 +4,13 @@ function [ashifts, asize] = absoluteShiftsAndSize(shifts, imagesizes)
 %
 % description:
 %     calculates the full size of the algined image and absolute shifts of
-%     the individual images give the relative shifts w.r.t to the first image
-%     and individual image sizes 
+%     the individual images such that all shifts are minimally positive
+%     the output can be used to assemble the image
 
-if ~iscell(imagesizes) || ~iscell(shifts) || any(size(imagesizes) ~= size(shifts))
+%shifts
+%imagesizes
+
+if ~iscell(imagesizes) || ~iscell(shifts) || numel(imagesizes) ~= numel(shifts)
    error('absoluteShiftsAndSize: inconsistent input');
 end
 

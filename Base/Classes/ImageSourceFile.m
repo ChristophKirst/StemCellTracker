@@ -55,15 +55,20 @@ classdef ImageSourceFile < ImageSource
       % access methods methods 
       % to obtain non-cached cached/preset info
 
-      function img = getData(obj, varargin)
-         img = obj.ireader(obj.ifilename);
+      % get raw image data
+      function d = getData(obj, varargin)
+         d = obj.ireader(obj.ifilename, varargin{:});
+
+         if ~isempty(obj.iinfo.irawformat)
+            d = impqlpermute(d, obj.iinfo.irawformat, obj.iinfo.idataformat);
+         end
       end
-      
-      function obj = setData(obj, varargin) % set the image data
+
+      function obj = setData(obj, d)
          warning('ImageSourceFile: writing image data not suported, changes not propagated to disk!');
-         obj.idata  = varargin{1}; 
+         obj.iimage = d; 
          obj.chache = true;
-         i = imdata2info(obj.idata);
+         i = imdata2info(d);
          obj.setInfo(i);
       end
 

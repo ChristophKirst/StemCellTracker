@@ -30,6 +30,10 @@ if getParameter(param, 'check', true);
    %take care of multiple occurences of a tag
    [~,~,tinfo] = tagexpr2tagnames(texpr);
    
+   if isempty(fieldnames(tinfo))
+      return
+   end
+   
    if any(cellfun(@length, {tinfo.pos}) > 1)
       tags = tagexpr2tags(texpr, fns, 'check', false);
       fns2 = tagexpr2string(texpr, tags);

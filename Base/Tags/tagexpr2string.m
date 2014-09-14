@@ -24,11 +24,13 @@ if nargin < 2
    return 
 end
 
-if nargin < 3
+if nargin == 2
    tags = varargin{1};
 else
    tags = parseParameter(varargin{:});
 end
+%tags
+
 
  if isempty(tags) || isemptystruct(tags)
    name = texpr;

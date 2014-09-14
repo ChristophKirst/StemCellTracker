@@ -87,19 +87,20 @@ if ar
       isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
       isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
 
-      iinfo(s).isizePQLCT = isizePQLCT;
-      isize = iinfo(s).isizePQLCT;
+      iinfo(s).idatasizePQLCT = isizePQLCT;
+      
+      isize = iinfo(s).idatasizePQLCT;
       iformat = 'pqlct';
    
       if sq
-         iinfo(s).isize = isize(isize ~= 1); % size after squeezing
-         iinfo(s).iformat = iformat(isize ~=1); % format after squeeze
+         iinfo(s).idatasize   = isize(isize ~= 1); % size after squeezing
+         iinfo(s).idataformat = iformat(isize ~=1); % format after squeeze
       else
-         iinfo(s).isize = isize;
-         iinfo(s).iformat = iformat;
+         iinfo(s).idatasize = isize;
+         iinfo(s).idataformat = iformat;
       end
 
-      iinfo(s).iclass = 'double'; % bf read always returns double !
+      iinfo(s).idataclass = 'double'; % bf read always returns double !
       
       % meta data
       if meta
@@ -123,6 +124,10 @@ if ar
          iinfo(s).imetadata = [];
       end
       
+      iinfo(s).irawformat = iinfo(s).idataformat;
+      iinfo(s).irawsize   = iinfo(s).idatasize;
+      iinfo(s).icellsize = numSeries;
+      iinfo(s).icellformat ='u';    
    end
 
 else
@@ -143,20 +148,20 @@ else
    isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
    isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
    
-   iinfo.isizePQLCT = isizePQLCT;
+   iinfo.idatasizePQLCT = isizePQLCT;
    
-   isize = iinfo.isizePQLCT;
+   isize = iinfo.idatasizePQLCT;
    iformat = 'pqlct';
    
    if sq
-      iinfo.isize = isize(isize ~= 1); % size after squeezing
-      iinfo.iformat = iformat(isize ~=1); % format after squeeze
+      iinfo.idatasize = isize(isize ~= 1); % size after squeezing
+      iinfo.idataformat = iformat(isize ~=1); % format after squeeze
    else      
-      iinfo.isize = isize;
-      iinfo.iformat = iformat; 
+      iinfo.idatasize = isize;
+      iinfo.idataformat = iformat; 
    end
    
-   iinfo.iclass = 'double'; % bf read always returns double !
+   iinfo.idataclass = 'double'; % bf read always returns double !
 
    % meta data
    if meta
@@ -179,6 +184,10 @@ else
    else
       iinfo.imetadata = [];
    end
+   
+   iinfo.irawformat = iinfo.idataformat;
+   iinfo.icellsize = numSeries;
+   iinfo.icellformat ='u';
  
 end
 end
@@ -268,17 +277,18 @@ function si = getSize(param, name, nameshort, isize)
    if isempty(si)
       si = isize;
    elseif iscell(si)
-      if length(si) ~= 2
-         error(['imread_bf_info: ', name, ' indices not a cell of {minid,maxid} but %s!'], var2char(si))
-      end
-      
-      if isempty(si{2}) || ischar(si{2}) || si{2} > isize  % char = 'end'
-         si{2} = isize;
-      end
-      if isempty(si{1}) || ischar(si{1}) || si{1} < 1
-         si{1} = 1;
-      end
-      si = si{2} - si{1};
+%       if length(si) ~= 2
+%          error(['imread_bf_info: ', name, ' indices not a cell of {minid,maxid} but %s!'], var2char(si))
+%       end
+%       
+%       if isempty(si{2}) || ischar(si{2}) || si{2} > isize  % char = 'end'
+%          si{2} = isize;
+%       end
+%       if isempty(si{1}) || ischar(si{1}) || si{1} < 1
+%          si{1} = 1;
+%       end
+%       si = si{2} - si{1};
+      si = cell2mat(si);
    end
  
    if si > isize || si < 1

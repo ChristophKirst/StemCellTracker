@@ -11,8 +11,8 @@ function varargout = plotAlignedImages(imgs, shifts)
 %    shifts  shifts
 
 
-size(imgs)
-size(shifts)
+%size(imgs)
+%size(shifts)
 
 if ~iscell(imgs) || ~iscell(shifts) || any(size(imgs) ~= size(shifts))
    error('plotAlignedImages: inconsistent input');
@@ -44,23 +44,29 @@ switch dim
          [0.125,0.25,  0   ],...
          [0.125,0,     0.25]};
    otherwise
-      cols = {[0, 1, 0], [1, 0, 1]};
+      cols = {[0.5, 0.5, 0], [0, 0.5, 0.5], [0.5, 0, 0], [0, 0, 0.5]};
+   %   cols = {[0, 1, 0], [1, 0, 1]};
 end
 
 si = padright(size(imgs), 3, 1);
 cl = length(cols);
 img = imgray2color(zeros(asize), 'white');
 
-switch class(imgs{1})
-   case 'unit32'
-      nrm = 2^32;
-   case 'uint16'
-      nrm = 2^16;
-   case 'uint8'
-      nrm = 2^8;
-   otherwise
-      nrm = 1.0;
-end
+
+
+% switch class(imgs{1})
+%    case 'unit32'
+%       nrm = 2^32;
+%    case 'uint16'
+%       nrm = 2^16;
+%    case 'uint8'
+%       nrm = 2^8;
+%    otherwise
+%       nrm = 1.0;
+% end
+
+imax = cellfun(@(x) max(x(:)), imgs);
+nrm = double(max(imax(:)));
 
 cs = -1;
 ci = 0;
@@ -87,7 +93,7 @@ for k = 1:si(3)
    end
 end
 
-implot(img)
+implot(img);
 
 if nargout > 0
    varargout{1} = img;

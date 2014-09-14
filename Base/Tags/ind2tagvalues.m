@@ -1,4 +1,4 @@
-function tvs = ind2tagvalues(tagranges, i)
+function [tvs, ids] = ind2tagvalues(tagranges, i)
 
 si = tagrangesize(tagranges);
 ids = imind2sub(si, i);

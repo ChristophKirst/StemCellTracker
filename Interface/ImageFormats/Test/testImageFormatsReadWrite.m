@@ -49,6 +49,12 @@ imshow(imgir)
 imsubplot(1,3,3)
 imshow(imguir)
 
+
+%% info
+
+iir = imfinfo('test.tif')
+iuir = imfinfo('testu.tif')
+
 %% 
 clc
 size(img)
@@ -76,13 +82,7 @@ size(img)
 {class(imgbf), class(imgubf)}
 
 
-
-
 %% info
-
-iir = imfinfo('test.tif')
-iuir = imfinfo('testu.tif')
-
 iibf = imread_bf_info('test.tif')
 iiubf = imread_bf_info('testu.tif')
 

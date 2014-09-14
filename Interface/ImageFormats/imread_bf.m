@@ -9,11 +9,11 @@ function [data, metatdata] = imread_bf(name, varargin)
 %    name   (optional)   filename
 %    param  (optional)   struct with optional entries (if not present gui is opened, [] imports everything)
 %           .series      ids of series to import (if array data is cell array) ([] = all)
-%           .time /.t    ids of time frames to import [tid1, tid2, ...], {tmin, tmax} ([] = all)
-%           .channel /.c ids of channels to import [cid1, cid2, ...] {cmin, cmax} ([] = all)
-%           .z /.l       pixel ids in z / l direction {zmin, zmax} ([] = all)
-%           .x /.p       pixel ids in x / p direction {xmin, xmax} ([] = all)
-%           .y /.q       pixel ids in y / q direction {ymin, ymax} ([] = all)
+%           .time /.t    ids of time frames to import [tid1, tid2, ...] or {tid1,tid1, ...} ([] = all)
+%           .channel /.c ids of channels to import [cid1, cid2, ...] or {cid1, cid2,...} ([] = all)
+%           .z /.l       pixel ids in z / l direction [lid1, lid2, ...] or {lid1,lid1, ...} ([] = all)
+%           .x /.p       pixel ids in x / p direction [pid1, pid2, ...] or {pid1,pid1, ...} ([] = all)
+%           .y /.q       pixel ids in y / q direction [qid1, qid2, ...] or {qid1,qid1, ...}{ymin, ymax} ([] = all)
 %           .metadata    read meta data (true)
 %           .gui         open gui to select series if there are multiple (full image series is imported by default)
 %           .maxmem      maximal estimated size of image in memory in GB (5)
@@ -160,12 +160,18 @@ end
 fprintf('imread_bf: size of image: %g x %g x %g x %g x %g\n', sizeX, sizeY, sizeZ, sizeC, sizeT);
 data = zeros([sizeX, sizeY, sizeZ, sizeC, sizeT]);
 
-fprintf('Reading series #%d', s);
+
+printprogress  = numImages > 5;
+if printprogress
+   fprintf('Reading series #%d', s);
+end
 for i = 1:numImages
-   if mod(i+1, 72) == 1
-      fprintf('\n    ');
+   if printprogress
+      if mod(i+1, 72) == 1
+         fprintf('\n    ');
+      end
+      fprintf('.');
    end
-   fprintf('.');
       
    zct = r.getZCTCoords(i-1) + 1;
    z = find(zids == zct(1), 1, 'first');
@@ -178,12 +184,15 @@ for i = 1:numImages
       %size( bfgetplane(r, i, x, y, h, w))
       bfdata = bfgetplane(r, i, xs, ys, w, h);   
       
-      size(bfdata)
+      %size(bfdata)
       
       data(:,:,z,c,t) = bfdata(xids, yids);
    end 
 end
-fprintf('\n');
+
+if printprogress
+   fprintf('\n');
+end
 
 if getParameter(param, 'squeeze', true)
    data = squeeze(data);
@@ -259,17 +268,19 @@ function ids = getIds(param, name, nameshort, maxid)
    if isempty(ids)
       ids = 1:maxid;
    elseif iscell(ids)
-      if length(ids) ~= 2
-         error(['imread_bf: ', name, ' indices not a cell of {minid,maxid} but %s!'], var2char(ids))
-      end
+      %if length(ids) ~= 2
+      %   error(['imread_bf: ', name, ' indices not a cell of {minid,maxid} but %s!'], var2char(ids))
+      %end
       
-      if isempty(ids{2}) || ischar(ids{2}) || ids{2} > maxid  % char = 'end'
-         ids{2} = maxid;
-      end
-      if isempty(ids{1}) || ischar(ids{1}) || ids{1} < 1
-         ids{1} = 1;
-      end
-      ids = ids{1} : ids{2};
+      %if isempty(ids{2}) || ischar(ids{2}) || ids{2} > maxid  % char = 'end'
+      %   ids{2} = maxid;
+      %end
+      %if isempty(ids{1}) || ischar(ids{1}) || ids{1} < 1
+      %   ids{1} = 1;
+      %end
+      %ids = ids{1} : ids{2};
+      
+      ids = cell2mat(ids);
    end
 
    ids = ids(:)';

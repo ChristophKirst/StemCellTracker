@@ -10,34 +10,32 @@ classdef ImageInfo < matlab.mixin.Copyable
    %    tags can be linked to cell or image dims
    
    properties
-      isize      = [];             % size of the image as returned by .data routine 
-      iformat    = '';             % format of the image as returned by .data routine
-      
-      isizePQLCT = [0,0,0,0,0];    % size of the image for full pqlct dimensions
+      idatasize      = [];           % size of the image as returned by .data routine 
+      idataformat    = '';           % format of the image as returned by .data routine
+     
+      idatasizePQLCT = [0,0,0,0,0];  % size of the image for full pqlct dimensions
 
-      icellsize   = 1;             % size of the cell structure as returend when using .celldata routine
-      icellformat = '';            % format of the cell structure (usually fixed subset of uvwrs)
+      icellsize   = 1;               % size of the cell structure as returend when using .celldata routine
+      icellformat = '';              % format of the cell structure (usually fixed subset of uvwrs)
+     
+      irawsize   = [];               % size of the raw data, [] = isize
+      irawformat = '';               % format of the raw image data, when read from a file, '' = iformat
+  
+      idataclass = '';               % class of the image
+            
+      icolor = {};                   % colors for the channels
       
-      %icellsizeUVWRS = [0,0,0,0,0] % size of the cell for full uvwrs dimensions 
-      
-      irawformat = '';             % format of the raw image data when read from a file, '' = iformat
-      %irawcellformat = '';        % format of the raw cell structure , '' = icellformat
+      iseries = 1;                   % (optional) series number or ids if image if from a larger file 
+      iseriesformat = '';            % (optional) dimension the series is linked to 
 
-      iclass = '';                 % class of the image
-      
-      icolor = {};                 % colors for the channels
-      
-      iseries = 1;                 % (optional) series number or ids if image if from a larger file 
-      iseriesdim = '';             % (optional) dimension the series is linked to 
+      inimages = [];                 % (optional) number of total 2d images as counted via loci tools
 
-      inimages = [];               % (optional) number of total 2d images as counted via loci tools
-
-      imetadata = [];              % (optional) meta data
+      imetadata = [];                % (optional) meta data
       
-      iscale = [];                 % (optional) spatial scale of image in pixel per spatial unit
-      iunit = '';                  % (optional) spatial unit
+      iscale = [];                   % (optional) spatial scale of image in pixel per spatial unit
+      iunit = '';                    % (optional) spatial unit
       
-      iname  = [];                 % (optional) name of the image 
+      iname  = [];                   % (optional) name of the image 
       
       %ikeys = ImageKeys;           % translation between shortcut key (e.g. 'dapi') and a subset of the data (e.g. 'c' -> 1)
    end
@@ -47,62 +45,42 @@ classdef ImageInfo < matlab.mixin.Copyable
       %%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% init
       
-      function obj = initFromBf(obj)
-         obj.irawformat = obj.iformat;
-         obj.icellsize = length(obj.iseries);
-      end
-      
 
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% sizes
       
-      function d = dim(obj)
-         d = length(obj.iformat);
+      function d = datadim(obj)
+         d = length(obj.idataformat);
       end
       
       function d = celldim(obj)
          d = length(obj.icellformat);
       end
       
-      function obj = setSize(obj, newsize) %using this routine is usally not a good idea
-         obj.isize = newsize;
+      
+      
+      function obj = setDataSize(obj, newsize) %using this routine is usally not a good idea
+         obj.idatasize = newsize;
          obj.pqlctsizeFromFormatAndSize();
       end
+
       
-      
- 
-      function p = sizeP(obj)
-         p = obj.isizePQLCT(1);
+      function p = datasizeP(obj)
+         p = obj.idatasizePQLCT(1);
       end
-      function q = sizeQ(obj)
-         q = obj.isizePQLCT(2);
+      function q = datasizeQ(obj)
+         q = obj.idatasizePQLCT(2);
       end
-      function l = sizeL(obj)
-         l = obj.isizePQLCT(3);
+      function l = datasizeL(obj)
+         l = obj.idatasizePQLCT(3);
       end
-      function c = sizeC(obj)
-         c = obj.isizePQLCT(4);
+      function c = datasizeC(obj)
+         c = obj.idatasizePQLCT(4);
       end
-      function t = sizeT(obj)
-         t = obj.isizePQLCT(5);
+      function t = datasizeT(obj)
+         t = obj.idatasizePQLCT(5);
       end
-      
-%       function p = sizeU(obj)
-%          p = obj.isizeUVWRS(1);
-%       end
-%       function q = sizeV(obj)
-%          q = obj.isizeUVWRS(2);
-%       end
-%       function l = sizeW(obj)
-%          l = obj.isizeUVWRS(3);
-%       end
-%       function c = sizeR(obj)
-%          c = obj.isizeUVWRS(4);
-%       end
-%       function t = sizeS(obj)
-%          t = obj.isizeUVWRS(5);
-%       end
 
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,64 +88,88 @@ classdef ImageInfo < matlab.mixin.Copyable
       
       function obj = pqlctsizeFromFormatAndSize(obj)
          frmt = 'pqlct';  
-         pos = arrayfun(@(x) find(x == frmt,1), obj.iformat);
-         obj.isizePQLCT = ones(1, 5);
-         obj.isizePQLCT(pos) = obj.isize;
+         pos = arrayfun(@(x) find(x == frmt,1), obj.idataformat);
+         obj.idatasizePQLCT = ones(1, 5);
+         obj.idatasizePQLCT(pos) = obj.idatasize;
       end
       
-      function d = rawdata2data(obj, d)
-         d = impqlpermute(d, obj.idataformat, obj.iformat);
-      end
-      
-      function s = size(obj, varargin)
-         if nargin == 1
-            s = obj.isize;
+      function d = raw2dataformat(obj, d, varargin)
+         if nargin > 2
+            rfrmt = varargin{1};
          else
-            s = obj.isize(obj.formatpos(varargin{1}));
+            rfrmt = obj.irawformat;
+         end
+         
+         if ~isempty(rfrmt)
+            d = impqlpermute(d, rfrmt, obj.idataformat);
          end
       end
       
-      function i = formatpos(obj, frmt)
-         [~, i] = ismember(frmt, obj.iformat);
+      function s = datasize(obj, varargin)
+         if nargin == 1
+            s = obj.idatasize;
+         else
+            s = obj.idatasize(obj.dataformatpos(varargin{1}));
+         end
+      end
+      
+      
+      
+      
+      function i = dataformatpos(obj, frmt)
+         [~, i] = ismember(frmt, obj.idataformat);
          %if length(frmt) ~= length(p)
          %   warning('ImageInfo: some image dimensions in %s are not found in %s', frmt, obj.iformat);
          %end 
       end
       
-      function i = dataformatpos(obj, frmt)
-         [~, i] = ismember(frmt, obj.idataformat);
+      function i = rawformatpos(obj, frmt)
+         [~, i] = ismember(frmt, obj.irawformat);
       end
       
        function i = cellformatpos(obj, frmt)
          [~, i] = ismember(frmt, obj.icellformat);
        end
-         
+
+       
+       function si = dataformatsize(obj, frmt)
+          i = obj.dataformatpos(frmt);
+          si = obj.idatasize;
+          si = si(i);
+       end
+       
+       function si = rawformatsize(obj, frmt)
+          i = obj.rawformatpos(frmt);
+          si = obj.irawsize;
+          si = si(i);
+       end
+       
        
        % exchanges names of the dimensions
-       function obj = renameFormat(obj, oldlab, newlab) 
+       function obj = renameDataFormat(obj, oldlab, newlab) 
           % check for conflict
-          if any(ismember(setdiff(obj.iformat, oldlab), newlab)) || length(oldlab) ~= length(newlab)
-             error('ImageInfo: renameFormat: inconsistent reformatting of format %s from %s to %s', obj.iformat, oldlab, newlab)
+          if any(ismember(setdiff(obj.idataformat, oldlab), newlab)) || length(oldlab) ~= length(newlab)
+             error('ImageInfo: renameFormat: inconsistent reformatting of format %s from %s to %s', obj.idataformat, oldlab, newlab)
           end
                     
-          ids = ismember(obj.iformat, oldlab);
-          obj.iformat(ids) = newlab;
+          ids = ismember(obj.idataformat, oldlab);
+          obj.idataformat(ids) = newlab;
           obj.pqlctsizeFromFormatAndSize();
        end
        
        
-       function obj = permuteFormat(obj, newformat)
+       function obj = setDataFormat(obj, newformat)
           % check for consistency
-          if length(obj.iformat) ~= length(newformat) || ~isempty(setdiff(obj.iformat, newformat))
-             error('ImageInfo: setFormat: inconsistent change of format fro %s to %s', obj.iformat, newformat)
+          if length(obj.idataformat) ~= length(newformat) || ~isempty(setdiff(obj.idataformat, newformat))
+             error('ImageInfo: setFormat: inconsistent change of format fro %s to %s', obj.idataformat, newformat)
           end
 
-          if isempty(obj.idataformat)
-             obj.idataformat = obj.iformat;
+          if isempty(obj.irawformat)
+             obj.irawformat = obj.idataformat;
           end
           
-          obj.isize   = obj.size(newformat);
-          obj.iformat = newformat;
+          obj.idatasize   = obj.datasize(newformat);
+          obj.idataformat = newformat;
        end
 
        
@@ -184,13 +186,13 @@ classdef ImageInfo < matlab.mixin.Copyable
              s = obj.iseries;
           end
           
-          sd = obj.iseriesdim;
+          sd = obj.iseriesformat;
  
-          ids = repmat({':'}, 1, obj.dim);
+          ids = repmat({':'}, 1, obj.datadim);
           if isempty(sd)
              return
           end
-          i = find(obj.iformat == sd, 1, 'first');
+          i = find(obj.idataformat == sd, 1, 'first');
           ids{i} = s;
        end
 
@@ -198,15 +200,11 @@ classdef ImageInfo < matlab.mixin.Copyable
           if nargin > 2
              frmt = varargin{1};
           else
-             frmt = obj.iformat;
+             frmt = obj.idataformat;
           end
-          
-          dat = impqlpermute(dat, obj.idataformat, frmt);
+
+          dat = impqlpermute(dat, obj.irawformat, frmt);
        end
 
-       function img = permuteImage(obj, img, frmt)
-          img = impqlpermute(img, obj.iformat, frmt);
-       end
-      
    end
 end

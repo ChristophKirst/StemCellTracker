@@ -18,7 +18,7 @@ isizes = cellfunc(@size, imgs);
 [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes);
 
 % find split into overlapping rectangles
-[regs, ids] = findOverlapRegions(ashifts, isizes);
+[regs, ids] = stitchImagesOverlapRegions(ashifts, isizes);
 
 % compose image
 img = zeros(asize);
