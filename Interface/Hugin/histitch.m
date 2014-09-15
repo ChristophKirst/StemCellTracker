@@ -84,7 +84,7 @@ else % list of images
       end
    end
    
-   %trivial stiching
+   %check for trivial stiching 
    if (nimgs == 1)
       img = imgs{1};
       if ~oread
@@ -102,16 +102,25 @@ else % list of images
    isize = cellfun(@size, imgs, 'UniformOutput', false);
    ashift = absoluteShiftsAndSize(shifts, isize);
 
-   resolution = 150;
+   %resolution = 150;
+   resolution = 1;
 
+   
+   % if images are double we need to rescale them to 0 - 1
+   if isequal(class(imgs{1}), 'double')
+      imgs = imrescaleall(imgs);
+   end
+   
+   mxval = immaxvalue(class(imgs{1}));
+   
    fnlist = '';
    for i = 1:nimgs
       imgo = imgs{i};
-   
+ 
       if dim==2
-         imgo = cat(3, imgo, immaxvalue(class(imgo)) * ones(size(imgo), 'like', imgo));
+         imgo = cat(3, imgo, mxval * ones(size(imgo), 'like', imgo));
       else
-         imgo = cat(3, imgo, immaxvalue(class(imgo)) * ones(size(imgo), 'like', imgo));
+         imgo = cat(3, imgo, mxval * ones(size(imgo), 'like', imgo));
       end
    
       %imgo = imrescale(imgo, 'class', 'uint16');

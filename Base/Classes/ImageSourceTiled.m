@@ -5,10 +5,13 @@ classdef ImageSourceTiled < ImageSource
 
    properties 
       isource      = [];               % image source
-      ialignment   = ImageAlignment    % image alignment
+      ialignment   = ImageAlignment;   % image alignment
       
-      itileformat = '';                % format of the tiling, usefull to permute tiling in correct way, to get tiles imuvwpermute(reshape(tiles, tilesize), tileformat. 'uvw') is used
-      itilesize   = [];                % size of the tiling  
+      itileformat = '';                % format of the tiling, usefull to permute tiling in correct way, to get tiles imuvwpermute(reshape(tiles, tileshape), tileformat, 'uvw') is used
+      itileshape  = [];                % shape of the tiling  
+      
+      icachetiles = 1;                 % tile caching;
+      itiles      = [];                % tile cache
    end
 
    methods
@@ -21,25 +24,26 @@ classdef ImageSourceTiled < ImageSource
 
          if nargin == 0
             return
-         elseif nargin == 1
+         elseif nargin >= 1
             if isa(varargin{1}, 'ImageSourceTiled') %% copy constructor
                obj = copy(varargin{1});
             elseif isa(varargin{1}, 'ImageSource')
-               obj.fromImageSource(varargin{:});
+               obj = obj.fromImageSource(varargin{:});
+            %else
+               %error('%s: invalid constructor input, expects char at position %g',class(obj), 1);
+            %end
+            %elseif nargin == 2 && isa(varargin{1}, 'ImageSource')  %% 
+            %   obj.fromImageSource(varargin{:});
             else
-               error('%s: invalid constructor input, expects char at position %g',class(obj), 1);
-            end
-         elseif nargin == 2 && isa(varargin{1}, 'ImageSource')  %% 
-            obj.fromImageSource(varargin{:});
-         else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, lower(varargin{i}))
-                  obj.(lower(varargin{i})) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
+               for i = 1:2:nargin % constructor from arguments
+                  if ~ischar(varargin{i})
+                     error('%s: invalid constructor input, expects char at position %g',class(obj), i);
+                  end
+                  if isprop(obj, lower(varargin{i}))
+                     obj.(lower(varargin{i})) = varargin{i+1};
+                  else
+                     warning('%s: unknown property name: %s ', class(obj), varargin{i})
+                  end
                end
             end
          end
@@ -47,14 +51,15 @@ classdef ImageSourceTiled < ImageSource
       
       
       function obj = fromImageSource(obj, source, varargin)
-         if nargin > 2
-            tsi = varargin{1};
-         else
-            tsi = source.cellsize;
-         end
+         param = parseParameter(varargin);
+         ts = getParameter(param, 'tileshape', source.cellsize);
+         tf = 'uvw';
+         tf = getParameter(param, 'tileformat', tf(1:length(ts)));
+
+         obj.itileshape  = ts;
+         obj.itileformat = tf;
          
-         obj.itilesize = tsi;
-         obj.ialignment = ImageAlignment(tsi);
+         obj.ialignment = ImageAlignment(ts);
          obj.isource = source;
       end
          
@@ -63,23 +68,63 @@ classdef ImageSourceTiled < ImageSource
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% routines required by alignment 
       
+      function id = tile2cellid(obj, id)
+         per = imuvwformat2permute(obj.itileformat, 'uvw');
+         id = imindpermute(obj.tilesize, per, id);
+      end
+
       function img = getTile(obj, id)
-         img = obj.isource.data(id);
+         % map id to id of the tileformatted data   
+         img = obj.isource.data(obj.tile2cellid(id));
       end
 
       function imgs = getTiles(obj)
-         imgs = obj.isource.celldata;
+         if obj.icachetiles && ~isempty(obj.itiles)
+            imgs = obj.itiles;
+         else
+            imgs = obj.isource.celldata;
+            
+            if ~isempty(obj.itileformat)
+               imgs = reshape(imgs, obj.itileshape);
+               imgs = imuvwpermute(imgs, obj.itileformat, 'uvw');
+            end
+            
+            if obj.icachetiles
+               obj.itiles = imgs;
+            end
+         end
+      end
+      
+      function obj = clearCache(obj)
+         clearCache@ImageSource(obj);
+         obj.itiles = [];
       end
       
       function si = getTileSizes(obj)
          ti = obj.isource.datasize;
-         ci = obj.isource.cellsize;
+         
+         if ~isempty(obj.itileformat)
+            ci = obj.tilesize;
+            ci = ci(imuvwformat2permute(obj.itileformat, 'uvw'));
+         else
+            ci = obj.isource.cellsize;
+         end
+         
          if length(ci) == 1
             ci(2) = 1;
          end
          si = repmat({ti}, ci);
       end
       
+      
+      function setTileFormat(obj, tfrmt)
+         obj.itileformat = tfrmt;
+      end
+      
+      
+      function tf = tileformat(obj)
+         tf = obj.itileformat;
+      end
       
       %%% same as above 
       function img = tile(obj, id)
@@ -94,12 +139,30 @@ classdef ImageSourceTiled < ImageSource
          imgs = obj.getTileSizes();
       end
       
+      function tsi = tilesize(obj)
+         if ~isempty(obj.itileshape)
+            tsi = obj.itileshape;
+            
+            if ~isempty(obj.itileformat)
+               tsi = tsi(imuvwformat2permute(obj.itileformat, 'uvw'));
+            end
+         else
+            tsi = obj.isource.cellsize;
+         end
+      end
+      
+      function td = tiledim(obj)
+         td = length(obj.tilesize);
+      end
+      
+
+      
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data access
 
       function d = getData(obj, varargin)
-         d = obj.ialignment.stitch(obj, varargin{:}); %if cache is on this will be cached automatically after first run
+         d = obj.ialignment.stitch(obj, varargin{:}); %if cache is on this will be cached automatically after first run when using the data routine
       end
    
 
@@ -117,9 +180,6 @@ classdef ImageSourceTiled < ImageSource
          ci = 1;
       end
 
-      function ti = tilesize(obj)
-         ti = obj.itilesize;
-      end
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% alignment routines
@@ -132,6 +192,13 @@ classdef ImageSourceTiled < ImageSource
          %      image shifts from pairwise shifts
 
          sh = obj.ialignment.imageShifts;
+         
+         if ~isempty(obj.itileformat)
+            per = imuvwformat2permute('uvw', obj.itileformat);
+            ts = obj.itileshape; ts = ts(per);
+            sh = reshape(sh, ts);
+            %sh = imuvwpermute(sh, obj.itileformat, 'uvw');
+         end
       end
 
       function obj = alignPairsFromShifts(obj, ishifts)
@@ -228,7 +295,7 @@ classdef ImageSourceTiled < ImageSource
          %
          % See also: plotAlignedImages
                   
-         plotAlignedImages(obj.getTiles, obj.imageShifts);
+         plotAlignedImages(obj.getTiles, obj.imageShifts, 'colors', obj.tiledim);
       end
  
       

@@ -1,4 +1,4 @@
-function img = stitchImagesByMean(imgs, shifts)
+function img = stitchImagesByMean(imgs, shifts, varargin)
 %
 % img = stitchImagesByMean(imgs, shifts)
 %

@@ -1,4 +1,4 @@
-function img = stitch2ImagesByOverwrite(img1, img2, shift)
+function img = stitch2ImagesByOverwrite(img1, img2, shift, varargin)
 %
 % img = stitch2ImagesByOverwrite(img1, img2, shift)
 %

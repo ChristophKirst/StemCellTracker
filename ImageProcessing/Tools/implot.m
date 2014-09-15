@@ -1,4 +1,4 @@
-function img = implot(img, varargin)
+function varargout = implot(img, varargin)
 %
 % implot(img, varargin)
 %
@@ -23,4 +23,8 @@ switch imf
       error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);
 end
 
+
+if nargout > 0
+   varargout{1} = img;
+end
      

@@ -1,4 +1,4 @@
-function varargout = plotAlignedImages(imgs, shifts)
+function varargout = plotAlignedImages(imgs, shifts, varargin)
 %
 % img = plotAlignedImages(imgs, shifts)
 %
@@ -10,11 +10,13 @@ function varargout = plotAlignedImages(imgs, shifts)
 %    imgs    images
 %    shifts  shifts
 
+param = parseParameter(varargin{:});
+
 
 %size(imgs)
 %size(shifts)
 
-if ~iscell(imgs) || ~iscell(shifts) || any(size(imgs) ~= size(shifts))
+if ~iscell(imgs) || ~iscell(shifts) || numel(imgs) ~= numel(shifts)
    error('plotAlignedImages: inconsistent input');
 end
 
@@ -28,7 +30,9 @@ imgsizes = cellfun(@size, imgs, 'UniformOutput', false);
 % 1d -> 2 colors, 2d -> 4 colors, 3d -> 8 colors
 
 dim = ndimsd(imgs);
-switch dim
+coldim = getParameter(param, 'colors', dim);
+
+switch coldim
    case 1
       cols = {[0, 1, 0], [1, 0, 1]};
    case 2
@@ -68,14 +72,14 @@ img = imgray2color(zeros(asize), 'white');
 imax = cellfun(@(x) max(x(:)), imgs);
 nrm = double(max(imax(:)));
 
-cs = -1;
+cs = 0;
 ci = 0;
 for k = 1:si(3)
    for j = 1:si(2)
       for i = 1:si(1)
          if i==1
             if j == 1
-               cs = mod((k-1) * 4 + 1, 8);
+               cs = mod((k-1) * 4 , 8);
             else
                if si(1) == 1
                   cs = mod(cs + 1, cl);

@@ -316,7 +316,6 @@
          % full internal data format 
          tint = obj.itaginternal > 0;
          tfrmt = obj.itagformat;
-         tfrmt(cellfun(@length, tfrmt)==0) = {'u'}; % replace empty slots with dummy -> todo: full extension: with uvwrs 
          if any(tint) 
             itfrmt = [tfrmt{tint}];
          else
@@ -357,7 +356,10 @@
          info.pqlctsizeFromFormatAndSize();
          
          % cell format and size
-         info.icellformat = ''; % sorted by occurence in tag expression 
+         tfrmt = cell2mat(tfrmt);
+         info.icellformat = setdiff(tfrmt, 'pqlct', 'stable');
+              
+         % sorted by occurence in tag expression 
          info.icellsize = tsi(setdiff(1:length(tsi), tpos)); % remainig tag sizes 
          
          % copy other info

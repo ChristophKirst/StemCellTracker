@@ -1,4 +1,4 @@
-function img = stitchImagesByOverwrite(imgs, shifts)
+function img = stitchImagesByOverwrite(imgs, shifts, varargin)
 %
 % img = stitchImagesByOverwrite(imgs, shifts)
 %

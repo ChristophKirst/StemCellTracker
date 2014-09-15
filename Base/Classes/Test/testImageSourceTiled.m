@@ -11,8 +11,6 @@ initialize
 bfinitialize
 
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ImageSourceTiled 
 
@@ -48,7 +46,8 @@ figure(1);
 implottiling(c)
 
 
-%% ImageSourceTiled
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ImageSourceTiled - more testing
 
 clear all
 clear classes
@@ -68,9 +67,8 @@ is.tagrangesize
 
 %%
 
-
 is.setTagRange('tile',  {45, 46, 47, 48,  41, 42, 43, 44,  37, 38, 39, 40,  33, 34, 35, 36})
-ist = ImageSourceTiled(is, [4,4])
+ist = ImageSourceTiled(is, 'tileshape', [4,4])
 
 
 %% get Tiles
@@ -117,7 +115,7 @@ ist.plotAlignedImages
 
 %%
 
-ist.imageShifts
+var2char(ist.imageShifts)
 
 %% stiching
 
@@ -142,13 +140,61 @@ figure(4)
 implot(img);
 
 
+%%
+
+sh= ist.imageShifts;
+tiles= ist.tiles;
+
+st = stitchImages(tiles(2:3), sh(2:3), 'method', 'Mean');
+figure(1); clf
+implot(st)
 
 
 
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ImageSourceTiled
+
+clear all
+clear classes
+close all
+clc
+
+initialize
+bfinitialize
+
+texpr = tagexpr('./Test/Images/hESCells_Tiling/*.tif', 'tagnames', {'tile'});
+is = ImageSourceTagged(texpr);
+is.setTagRange('tile', {37,38,33,34});
+
+ist = ImageSourceTiled(is, 'tileshape', [2,2], 'tileformat', 'uv');
 
 
+%%
+imgs = ist.tiles;
+size(imgs)
 
+figure(1); clf;
+implottiling(imgs)
+
+
+%%
+tic
+ist.align('overlap.max', 120,  'overlap.min', 80, 'shift.max', 20)
+toc
+
+%%
+figure(1); clf
+ist.plotAlignedImages
+
+
+%%
+st = ist.stitch('method', 'Hugin');
+
+figure(2); clf
+implot(st)
+
+%% nice
 

@@ -28,12 +28,10 @@ implottiling(imgs)
 
 %% Align Images using RMS method as reference
 
-sh = alignGlobally2ImagesByRMS(imgs{1}, imgs{2}, 'overlap.max', 500);
-sh{2}
+sh = align2ImagesByRMS(imgs{1}, imgs{2}, 'overlap.max', 500);
 
 figure(2); clf;
-
-plotAlignedImages(imgs(1:2), sh)
+plot2AlignedImages(imgs{1}, imgs{2}, sh)
 
 
 %% Align via Hugin
@@ -51,7 +49,7 @@ plotAlignedImages(imgs, sh)
 imgst = histitch(imgs, sh);
 
 figure(4); clf;
-implot(imgst)
+implot(imgst);
 
 
 %% Align Real Data via Hugin
@@ -101,14 +99,66 @@ img2 = img(200:end, 1:300);
 img3 = img(1:300, 200:end);
 img4 = img(200:end, 200:end);
 
-imgs= {img3, img4; img1, img2};
-imgsg = cellfun(@mat2gray, imgs, 'UniformOutput', false);
+imgs= {img1, img3; img2, img4};
+imgsg = cellfunc(@mat2gray, imgs);
 
 figure(1); clf
-implottiling(imgs)
+implottiling(imgs, 'link', false)
 
 
-sh = alignImages(imgs)
+sh = alignImagesOnGrid(imgs, 'overlap.max', 120, 'overlap.min', 80)
+
+
+figure(1); clf
+plotAlignedImages(imgs, sh)
+
+
+%%
+
+st = histitch(imgs, sh, 'temporary.cleanup', false);
+
+figure(2); clf
+implot(st)
+
+%%
+
+i1 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0001.tif');
+i2 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0002.tif');
+
+%st = stitchImages({i1, i2}, sh(1:2))
+
+figure(1)
+implottiling(cellfunc(@mat2gray,{i1(:,:,1); i2(:,:,1)}), 'link', false)
+
+
+figure(2)
+implottiling(cellfunc(@mat2gray,{i1(:,:,2); i2(:,:,2)}), 'link', false)
+
+
+
+%%
+
+i1 =imread_bf_info('/tmp/tp318a4c12_f82b_429c_9195_5ebcd5a8c8e60001.tif');
+i2 =imread_bf_info('/tmp/tp318a4c12_f82b_429c_9195_5ebcd5a8c8e60002.tif');
+
+
+i1.imetadata
+
+i2.imetadata
+
+%%
+
+st2 = stitchImages(imgs, sh, 'method', 'Mean');
+
+figure(3); clf
+implottiling({st; st2}, 'link', false)
+
+
+%%
+
+
+
+
 
 
 

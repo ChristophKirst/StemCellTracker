@@ -1,4 +1,4 @@
-function img = stitchImagesByMax(imgs, shifts)
+function img = stitchImagesByMax(imgs, shifts, varargin)
 %
 % img = stitchImagesByMax(imgs, shifts)
 %

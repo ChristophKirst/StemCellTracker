@@ -98,7 +98,7 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
 
 
 
-      np = length(pairs)
+      np = length(pairs);
   
       if isentry(pairs, 'orientation') && ~isempty(pairs(1).orientation)  %% assuming either all pairs have oriantion or none
          isorient = true;
@@ -106,9 +106,8 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
       else
          isorient = false;
          fun = str2func(['align2ImagesBy' algn]);
-      end
-      
-      isorient
+      end  
+      %isorient
 
       if istiling
          
@@ -174,8 +173,8 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
       
       
       if ~istiling
-         si = size(imgs)
-         size(shifts)
+         si = size(imgs);
+         %size(shifts)
          shifts = reshape(shifts, si);
       end
 

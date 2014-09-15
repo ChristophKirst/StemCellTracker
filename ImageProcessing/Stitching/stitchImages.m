@@ -27,7 +27,7 @@ end
 
 fun = str2func(['stitchImagesBy' meth]);
 
-img = fun(imgs, shifts);
+img = fun(imgs, shifts, param);
 
 end
 

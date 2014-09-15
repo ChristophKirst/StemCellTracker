@@ -1,4 +1,4 @@
-function img = stitchImagesByMin(imgs, shifts)
+function img = stitchImagesByMin(imgs, shifts, varargin)
 %
 % img = stitchImagesByMin(imgs, shifts)
 %
