@@ -1,6 +1,6 @@
 function troughs = findTroughs(x, delta, k)
 %
-% peaks = findTroughs(X)
+% troughs = findTroughs(X)
 %
 % description:
 %    finds troughs in time series x

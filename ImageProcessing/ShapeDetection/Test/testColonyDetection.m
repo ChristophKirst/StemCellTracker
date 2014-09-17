@@ -59,10 +59,13 @@ implottiling(cellfunc(@mat2gray, {imgr; imgrf; imgro}));
 %% find threshold via histogram
 
 figure(1); clf
-hist(mat2gray(imgro(:)), 256)
+hist(mat2gray(imgro(:)), 40)
+
+th = thresholdFirstMin(mat2gray(imgro))
+
 
 %%
-imgm = mat2gray(imgro) > 0.1;
+imgm = mat2gray(imgro) > th;
 implottiling(cellfunc(@mat2gray, {imgr; imgrf; imgro; imgm}));
 
 
@@ -109,8 +112,7 @@ r = r + 0.05 * r;
 
 viscircles(c', r)
 
-%%
-viscircles([700,100], 10)
+
 
 %%
 
@@ -137,9 +139,6 @@ viscircles(centers(id,:), radii(id), 'EdgeColor', 'b')
 
 % methods to find circles ???
 
-
-
-
 imgd = mat2gray(imgr);
 
 imgf = medianFilter(imgd, 5);
@@ -158,6 +157,6 @@ implottiling({255 * imgd; 255 * imgf; imoverlay(imgd, imgp)})
 X= [p,q];
 
 clf
- alphavol(X,20,1);
+alphavol(X,20,1);
 
 

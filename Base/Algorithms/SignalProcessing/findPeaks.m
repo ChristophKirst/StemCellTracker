@@ -3,7 +3,7 @@ function peaks = findPeaks(x, delta, k)
 % peaks = findPeaks(X)
 %
 % description:
-%    finds peaks in yime series x
+%    finds peaks in time series x
 %
 % input:
 %    x      time series

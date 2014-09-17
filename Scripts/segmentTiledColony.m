@@ -42,7 +42,7 @@ ist = ImageSourceTiled(is, 'tileshape', [4,4], 'tileformat', 'uy');
 ist.icachetiles = true; 
 
 
-%% Plot the tiled data 
+%% Plot the tiles 
 imgs = ist.tiles;
 
 if verbose
@@ -71,7 +71,7 @@ end
 
 %% Cut to ROI 
 
-%small regoin for illustrating purposes
+% here small region for illustrating purposes
 img = imgst(800:1000, 800:1000);
 
 if verbose
