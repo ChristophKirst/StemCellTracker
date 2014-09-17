@@ -38,7 +38,7 @@ if nargin > 1 && iscell(varargin{1})
 else
    shifts = {};
 end
-shifts
+%shifts
 
 param = parseParameter(varargin{:});
 
@@ -97,7 +97,8 @@ else % list of images
    end
       
    %write images to temporary files and create image filename list
-   resolution = 150;
+   %resolution = 150;
+   resolution = 1;
 
    ifilelist = '';
    for i = 1:nimgs
@@ -123,7 +124,7 @@ end
 % set lens parameter
 
 % we dont optimize for TrZ=0
-% -> field of view has to be adjusted for each lens to match image size
+% => field of view has to be adjusted for each lens to match image size
 
 pto = hiparsepto(ptofile);
 
@@ -157,17 +158,25 @@ if ~isempty(shifts)
       setTr = [setTr, 'TrZ', num2str(i-1), '=', num2str(pto(i).TrZ), ',']; %#ok<AGROW>
    end
    
-   cmd = [hitools('pto_var'), ' -o ', ptofile, ' ', setTr, ' ', ptofile]
+   cmd = [hitools('pto_var'), ' -o ', ptofile, ' ', setTr, ' ', ptofile];
    ret = system(cmd);
    if ret
       error('hiptogenerate: error changing pto file via command: %s', cmd);
    end
 end
 
-% unlink images to get individual lenses for each image
+% unlink images to get individual lenses for each image / unlink vignetting ?
 ulink = getParameter(param, 'image.unlink', true);
-if ulink
+if isempty(ulink)
+   ulink = false;
+elseif iscell(ulink)
+   ulinkvars = ulink;
+   ulink = true;
+else
    ulinkvars = {'v', 'Ra', 'Rb', 'Rc', 'Rd', 'Re', 'a', 'b', 'c', 'd', 'e', 'g', 't', 'Va', 'Vb', 'Vc', 'Vd', 'Vx', 'Vy'};
+end
+   
+if ulink
    ulink = '--unlink ';
    for u = 1:length(ulinkvars)
       for i = 0:nimgs-1

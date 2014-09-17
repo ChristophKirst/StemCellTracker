@@ -30,7 +30,7 @@ titles = {};
 if nargin > 1
    if iscellstr(varargin{1})
       titles = varargin{1};
-      varargin = varargin{2:end};
+      varargin = varargin(2:end);
    end
 end
 
@@ -64,7 +64,7 @@ if ~iscell(imgs)
    %class(imgs)
 else
    if isempty(clim)
-      clim = cscale(imgs)
+      clim = cscale(imgs);
    end
 end
 

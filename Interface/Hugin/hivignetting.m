@@ -1,6 +1,6 @@
-function imgs = hiphotometricoptimization(imgs, shifts, varargin)
+function vign = hivignetting(imgs, shifts, varargin)
 %
-% imgs = hiphotometricoptimization(imgs, shifts, varargin)
+% imgs = hivignetting(imgs, shifts, varargin)
 %
 % description:
 %    optimize photometrics of images by estimating vignetting (r^6 polynomial) and exposure
@@ -12,19 +12,14 @@ function imgs = hiphotometricoptimization(imgs, shifts, varargin)
 %    param   parameter struct with entries
 %            project.filename      project filename (tempname)
 %            project.cleanup       cleanup temporary project filename (true)
-%            project.read          parse pto file and read shifts (true)
 %            image.filename        temporary image file header (tempname)
 %            image.cleanup         cleanup temporary image files (true)
-
-
-%            options.ptogen        options for pto_gen ('')
-%            opttionsptovar        options for pto_var ('--opt TrX,TrY --set v=10')
-%            options.cpfind        options for cpfind ('--multirow --celeste')
+%            options.link          options for which parameters to link
+%            options.otimize       paramter to optimize 
 %            options.autooptimiser options for autooptimiser ('-n')
 %
 % output:
-%    shifts  relative shifts of images in pixel coordinates and pixel units
-%    ptofile for project.read == false the pto filename
+%    vign    vignetting image (assumes images are same size)
 %
 % See also: histitch, hialign
 
@@ -35,7 +30,7 @@ end
 
 nimgs = length(imgs(:));
 if nimgs <= 1
-   error('hiphotometricoptimization: no multiple images to photometric optimize');
+   error('hivignetting: no multiple images to estimate vignetting');
 end
 
 param = parseParameter(varargin{:});

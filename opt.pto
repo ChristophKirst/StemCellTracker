@@ -1,0 +1,94 @@
+# hugin project file
+#hugin_ptoversion 2
+p f2 w3000 h1500 v360  E0 R0 n"TIFF_m c:LZW r:CROP"
+m g1 i0 f0 m2 p0.00784314
+
+# image lines
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev3.66440617195036 Er1 Eb1 r0 p0 y0 TrX0 TrY0 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va1.74263264403794 Vb1.12391707783135 Vc0.718669372244679 Vd-2.89993615877073 Vx-0.00201288856191683 Vy0.00127250147214291  Vm5 n"test0001.tif"
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev-1.87239191471957 Er1 Eb1 r0 p0 y0 TrX-3.4088e-05 TrY0.014726 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va2.73456373912242 Vb-1.42932455895816 Vc-2.1925414058349 Vd-2.17560195366976 Vx-0.00452370617303227 Vy-0.000745612915424443  Vm5 n"test0002.tif"
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev0.133258715289715 Er1 Eb1 r0 p0 y0 TrX0.014726 TrY6.8176e-05 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va0.9582103703258 Vb-0.675618119959826 Vc-0.981093342837835 Vd-1.18907799274996 Vx-0.0322914754854044 Vy0.00922323417179518  Vm5 n"test0003.tif"
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev-0.117033363581949 Er1 Eb1 r0 p0 y0 TrX0.014726 TrY0.01476 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va1.56969759061624 Vb-1.13935348842029 Vc-1.38812960498606 Vd-1.02536154304573 Vx0.0201126775925359 Vy-0.0208176006277121  Vm5 n"test0004.tif"
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev-1.85520304699807 Er1 Eb1 r0 p0 y0 TrX0 TrY0 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va0.53913298036465 Vb-2.80218324654174 Vc-2.26416699378774 Vd1.04005364380488 Vx-0.0384070124635148 Vy0.434078952640194  Vm5 n"test0005.tif"
+#-hugin  cropFactor=1
+i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev0.658303395287165 Er1 Eb1 r0 p0 y0 TrX0 TrY0 TrZ0 j0 a0 b0 c0 d0 e0 g0 t0 Va-0.603941820398097 Vb-0.436097843765611 Vc-1.62590091549011 Vd-0.363158882977048 Vx-0.027731651988889 Vy0.0113496598322561  Vm5 n"test0006.tif"
+
+
+# specify variables that should be optimized
+v Eev0
+v Va0
+v Vb0
+v Vc0
+v Vd0
+v Vx0
+v Vy0
+v Eev1
+v Va1
+v Vb1
+v Vc1
+v Vd1
+v Vx1
+v Vy1
+v Eev2
+v Va2
+v Vb2
+v Vc2
+v Vd2
+v Vx2
+v Vy2
+v Eev3
+v Va3
+v Vb3
+v Vc3
+v Vd3
+v Vx3
+v Vy3
+v Eev4
+v Va4
+v Vb4
+v Vc4
+v Vd4
+v Vx4
+v Vy4
+v Eev5
+v Va5
+v Vb5
+v Vc5
+v Vd5
+v Vx5
+v Vy5
+v
+
+
+# control points
+
+#hugin_optimizeReferenceImage 0
+#hugin_blender enblend
+#hugin_remapper nona
+#hugin_enblendOptions 
+#hugin_enfuseOptions 
+#hugin_hdrmergeOptions 
+#hugin_outputLDRBlended true
+#hugin_outputLDRLayers false
+#hugin_outputLDRExposureRemapped false
+#hugin_outputLDRExposureLayers false
+#hugin_outputLDRExposureBlended false
+#hugin_outputLDRStacks false
+#hugin_outputLDRExposureLayersFused false
+#hugin_outputHDRBlended false
+#hugin_outputHDRLayers false
+#hugin_outputHDRStacks false
+#hugin_outputLayersCompression LZW
+#hugin_outputImageType tif
+#hugin_outputImageTypeCompression LZW
+#hugin_outputJPEGQuality 100
+#hugin_outputImageTypeHDR exr
+#hugin_outputImageTypeHDRCompression LZW
+#hugin_outputStacksMinOverlap 0.7
+#hugin_outputLayersExposureDiff 0.5
+#hugin_optimizerMasterSwitch 0
+#hugin_optimizerPhotoMasterSwitch 0

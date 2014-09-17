@@ -298,14 +298,16 @@ classdef ImageSourceTiled < ImageSource
          plotAlignedImages(obj.getTiles, obj.imageShifts, 'colors', obj.tiledim);
       end
  
+
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % infoString
       function istr = infoString(obj)
-         istr = infoString@ImageSource(obj, 'File');
-         istr = [istr, '\nfilename:   ', obj.ifilename];
-         istr = [istr, '\nreader:     ', func2str(obj.ireader)];
-         istr = [istr, '\ninforeader: ', func2str(obj.iinforeader)]; 
+         istr = infoString@ImageSource(obj, 'Tiled');
+         istr = [istr, '\ntileformat:     ', var2char(obj.itileformat)];
+         istr = [istr, '\ntileshape:      ', var2char(obj.itileshape)];
+         istr = [istr, '\ncachetiles:     ', var2char(obj.icachetiles)];  
+         istr = [istr, '\n', obj.isource.infoString];    
       end
       
    end

@@ -77,58 +77,121 @@ classdef DataObject < Object
       end
       
       
-      function val = value(obj, sname)
+      function val = getData(obj, sname)
          %
-         % val = stat(sname)
+         % val = obj.getData(sname)
          %
          % description:
-         %     returns the value of the field ['ch' num2str(ch) '_' fname]
+         %     returns the value of the field sname
             
             val = [obj.data];
             val = [val.(sname)]; 
       end
       
       
+      function cname = channelName(~, ch, fname)
+      %
+      % val = channelname(ch, fname)
+      %
+      % description:
+      %     returns the value of the field ['ch' num2str(ch) '_' fname]
+      
+         if nargin < 3
+            fname = '';
+         end
+         if isempty(fname)
+            cname = ['ch_', num2str(ch)];
+         else
+            cname = ['ch_', num2str(ch) '_' fname];
+         end
+      end
+      
+      
       % easier data access
-      function val = channel(obj, ch, fname)
-         %
-         % val = channel(ch, fname)
-         %
-         % description:
-         %     returns the value of the field ['ch' num2str(ch) '_' fname]
-            
-            fname = ['ch', num2str(ch) '_' fname];
-            val = [obj.data];
-            val = [val.(fname)]; 
+      function val = channelData(obj, varargin)
+      %
+      % val = channel(ch, fname)
+      %
+      % description:
+      %     returns the value of the field ['ch' num2str(ch) '_' fname]
+         
+         cname = obj.channelName(varargin{:});
+         
+         val = [obj.data];
+         val = [val.(cname)];
       end
       
       % set channel data
-      function obj = addChannelData(obj, ch, stats)
-         %
-         % addChannelData(obj, stats)
-         %
-         % description:
-         %     adds/overwrites the entries in stats with prefix ch to the obj.data structure
-         
-            fnames = fieldnames(stats);
-            for i = length(fnames):-1:1
-               newfnames{i} = ['ch', num2str(ch) '_' fnames{i}];
+      function obj = setChannelData(obj, ch, varargin)
+      %
+      % addChannelData(obj, ch, stats)
+      % addChannelData(obj, ch, values)
+      % addChannelData(obj, ch, fname, values)
+      % addChannelData(obj, ch, stats, fnames)
+      %
+      % description:
+      %     adds/overwrites the entries in stats with prefix ch to the obj.data structure
+
+         if isstruct(varargin{1})
+            stats = varargin{1};
+            
+            if nargin < 4
+               fnames = fieldnames(stats);
+            else
+               fnames = varargin{2};
+            end
+            if ischar(fnames)
+               fnames = {fnames};
             end
             
-            stats = renfield(stats, fnames, newfnames);
+            if isempty(fnames)
+               return
+            end
+
+            for i = length(fnames):-1:1
+               newfnames{i} = ['ch_', num2str(ch) '_' fnames{i}];
+            end
+
+            stats = rmfield(stats, setdiff(fieldnames(stats), fnames));
+            stats = renamestruct(stats, fnames, newfnames);
+            obj = obj.setData(stats);
             
-            obj = obj.addData(stats);
+         elseif ischar(varargin{1}) 
+            
+            fname = varargin{1};
+            vals  = varargin{2};
+            cname = obj.channelName(ch, fname);
+            obj.setData(cname, vals);
+
+         else
+            
+            vals  = varargin{1};
+            cname = obj.channelName(ch);
+            obj.setData(cname, vals);
+
+         end
+            
+      
+
       end
       
       
       %add statistics
-      function obj = addData(obj, stats)
+      function obj = setData(obj, varargin)
          %
-         % addData(obj, stats)
+         % setData(obj, stats)
+         % setData(obj, fname, data)
          %
          % description:
-         %     adds the entries in stats to the obj.data structure
+         %     adds the entries in stats to the obj.data structure, or adds a field fname with data to obj.data
          
+         if nargin <= 2
+            if nargin == 0 || ~isstruct(varargin{1})
+               error('%s: addData expects struct as input!', class(obj))
+            end
+            
+            stats = varargin{1};
+
             fnames = obj(1).dataFields();   % assume identical field names !
             snames = fieldnames(stats);
               
@@ -145,6 +208,21 @@ classdef DataObject < Object
             end
             dstats = num2cell(dstats);
             [obj.data] = dstats{:};
+         else
+            if ~ischar(varargin{1})
+               error('%s: addData expects data name as first argument!', class(obj))
+            end
+            
+            fname = varargin{1};
+            
+            dstats = [obj.data];
+            d = num2cell(varargin{2});
+            [dstats.(fname)] = d{:};
+            
+            dstats = num2cell(dstats);
+            [obj.data] = dstats{:};
+         end
+            
       end  
       
       %some specialized data access function 
@@ -155,8 +233,9 @@ classdef DataObject < Object
          % description:
          %     returns the value of the field 'dapi'
             val = [obj.data];
-            val = [val.('dapi')]; 
+            val = [val.('ch_dapi')]; 
       end
+      
       
       %add more here if needed...
 

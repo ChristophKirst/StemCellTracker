@@ -149,7 +149,7 @@ implottiling(imgs, 'link', false);
 
 %% Global
 
-sh = alignImagesOnGrid(imgs, 'overlap.max', 100, 'shift.max', 100);
+sh = alignImagesOnGrid(imgs, 'overlap.max', 100, 'overlap.min', 1, 'shift.max', 50);
 var2char(sh)
 
 %figure(2);

@@ -53,7 +53,20 @@ for i = ni:-1:1
    pto(i).TrX = str2double(ln(px+3 : py-1));
    pto(i).TrY = str2double(ln(py+3 : pz-1));
    pto(i).TrZ = str2double(ln(pz+3 : pe-1));
-      
+   
+   
+   vs = {'Va', 'Vb', 'Vc', 'Vd', 'Vx', 'Vy', 'Vm'};
+   for v = 1:length(vs)-1
+      pv1 = regexp(ln, vs{v});
+      pv2 = regexp(ln, vs{v+1});
+      pto(i).(vs{v}) = str2double(ln(pv1+2 : pv2-1));
+   end
+   
+   e1 = regexp(ln,'Eev');
+   e2 = regexp(ln, 'Er');
+   
+   pto(i).Eev = str2double(ln(e1+3:e2-1));
+  
    %pn = regexp(ln ,'n');
    %pto(i).filename = ln(pn+2:end-1);
 end

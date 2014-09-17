@@ -186,6 +186,7 @@ if ~isempty(regprops)
    %BoundingBox: correct to imboundingbox standard   
    if isfield(regstats, 'BoundingBox')
       
+      %[regstats.BoundingBox]
       dat = reshape([regstats.BoundingBox], dim * 2, []);
       ee = [2 1 3]; ee = ee(1:dim);
       ee = [ee, ee + dim];
@@ -233,7 +234,7 @@ end
 if any(ismember(statnames, specialpropnames))
 
    ue = any(ismember(statnames, 'UltimateErosion'));
-   ps = any(ismember(statnames, 'PixelSurface'));
+   ps = any(ismember(statnames, 'SurfacePixelIdxList'));
    %su = any(ismember(props, 'Surface')); 
    %el = any(ismember(props, 'Ellipsoid')); 
    
@@ -252,12 +253,12 @@ if any(ismember(statnames, specialpropnames))
       bmax = min(bmax + 1, isize);
       obj = imextract(imglab, bmin, bmax);
       obj = (obj == l);
-      total(obj)
+      %total(obj)
       
       %UltimateEroison
       if ue
          ulter = imfind(bwulterode(obj));
-         size(ulter)
+         %size(ulter)
          ulter = ulter + repmat(bmin, size(ulter, 2), 1) - 1;
          stats(l).UltimateErosion = ulter;
       end
@@ -265,7 +266,12 @@ if any(ismember(statnames, specialpropnames))
       %PixelSurface
       if ps
          pixsurf = impixelsurface(obj);
-         stats(l).SurfacePixelIdxList = find(pixsurf == l) + bmin - 1;
+         %var2char({'l', l, 'uniuq', unique(pixsurf(:))})
+         ids = find(pixsurf);
+         xyz = imind2sub(size(obj), ids);
+         xyz = xyz + repmat(bmin, size(xyz,1), 1) - 1;
+
+         stats(l).SurfacePixelIdxList = imsub2ind(isize, xyz);
       end
        
       %Surface 2d ?

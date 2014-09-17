@@ -1,17 +1,15 @@
 classdef ImageSourceROI < ImageSource
    %
-   % ImageSourceROI class represents an image composed from a tiling
+   % ImageSourceROI class represents a regoin of interest in a given image source
    % 
 
    properties 
-      images = {};       % cell array of ImageSource classes specifiing the individual images
-      shifts = {};       % relative shifts 
-      alignparam  = [];  % parameter needed for stitching
-      stichparam  = [];  % parameter needed for alignement
+      isource = [];    % image source
+      iroi    = ROI;   % region of interest class
    end
 
    methods
-      function obj = ImageSourceTiled(varargin) % constructor
+      function obj = ImageSourceROI(varargin) % constructor
          %
          % ImageSourceTiled()
          % ImageSourceTiled(...,fieldname, fieldvalue,...)
@@ -20,7 +18,7 @@ classdef ImageSourceROI < ImageSource
          if nargin == 0
             return
          elseif nargin == 1
-            if isa(varargin{1}, 'ImageSourceTiled') %% copy constructor
+            if isa(varargin{1}, 'ImageSourceROI') %% copy constructor
                obj = copy(varargin{1});
             elseif iscell(varargin{1})
                obj.images = varargin{1};
@@ -58,51 +56,6 @@ classdef ImageSourceROI < ImageSource
          %if isempty(obj.format)
          %   obj.format = obj.getFormat();
          %end
-      end
-
-      function img = getRawData(obj, varargin)
-         img = obj.getTiledData();
-         img = stitchImages(img, obj.shifts, obj.stichparam);
-      end
-      
-      function imgs = getTiledRawData(obj, varargin)
-         imgs = cellfun(@(x) x.getRawData(varargin{:}), obj.images, 'UniformOutput', false); 
-      end
-  
-      function imgs = getTiledData(obj, varargin)
-         imgs = cellfun(@(x) x.getData(varargin{:}), obj.images, 'UniformOutput', false);
-      end
-     
-      function isiz = getTiledImageSizes(obj, varargin)
-         isiz = cellfun(@(x) x.size, obj.images, 'UniformOutput', false);
-      end
-         
-      function siz = getSize(obj, varargin)   
-         [~, siz] = absoluteShiftsAndSizes(obj.shifts, obj.getTiledImageSizes());
-      end
-
-      function ashifts = getAbsoluteShifts(obj, varargin)
-         [ashifts, ~] = absoluteShiftsAndSizes(obj.shifts, obj.getTiledImageSizes());
-      end
-      
-      function [ashifts, asiz] = getAbsoluteShiftsAndSizes(obj, varargin)
-         [ashifts, asiz] = absoluteShiftsAndSizes(obj.shifts, obj.getTiledImageSizes());
-      end
-      
-      function shifts = align(obj)
-         shifts = alignImages(obj.getTiledData(), obj.alignparam);
-         obj.shifts = shifts;
-         obj.initialize();
-      end
-
-             
-      %function it = getSubTiling(obj, varargin) % extrack a sub tiled image from this one
-      %end
-
-      function info = infoString(obj)
-         info = infoString@ImageSource(obj);
-         info = [info, '\ntiling: ', var2char(size(obj.images))];
-         info = [info, '\nshifts: ', var2char(obj.shifts)];
       end
 
    end

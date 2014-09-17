@@ -120,44 +120,19 @@ st = histitch(imgs, sh, 'temporary.cleanup', false);
 figure(2); clf
 implot(st)
 
-%%
+%% check
 
-i1 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0001.tif');
-i2 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0002.tif');
-
-%st = stitchImages({i1, i2}, sh(1:2))
-
-figure(1)
-implottiling(cellfunc(@mat2gray,{i1(:,:,1); i2(:,:,1)}), 'link', false)
-
-
-figure(2)
-implottiling(cellfunc(@mat2gray,{i1(:,:,2); i2(:,:,2)}), 'link', false)
-
-
-
-%%
-
-i1 =imread_bf_info('/tmp/tp318a4c12_f82b_429c_9195_5ebcd5a8c8e60001.tif');
-i2 =imread_bf_info('/tmp/tp318a4c12_f82b_429c_9195_5ebcd5a8c8e60002.tif');
-
-
-i1.imetadata
-
-i2.imetadata
-
-%%
-
-st2 = stitchImages(imgs, sh, 'method', 'Mean');
-
-figure(3); clf
-implottiling({st; st2}, 'link', false)
-
-
-%%
-
-
-
+% i1 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0001.tif');
+% i2 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0002.tif');
+% 
+% i1.imetadata
+% i2.imetadata
+% 
+% 
+% st = stitchImages({i1, i2}, sh(1:2))
+% 
+% figure(1)
+% implottiling(cellfunc(@mat2gray,{i1(:,:,1); i2(:,:,1)}), 'link', false)
 
 
 
@@ -186,6 +161,14 @@ system('autooptimiser -m -o popt.pto test.pto')
 
 %% Photometric Correction of aligned Images
 
+clc
+close all
+clear all
+
+initialize
+hiinitialize
+bfinitialize
+
 
 %% Generate 2x2 grid with intensity fluctuations 
 
@@ -199,15 +182,226 @@ implot(img)
 
 clear imgs
 imgs{1,1} = img(1:230,1:250);
-imgs{2,1} = 0.5 * img(200:end,20:260);
+imgs{2,1} = 0.95 * img(200:end,20:260);
 imgs{1,2} = img(10:240,230:end);
-imgs{2,2} = 1.5 * img(230:end,240:end);
+imgs{2,2} = 1.05 * img(230:end,240:end);
 
 figure(2); imcolormap('gray')
 implottiling(imgs, 'link', false);
 
 
+%% align
 
+sh = alignImagesOnGrid(imgs, 'overlap.max', 50, 'overlap.min', 1, 'shift.max', 50, 'alignment', 'RMS')
+
+figure(1); clf
+plotAlignedImages(imgs, sh)
+
+
+%% generate pto project 
+
+
+[pto, ifiles] = hiptogenerate(imgs, sh, 'project.filename', 'test.pto', 'image.filename', 'test')
+
+%%
+
+
+
+
+
+%% 
+
+v Ra0 Rb0 Rc0 Rd0 Re0 Vb0 Vc0 Vd0
+v Eev1 Eev2 Eev3 Eev4
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% - real data
+
+
+te= tagexpr('./Test/Images/hESCells_GCamp_Vignetting/*.tif', 'tagnames', {'field'})
+
+is = ImageSourceTagged(te);
+is.setTagRange('field', {1,2,3,4,5,6});
+
+ist = ImageSourceTiled(is, 'tileshape', [3,2], 'tileformat', 'uy');
+ist.print
+
+imgs = ist.tiles;
+
+figure(1); clf
+implottiling(imgs)
+
+
+%%
+
+ist.align
+
+figure(2);
+ist.plotAlignedImages
+
+
+%%
+%sh = hialign(imgs,'project.filename', 'test.pto', 'image.filename', 'test',  'project.cleanup', false, 'image.cleanup', false)
+
+var2char(sh)
+var2char(ist.imageShifts)
+
+sh2 = ist.imageShifts;
+
+
+%%
+
+st = histitch(imgs, sh2);
+
+
+%%
+figure(6); clf
+implot(imrescale(st, 'data.max', 20000))
+
+
+%%
+
+%sh = ist.imageShifts;
+[pto, ifiles] = hiptogenerate(imgs, sh, 'project.filename', 'test.pto', 'image.filename', 'test')
+
+
+%%
+
+%system('pto_var --opt Ra0,Rb0,Rc0,Rd0,Re0,Va0,Vb0,Vc0,Vd0,Vx0,Vy0,Eev -o photo.pto test.pto')
+system('pto_var --opt Va,Vb,Vc,Vd,Vx,Vy,Eev -o photo.pto test.pto')
+
+
+%%
+
+%imgsr = imrescaleall(imgs, 'class', 'uint16');
+imgsr = imgs;
+
+for i = 1:6
+   img = imgsr{i};
+   %imgc = imgray2color(img);
+   
+   
+   mxval = immaxvalue(class(img));
+
+   %imgo = cat(3, img, mxval * ones(size(img), 'like', img));
+
+   imwrite_tiff(mat2gray(cat(3,img,img, img)), ['test', num2str0(i,4), '.tif'])
+   %imwrite_tiff(cat(3,mat2gray(img),ones(size(img))), ['test', num2str0(i,4), '.tif'])
+   
+   %imwrite(imgs{i}, ['test', num2str0(i,4), '.tif'])
+   %imwrite(imgs{i}, ['test', num2str0(i,4), '.tif'], 'WriteMode', 'append')
+end
+
+%% 
+
+system('vig_optimize -o opt.pto photo.pto')
+
+
+%%
+
+pto = hiparsepto('opt.pto')
+pto(1)
+
+%%
+ii = 2;
+
+vi = hivignetting(size(imgs{ii}), pto(ii));
+
+vi = vi + 0.00;
+
+
+figure(7); clf
+implot(vi);
+
+max(vi(:))
+min(vi(:))
+
+figure(8); clf; 
+implottiling(cellfunc(@mat2gray, {imgs{ii}; mat2gray(vi); imgs{ii}./vi}))
+
+
+
+
+%%
+
+system('autooptimiser -m -o auto.pto photo.pto')
+
+%%
+
+system('nona -z LZW -r ldr -m TIFF_m -o nona auto.pto')
+
+%%
+clc
+
+for i = 1:4
+   %imgg{i} = imread(['test0001 - test0004000', num2str(i-1), '.tif']);
+   imgg{i} = imread(['nona000', num2str(i-1), '.tif']);
+   size(imgg{i})
+end
+   
+figure(7); clf;
+implottiling(cellfunc(@(x) x(:,:,1), imgg)', 'link', false)
+
+%%
+
+imfinfo('test0001.tif')
+
+%%
+
+
+clc
+for i = 1:4
+
+   img = mat2gray(imgs{i});
+
+t = Tiff(['test000', num2str(i), '.tif'], 'w'); 
+tagstruct.ImageLength = size(img, 1); 
+tagstruct.ImageWidth = size(img, 2); 
+tagstruct.Compression = Tiff.Compression.None; 
+%tagstruct.SampleFormat = Tiff.SampleFormat.IEEEFP; 
+tagstruct.Photometric = Tiff.Photometric.MinIsBlack; 
+tagstruct.BitsPerSample = 16; 
+tagstruct.SamplesPerPixel = 1; 
+tagstruct.PlanarConfiguration = Tiff.PlanarConfiguration.Chunky; 
+t.setTag(tagstruct); 
+t.write(uint16(img));
+%t.write(single(cat(3, img, img, img))); 
+t.close();
+
+end
+
+
+%%
+
+imfinfo('test0001.tif')
+
+%%
+in = imread_bf_info('test0001.tif')
+in.imetadata
+
+%%
+
+
+img = imread('nona.tif');
+size(img)
+
+
+%%
+
+for i = 1:4
+   %imgg{i} = imread(['test0001 - test0004000', num2str(i-1), '.tif']);
+   imgg{i} = imread(['nona000', num2str(i-1), '.tif']);
+   size(imgg{i})
+end
+   
+
+%%
+figure(7); clf;
+implottiling(cellfunc(@(x) x(:,:,1), imgg))
+
+   
+   
 
 
 

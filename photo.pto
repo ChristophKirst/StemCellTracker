@@ -19,6 +19,48 @@ i w512 h512 f0 v1 Ra0 Rb0 Rc0 Rd0 Re0 Eev0 Er1 Eb1 r0 p0 y0 TrX0 TrY0 TrZ0 j0 a0
 
 
 # specify variables that should be optimized
+v Eev0
+v Va0
+v Vb0
+v Vc0
+v Vd0
+v Vx0
+v Vy0
+v Eev1
+v Va1
+v Vb1
+v Vc1
+v Vd1
+v Vx1
+v Vy1
+v Eev2
+v Va2
+v Vb2
+v Vc2
+v Vd2
+v Vx2
+v Vy2
+v Eev3
+v Va3
+v Vb3
+v Vc3
+v Vd3
+v Vx3
+v Vy3
+v Eev4
+v Va4
+v Vb4
+v Vc4
+v Vd4
+v Vx4
+v Vy4
+v Eev5
+v Va5
+v Vb5
+v Vc5
+v Vd5
+v Vx5
+v Vy5
 v
 
 
@@ -48,5 +90,5 @@ v
 #hugin_outputImageTypeHDRCompression LZW
 #hugin_outputStacksMinOverlap 0.7
 #hugin_outputLayersExposureDiff 0.5
-#hugin_optimizerMasterSwitch 1
-#hugin_optimizerPhotoMasterSwitch 21
+#hugin_optimizerMasterSwitch 0
+#hugin_optimizerPhotoMasterSwitch 0

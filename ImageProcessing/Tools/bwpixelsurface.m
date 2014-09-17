@@ -12,7 +12,7 @@ function surface = bwpixelsurface(bw, method)
 %             'border' or 'noborder'
 %
 % output:
-%    surface  surface pixels fo the bw region
+%    surface  surface pixels of the bw region
 %
 % See also: impixelsurface, imsurface
 

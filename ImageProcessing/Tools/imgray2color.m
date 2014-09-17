@@ -23,6 +23,10 @@ if dim < 2 || dim > 3
    error('imgray2color: expect 2d or 3d grayscale image.')
 end
 
+if nargin < 2
+   colspec = 'w';
+end
+
 if isstruct(colspec)
    colmap = getParameter(colspec, 'color.map', 'default');
    if ischar(colmap)

@@ -17,7 +17,31 @@ for i = 1:length(oldnames)
    %[s.(newnames{i})] = s.(oldnames{i});
    %s = rmfield(s,oldnames{i});
    
-   s = renameStructField(s, oldnames{i}, newnames{i});
+   s = renameSfield(s, oldnames{i}, newnames{i});
 end
+
+end
+
+
+%matlabs function renameStructField is buggz!
+function str = renameSfield(str, oldFieldName, newFieldName)
+
+   if ~strcmp(oldFieldName, newFieldName)
+      allNames = fieldnames(str);
+      % Is the user renaming one field to be the name of another field?
+      % Remember this.
+      isOverwriting = ~isempty(find(strcmp(allNames, newFieldName), 1));
+      matchingIndex = find(strcmp(allNames, oldFieldName));
+      if ~isempty(matchingIndex)
+         allNames{matchingIndex(1)} = newFieldName;
+         [str.(newFieldName)] = str.(oldFieldName);
+         str = rmfield(str, oldFieldName);
+         if (~isOverwriting)
+            % Do not attempt to reorder if we've reduced the number
+            % of fields.  Bad things will result.  Let it go.
+            str = orderfields(str, allNames);
+         end
+      end
+   end
 
 end
