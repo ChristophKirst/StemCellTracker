@@ -125,7 +125,7 @@ imax = -Inf;
 imin = Inf;
 ivar = 0;
 for p = 1:5
-   img = double(imread(tags2name(tag, 'pos', p)))';
+   img = double(imread(tagexpr2string(tag, 'pos', p)))';
    imgs{p,1} = img;
    imax = max(imax, max(img(:)));
    imin = min(imin, min(img(:)));
@@ -216,7 +216,7 @@ nt = 4;
 for i = 1:nt
    for j = 1:nt
       p = (j-1)*27 + i;
-      img = double(imread(tags2name(tag, 'pos', p)))';
+      img = double(imread(tagexpr2string(tag, 'pos', p)))';
       imgs{i,j} = img;
       imax = max(imax, max(img(:)));
       imin = min(imin, min(img(:)));
@@ -269,7 +269,7 @@ var2char({sub.nodes})
 %% Align components
 
 for s = 1:length(sub)
-   sub(s).alignPairs('overlap.max', 100, 'overlap.min', 80, 'shift.max', 20)
+   sub(s).alignPairs('overlap.max', 120, 'overlap.min', 50, 'shift.max', 20)
    sub(s).optimizePairwiseShifts();
    
    figure(1 + s); clf
@@ -282,7 +282,58 @@ end
 
 
 
+%%
+
+tag = './Test/Images/hESCells_Tiling_Large/11_150_p<pos,6>t00000001z001c01.tif';
+
+clear imgs
+imax = -Inf;
+imin = Inf;
+ivar = 0;
+nt = 2;
+for i = 1:nt
+   for j = 1:nt
+      p = (j-1)*27 + i;
+      %img = double(imread(tagexpr2string(tag, 'pos', p)))';
+      %imgs{i,j} = img;
+      %imax = max(imax, max(img(:)));
+      %imin = min(imin, min(img(:)));
+      %ivar = max(ivar, var(img(:)));
+      
+      
+      info{i,j} = imread_bf_info(tagexpr2string(tag, 'pos', p));
+   end
+end
 
 
 
+for i = 1:length(info(:))
+   info{i}
+   info{i}.imetadata
+end
+
+
+%%
+
+tag = './Test/Images/hESCells_Tiling_Large/11_150_p<pos,6>t00000001z001c01.tif';
+
+clear imgs
+imax = -Inf;
+imin = Inf;
+ivar = 0;
+nt = 2;
+for i = 1:nt
+   for j = 1:nt
+      p = (j-1)*27 + i;
+      %img = double(imread(tagexpr2string(tag, 'pos', p)))';
+      %imgs{i,j} = img;
+      %imax = max(imax, max(img(:)));
+      %imin = min(imin, min(img(:)));
+      %ivar = max(ivar, var(img(:)));
+      
+      
+      info{i,j} = imfinfo(tagexpr2string(tag, 'pos', p));
+      info{i,j}
+   end
+end
 

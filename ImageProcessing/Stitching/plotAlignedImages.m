@@ -56,7 +56,7 @@ si = padright(size(imgs), 3, 1);
 cl = length(cols);
 img = imgray2color(zeros(asize), 'white');
 
-
+ashifts = reshape(ashifts, si);
 
 % switch class(imgs{1})
 %    case 'unit32'
@@ -90,6 +90,7 @@ for k = 1:si(3)
             ci = 0;
          end
          imga = imgray2color(double(imgs{i, j, k})/nrm, cols{mod(cs + ci, cl)+1});
+         %var2char({i,j,k})
          imgb = imextract(img, [1 + ashifts{i, j, k}, 1],  [ashifts{i, j, k} + imgsizes{i,j,k}, 3]);
          img  = imreplace(img, imga + imgb, [1 + ashifts{i, j, k},1]);
          ci = ci + 1;

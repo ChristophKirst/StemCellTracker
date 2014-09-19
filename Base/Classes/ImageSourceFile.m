@@ -5,6 +5,8 @@ classdef ImageSourceFile < ImageSource
 
    properties 
       ifilename    = '';                % the file name of the image
+      ibasedirectory = '';              % the base directory of the image file
+      
       ireader      = @imread_bf;        % the reading routine used to 
       iinforeader  = @imread_bf_info    % the reading routine to obtain the info of the image
    end
@@ -44,8 +46,8 @@ classdef ImageSourceFile < ImageSource
             error('ImageSourceFile: filename needs to be specified');
          end
          
-         if ~isfile(obj.ifilename)
-            error('ImageSourceFile: filename %s does not point to a file', obj.ifilename);
+         if ~isfile(obj.filename)
+            error('ImageSourceFile: filename %s does not point to a file', obj.filename);
          end
 
       end
@@ -73,14 +75,18 @@ classdef ImageSourceFile < ImageSource
       end
 
       function i = getInfo(obj, varargin)
-         i = obj.iinforeader(obj.ifilename, varargin{:});
+         i = obj.iinforeader(obj.filename, varargin{:});
       end
+      
+      function fn = filename(obj, varargin)
+         fn = fullfile(obj.ibasedirectory, obj.ifilename);
+      end 
 
 
       % infoString
       function istr = infoString(obj)
          istr = infoString@ImageSource(obj, 'File');
-         istr = [istr, '\nfilename:   ', obj.ifilename];
+         istr = [istr, '\nfilename:   ', obj.filename];
          istr = [istr, '\nreader:     ', func2str(obj.ireader)];
          istr = [istr, '\ninforeader: ', func2str(obj.iinforeader)]; 
       end

@@ -7,7 +7,7 @@ function img = impixelcircle(img, cent, radius, theta1, theta2, val)
 %
 % input:
 %      img            non-color 2d image
-%      cent, radius   center and ridius of circle
+%      cent, radius   center and radius of circle
 %      theta1, theta2 circle segment 
 %      val            value of pixel along line
 % 

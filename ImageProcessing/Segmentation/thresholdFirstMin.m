@@ -23,7 +23,7 @@ image = double(image);
 
 [N, X] = hist(image(:), getParameter(param, 'nbins', 50));
 
-tid = findTroughs(N, getParameter(param, 'delta', 1/100 * N), 1);
+tid = findTroughs(N, getParameter(param, 'delta', 1/100 * total(N)), 1);
 
 if isempty(tid)
    threshold = X(end);

@@ -122,7 +122,7 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
                      c{1,1,1} = imgs.getTile(pairs(p).from); c{1,1,2} = imgs.getTile(pairs(p).to);
                      aimgs = c;
                   otherwise
-                     error('alignImages: image pair %g does not have valid orientaiton!', p);
+                     error('alignImages: image pair %g does not have valid orientation!', p);
                end
 
                pairs(p).shift = fun(aimgs, param);

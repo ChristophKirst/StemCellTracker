@@ -1,19 +1,21 @@
 classdef ROIRectangle < ROI
    %
-   % ROIRectangle shape represents a 2D or 3D rectangle
+   % ROIRectangle shape represents a 2D rectangle or 3d cube
    %
-   % note: for convenice we 
+   % note: the pixel of a rectangle from (0,0) -> (1,1)  is pixel (1,1) etc
+   %       in particular a rectangle (0,0) -> (0,0) is empty and (0,0) -> isize spans an image fo size isize
+   %       all coords arre assumed to be row vectors to allow for [obj.p1] concateations etc
    
    properties
-      p1 = [0; 0];  % coordinate of lower left (bottom) (as row vector to allow for [obj.p1] concateations etc
+      p1 = [0; 0];  % coordinate of lower left (bottom) 
       p2 = [0; 0];  % coordinate of upper right (top), p2 >= p1 
    end
    
    methods
       function obj = ROIRectangle(varargin)  % basic constructor
       %
-      % Rectangle()
-      % Rectangle(corner1, p2)
+      % Rectangle()         empty rectangle
+      % Rectangle(p1, p2)   rectangle with opposite corners p1 and p2
       %
       
          if nargin == 0
@@ -45,6 +47,7 @@ classdef ROIRectangle < ROI
          end     
       end
       
+  
       function d = dim(obj)
          d = length(obj(1).p1);
       end
@@ -66,17 +69,21 @@ classdef ROIRectangle < ROI
          obj.p2 = a(:,2);
       end
 
+      
+      function p = pixelIdxList(obj, si)
+         for d = obj.dim:-1:1
+            coords{d} = max(floor(obj.p1(d)+1),1):min(floor(obj.p2(d)), si(d));
+         end
+         p = sub2ind(si, coords{:});
+      end
+      
       function m = mask(obj, si)
          m = zeros(si);
-         
-         for d = obj.dim:-1:1
-            coords{d} = obj.p1(d):obj.p2(d);
-         end
-         m(coords{:}) = 1;
+         m(obj.pixelIdxList(si)) = 1;
       end
       
       function n = npixel(obj)
-         n = prod([obj.p2]-[obj.p1]+1, 1);
+         n = prod(min(floor([obj.p2]), si(:))-max(floor([obj.p1])-1, 1), 1);
       end
       
       function o = overlap(obj, roi)
@@ -86,13 +93,41 @@ classdef ROIRectangle < ROI
                pp2 = min(a.p2, roi.p2);
                if any(pp1 > pp2)
                   o = ROIRectangle();
-                  return
+               else
+                  o = ROIRectangle(pp1, pp2);
                end
-               o = ROIRectangle(pp1, pp2);
             otherwise
                error('%s: overlap with % s not implemented!', class(obj), class(roi));
          end
       end
+      
+      
+      
+      % special functions for rectangle
+      function pp = p(obj)
+         pp = obj.p1(1);
+      end
+      
+      function qq = q(obj)
+         qq = obj.p1(2);
+      end
+      
+      function ll = l(obj)
+         ll = obj.p1(3);
+      end
+      
+      function ww = w(obj)
+         ww = obj.p2(1) - obj.p1(1);
+      end
+      
+      function hh = h(obj)
+         hh = obj.p2(2) - obj.p1(2);
+      end
+         
+      function dd = d(obj)
+         dd = obj.p2(3) - obj.p1(3);
+      end
+      
       
    end
    

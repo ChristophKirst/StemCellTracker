@@ -8,7 +8,7 @@ classdef Experiment < FileHandler
       name@char        = '';        % Name of experiment
       date             = '';        % Date of experiment
       description@char = '';        % Description of the Experiment / notes
- 
+  
       result  = [];                 % reference to result data of segmentation / analysis
  
       microscope      = '';         % name of microscope with which images are taken

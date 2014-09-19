@@ -376,7 +376,6 @@ classdef ImageAlignment < matlab.mixin.Copyable
          
          obj.ipairs = optimizePairwiseShifts(obj.pairs);
       end
-      
 
       function obj = alignPairs(obj, source, varargin)
          %

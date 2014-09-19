@@ -1,16 +1,25 @@
-function [ashifts, asize] = absoluteShiftsAndSize(shifts, imagesizes)
+function [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes)
 %
-% [ashifts, asize] = absoluteShiftsAndSize(shifts, imagesizes)
+% [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes)
 %
 % description:
 %     calculates the full size of the algined image and absolute shifts of
 %     the individual images such that all shifts are minimally positive
 %     the output can be used to assemble the image
+%
+% input:
+%    shifts    image shifts
+%    isizes    image sizes
+% 
+% output:
+%    ashifts    absolte image shifts, i.e. no negative shifts
+%    asize      the image size needed to place allimages 
+%    
 
 %shifts
-%imagesizes
+%isizes
 
-if ~iscell(imagesizes) || ~iscell(shifts) || numel(imagesizes) ~= numel(shifts)
+if ~iscell(isizes) || ~iscell(shifts) || numel(isizes) ~= numel(shifts)
    error('absoluteShiftsAndSize: inconsistent input');
 end
 
@@ -22,8 +31,8 @@ minshifts = zeros(1,dim);
 
 for i = 1:numel(shifts)
    for d = 1:dim
-      if shifts{i}(d) + imagesizes{i}(d) >= maxsize(d)
-         maxsize(d) = shifts{i}(d) + imagesizes{i}(d);
+      if shifts{i}(d) + isizes{i}(d) >= maxsize(d)
+         maxsize(d) = shifts{i}(d) + isizes{i}(d);
       end
    
       if shifts{i}(d) < minshifts(d)

@@ -1,7 +1,18 @@
-function ids = overlapRectangleAlignedImages(shifts, isizes, rect)
+function ids = roi2imageids(shifts, isizes, rect)
 %
+% ids = roi2imageids(shifts, isizes, rect)
 %
 % description: find ids of the images that overlap with the rect given as [lowerleft, upperight] 
+%
+% input:
+%      shifts     the image shifts
+%      isizes     the image sizes
+%      rect       the rectangle to check overlap with, ofthe from [p1, p2]  where p1 < p2 are row vectors of the corner coordinates
+
+if isa(rect, 'ROI')
+   rect = rect.boundingbox;
+   rect = rect.toArray();
+end
 
 n = numel(shifts);
 ids = zeros(1, n);
@@ -13,7 +24,6 @@ for i = 1:n
 end
 
 end
-
 
 
 function r = shiftsAndSizeToRect(shift, isize)

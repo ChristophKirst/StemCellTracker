@@ -6,7 +6,9 @@
    properties 
       ireadcommand   = '';  % tagged command to load the data
       iinfocommand   = '';  % tagged command to get ImageInfo of each tagged individual data / image (e.g. 'imread_bf_info(<file>)') should always retunr consistent image format keeping singelton dimensions !
+      
       ifilename      = '';  % tagged filename in case tag <file> appears in command or infocommand
+      ibasedirectory = '';  % base directory of the files (possibly tagged)
       
       itagranges     = [];  % struct specifying the tag ranges and names (multiplicative tags assumed)
       itagformat     = {};  % specifies how tags are associated with certain dimensions, '' = cell coordinates -> ordered by order in tagranges
@@ -260,7 +262,7 @@
 
       % returns command format by replacing specified tags      
       function cmd = command(obj, varargin)
-         cmd = strrep(obj.ireadcommand, '<file>', obj.ifilename);
+         cmd = strrep(obj.ireadcommand, '<file>', obj.filename);
          cmd = tagexpr2string(cmd, varargin{:});
       end
 
@@ -271,7 +273,7 @@
        
       
       function cmd = infocommand(obj, varargin)
-         cmd = strrep(obj.iinfocommand, '<file>', obj.ifilename);
+         cmd = strrep(obj.iinfocommand, '<file>', obj.filename);
          cmd = tagexpr2string(cmd, varargin{:});
       end
      
@@ -281,7 +283,7 @@
       
       
       function fn = filename(obj, varargin)
-         fn = tagexpr2string(obj.ifilename, varargin{:});
+         fn = tagexpr2string(fullfile(obj.ibasedirectory, obj.ifilename), varargin{:});
       end    
       
       function fn = ind2filename(obj, i, varargin)
@@ -682,12 +684,20 @@
          cs = '';
       end
       
+      function plot(obj, varargin)
+         imgs = obj.celldata(varargin{:});
+         if nargin> 1 && isnumeric(varargin{1})
+            varargin = varargin(2:end);
+         end
+         implottiling(imgs, varargin{:});
+      end
+     
 
-    
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
       function info = infoString(obj)
          info = infoString@ImageSource(obj);
-         info = [info, '\nfilename:    ', obj.ifilename];
+         info = [info, '\nfilename:    ', obj.filename];
          info = [info, '\nreadcommand: ', obj.ireadcommand];
          info = [info, '\ninfocommand: ', obj.iinfocommand]; 
 

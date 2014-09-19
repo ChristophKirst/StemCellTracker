@@ -17,13 +17,13 @@ function comp = connectedAlignments(a, varargin)
 %
 % See also: Alignment
 
-if ~isa(a, 'Alignment')
+if ~isa(a, 'Alignment') && ~isa(a,'ImageAlignment')
    error('connectedAlignments: expects Alignment class as input');
 end
 
 param = parseParameter(varargin{:});
 thq = getParameter(param, 'threshold.quality', -Inf);
-red = getParameter(param, 'reduce', true);
+red = getParameter(param, 'reduce', false);
 
 if thq == -Inf
    comp = a;
@@ -47,15 +47,18 @@ c = adjacencyMatrix2ConnectedComponents(adj);
 % construct Alignment classes
 
 nodes = a.nodes;
+isizes = a.sizes;
 
 for i = length(c):-1:1
    as = Alignment(a);
    as.nodes = nodes(c{i});
+   as.isizes = isizes(c{i});
    as.reducePairs();
    as.removeLowQualityPairs(thq);
    
    if red
-      as.reduceImages();
+      warning('reduceImages not implemented yet');
+      as.reduceImages(); % todo: not working for the moment!
    end
 
    comp(i) = as;

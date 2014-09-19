@@ -74,23 +74,41 @@ classdef ImageSourceTiled < ImageSource
       end
 
       function img = getTile(obj, id)
-         % map id to id of the tileformatted data   
-         img = obj.isource.data(obj.tile2cellid(id));
+         if obj.icachetiles
+            imgs = obj.getTiles();
+            img = imgs{obj.tile2cellid(id)};
+         else
+            % map id to id of the tileformatted data
+            img = obj.isource.data(obj.tile2cellid(id));
+         end
       end
 
-      function imgs = getTiles(obj)
+      function imgs = getTiles(obj, varargin)
          if obj.icachetiles && ~isempty(obj.itiles)
             imgs = obj.itiles;
-         else
-            imgs = obj.isource.celldata;
-            
-            if ~isempty(obj.itileformat)
-               imgs = reshape(imgs, obj.itileshape);
-               imgs = imuvwpermute(imgs, obj.itileformat, 'uvw');
+            if nargin > 1
+               imgs =imgs(varargin{1});
             end
-            
-            if obj.icachetiles
-               obj.itiles = imgs;
+         else
+            if nargin > 1
+               ids = varargin{1};
+               nids = numel(ids);
+               imgs = cell(1,nids);
+               for i = 1:nids
+                  imgs{i} = obj.getTile(ids(i));
+               end
+               imgs = reshape(imgs, size(ids));
+            else 
+               imgs = obj.isource.celldata;
+               
+               if ~isempty(obj.itileformat)
+                  imgs = reshape(imgs, obj.itileshape);
+                  imgs = imuvwpermute(imgs, obj.itileformat, 'uvw');
+               end
+               
+               if obj.icachetiles
+                  obj.itiles = imgs;
+               end
             end
          end
       end
@@ -131,8 +149,8 @@ classdef ImageSourceTiled < ImageSource
          img = obj.getTile(id);
       end
       
-      function imgs = tiles(obj)
-         imgs = obj.getTiles();
+      function imgs = tiles(obj, varargin)
+         imgs = obj.getTiles(varargin{:});
       end
       
       function imgs = tileSizes(obj)
@@ -155,7 +173,9 @@ classdef ImageSourceTiled < ImageSource
          td = length(obj.tilesize);
       end
       
-
+      function n = ntiles(obj)
+         n = prod(obj.tilesize);
+      end
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -165,15 +185,8 @@ classdef ImageSourceTiled < ImageSource
          d = obj.ialignment.stitch(obj, varargin{:}); %if cache is on this will be cached automatically after first run when using the data routine
       end
    
-
-%       function d = subAlignment(obj)
-%          
-%          
-%       end
-
-
-      function si = datasize(obj)
-         si = obj.ialignment.iasize;
+      function si = datasize(obj, varargin)
+         si = obj.ialignment.iasize(varargin{:});
       end
       
       function ci = cellsize(~) 
@@ -246,6 +259,26 @@ classdef ImageSourceTiled < ImageSource
       end
       
       
+            
+      function q = overlapQuality(obj, varargin)
+         %
+         % obj = overlapQuality(obj)
+         %
+         % description:
+         %    calculates operlap quality of the images
+         %
+         % See also: overlapQuality, overlapStatisticsImagePair
+         
+         obj.ialignment.overlapQuality(obj, varargin{:});
+         q = [obj.ialignment.ipairs.iquality];
+      end
+
+      function comp = connectComponents(obj, varargin)
+         comp = obj.ialignments.connectedAlignments(varargin{:});
+      end
+      
+      
+      
       function obj = alignPairs(obj, varargin)
          %
          % alignPairs(obj, varargin)
@@ -285,7 +318,34 @@ classdef ImageSourceTiled < ImageSource
          st = obj.ialignment.stitch(obj, varargin{:});
       end
       
- 
+      
+      
+            
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % sub tilings
+      
+      function sub = split2ConnectedComponents()
+         %
+         % description: calculates connected components and returns an ImageSourceTiled class for each component
+         %              with only the sub components
+         
+      end
+      
+      
+      function ids = roi2tileids(obj, roi)
+         ids = roi2imageids(obj.imageShifts, obj.tileSizes, roi);
+      end
+      
+      
+      
+      
+      
+      
+
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % info / visulaization
+  
       function plotAlignedImages(obj)
          %
          % plotAlignedImages(obj)
@@ -299,9 +359,6 @@ classdef ImageSourceTiled < ImageSource
       end
  
 
-      
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % infoString
       function istr = infoString(obj)
          istr = infoString@ImageSource(obj, 'Tiled');
          istr = [istr, '\ntileformat:     ', var2char(obj.itileformat)];
