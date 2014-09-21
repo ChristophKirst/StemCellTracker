@@ -1,28 +1,15 @@
-classdef FileHandler < handle
-   % FileHandler is a class that handles file access to raw image data and results
-   %
-   % note:
-   %      image data acces is divided into two routines: 
-   %             - readImage   reads the data necessary for segmentation, e.g. the full image in each Frame
-   %             - loadImage   allows for reading also sub sets of images, and is intended for user insection, testing 
+classdef FileHandler < matlab.mixin.Copyable
+   % FileHandler is a class that organizes file acces and saving
    %
    % See also: Experiment
    
    properties
       % file info
-      BaseDirectory       = '.';      % all directories are w.r.t to this base directory
-      ImageDirectoryName  = '';       % directory name in which the image data is stored relative to BaseDirectory
-      ResultDirectoryName = '';       % directory for saving the results relative to BaseDirectory
+      fbasedirectory      = '';       % all directories are w.r.t to this base directory
+      fdatadirectory      = '';       % directory name in which image data is stored relative to fbasedirectory
+      fresultdirectory    = '';       % directory for saving results relative to fbasedirectory
+   end
 
-      ReadImageCommandFormat = 'imload(<file>)'; % command to open the image data on which segmentation is performed, typically the image data in one Frame, eg: 'imload(<directory>\<file>)'
-      ReadImageFileFormat    = '';   % format of individual file names, example: 'IMG_T<time,3>_C<channel,2>_P<position,2>.TIF'      
-   end
-   
-   properties (Dependent)
-      %ImageDirectory;        % absolute image directory
-      %ResultDirectory;       % absolute result directory  
-   end
-      
       
    methods
       function obj = FileHandler(varargin)  % simple constructor
@@ -43,31 +30,9 @@ classdef FileHandler < handle
                   warning('%s: unknown property name: %s ', class(obj), varargin{i})
                end
             end
-     
-            %obj.ReadImageCommandFormat 
-            %obj.ReadImageFileFormat
-            %obj.ReadImageTagNames
-            %obj.ReadImageTagRange  
+
              
             obj.initialize();           
-         end
-      end
-      
-      
-      function newobj = copy(obj)
-         %
-         % c = copy(obj)
-         %
-         % description:
-         %     deep copy of the object
-         
-         nobjs = length(obj);
-         newobj(nobjs) = FileHandler();
-         props = properties(newobj);
-         for k = 1:nobjs
-            for i = 1:length(props)
-               newobj(k).(props{i}) = obj(k).(props{i});
-            end
          end
       end
       
@@ -77,12 +42,12 @@ classdef FileHandler < handle
          %
          % description: initializes missing info and checks consistency
             
-         if ~isdir(obj.BaseDirectory)
-            warning('FileHandler: BaseDirectory %s is not a directory!', obj.BaseDirectory);
+         if ~isdir(obj.basedirectory)
+            warning('FileHandler: basedirectory %s is not a directory!', obj.basedirectory);
          end
          
-         if ~isdir(obj.ImageDirectory)
-            warning('FileHandler: ImageDirectory %s is not a directory!', obj.ImageDirectory);
+         if ~isdir(obj.datadirectory)
+            warning('FileHandler: imagedirectory %s is not a directory!', obj.imagedirectory);
          end
          
          % check if files exists specified by the 
@@ -102,32 +67,26 @@ classdef FileHandler < handle
     
 
       % directories 
-      function ddir = ImageDirectory(obj, varargin)
+      function ddir = imageDirectory(obj, varargin)
          % description:
          % returns the image data directorty for the experiment
          %
          % output:
          %     ddir    image data directory
          
-         ddir = fullfile(obj.BaseDirectory, obj.ImageDirectoryName);
-         
-         if (nargin > 1) 
-            ddir = tags2name(ddir, varargin{:});
-         end
+         ddir = fullfile(obj.fbasedirectory, obj.fimagedirectory);
+         ddir = tagexpr2string(ddir, varargin{:});       
       end
       
-      function ddir = ResultDirectory(obj, varargin)
+      function ddir = resultDirectory(obj, varargin)
          % description:
          % returns the results directorty for the experiment
          %
          % output:
          %     ddir    result directory
          
-         ddir = fullfile(obj.BaseDirectory, obj.ResultDirectoryName);
-         
-         if (nargin > 1) 
-            ddir = tags2name(ddir, varargin{:});
-         end
+         ddir = fullfile(obj.fbasedirectory, obj.fresultdirectory);
+         ddir = tagexpr2string(ddir, varargin{:});
       end
 
       
@@ -135,7 +94,7 @@ classdef FileHandler < handle
       %%% Image tagging functionality
       
       
-      function fn = ImageFile(obj, varargin)
+      function fn = imageFile(obj, varargin)
          %
          % fn = ImageFile(tagspec)
          %

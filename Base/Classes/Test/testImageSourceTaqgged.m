@@ -13,9 +13,8 @@ bfinitialize
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ImageSourceTagged - base class
 
-
 clc
-is = ImageSourceTagged('./Test/Images/hESCells_Stack/W<well>F<field,3>T0001Z<z,2>C1.tif');
+is = ImageSourceTagged('./Test/Images/hESCells_Stack/W<well,1>F<field,3>T0001Z<z,2>C1.tif');
 is.print
 
 
@@ -23,11 +22,11 @@ is.print
 
 is.filename('z', 50)
 is.command('z', 50)
-is.infocommand('z', 1, 'field', 127)
+is.infocommand('z', 1, 'field', 127, 'well', 1)
 
 %%
 
-is.ind2tag(6)
+is.tag(6)
 is.tagrangesize
 
 %%
@@ -84,7 +83,7 @@ is.parseTagRanges(tgrs)
 
 %% data
 clc
-d = is.data('z', {6,7, 8});
+d = is.data('z', {6,7,8,9});
 
 size(d)
 imformat(d)
@@ -96,8 +95,7 @@ implottiling(mat2gray(d))
 
 %% celldata
 
-
-cd = is.celldata('z', {1,2,3});
+cd = is.celldata('z', {1,2,3})
 
 size(cd)
 
@@ -125,25 +123,6 @@ is.itaginternal = [0, 0, 1,0]
 is.print
 
 
-%%
-
-[i, p] = is.datatagids
-
-[i, p] = is.celltagids
-
-
-
-%%
-clc
-[i, p] = is.datatagidsinternal
-
-[i, p] = is.datatagidsexternal
-
-
-%%
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% different read commands
 
@@ -158,18 +137,12 @@ bfinitialize
 %%
 
 clc
-is = ImageSourceTagged('ifilename', './Test/Images/hESCells_Stack/W1F<field,3>T0001Z<z,2>C1.tif', 'ireadcommand', 'imread_bf(''<file>'', ''p'', <p>)');
+is = ImageSourceTagged('filename', './Test/Images/hESCells_Stack/W1F<field,3>T0001Z<z,2>C1.tif', 'readcommand', 'imread_bf(''<file>'', ''p'', <p>)', ...
+   'tagranges', struct('p', {num2cell(1:50)}));
 is.print
 
 %%
-
-is.fromReadcommandAndFilename
-
-%%
-
-is.itagranges.p = num2cell(1:20);
-is.fromReadcommandAndFilename;
-is.iinfo
+is.tagrangesize
 
 
 %%
@@ -190,6 +163,10 @@ is.dataformat('z', {3,4}, 'p', 1)
 
 %%
 
-img = imread_bf('./Test/Images/hESCells_Stack/W1F127T0001Z01C1.tif', 'q', 1:200);
+dat = is.data('z', 1);
+img = imread_bf('./Test/Images/hESCells_Stack/W1F127T0001Z01C1.tif', 'p', 1:50);
+
+figure(1);
+implottiling({img; dat} )
 
 

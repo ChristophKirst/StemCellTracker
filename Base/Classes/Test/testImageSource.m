@@ -10,6 +10,14 @@ clc
 initialize
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ImageInfo
+
+clc
+i = ImageInfo;
+i.fromData(rand(10,20))
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% ImageSource - base class
 
 %% create base class with some data in memory
@@ -25,32 +33,59 @@ img.print
 img.info
 
 %%
-size(img)
-format(img)
-class(img)
-color(img)
+clc
+img.datasize
+img.dataformat
+img.dataclass
+img.color
 
-img.sdims
+img.nsdatadims
 
 dat = data(img);
 size(dat)
 
+
+img.dataformatpos('p')
+
+%%
+
+clc
+dat = img.subdata('c', 1);
+size(dat)
+
+dat = img.subdata('p', 1);
+size(dat)
+
+
 %%
 clc
-figure(1);
+figure(1); clf
+imsubplot(3,1,1);
 img.setName('test image');
+img.setColor({'gray'})
 img.plot
 
-figure(2)
-img.setColor('gray')
+imsubplot(3,1,2);
+img.setColor('b');
+img.plot
+
+imsubplot(3,1,3);
+img.setColor('r');
 img.plot
 
 
-figure(3)
-img.setColor('blue')
-img.plot
+%%
+
+img.data
 
 
+%% roi
+
+roi = ROIRectangle([5,5], [10,8]);
+
+dd = img.extractdata(roi)
+
+size(dd)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -69,9 +104,8 @@ bfinitialize
 %% accessing a single file
 clc
 is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
-is.initialize;
 
-is
+is.info
 
 %%
 
@@ -80,7 +114,7 @@ is.print
 
 %%
 
-is.icache = false;
+is.setCache(false);
 
 size(is.idata)
 
@@ -96,7 +130,7 @@ size(is.idata)
 
 %%
 
-is.icache = true;
+is.setCache(true);
 
 size(is.idata)
 
@@ -110,9 +144,9 @@ is.plot
 size(is.idata)
 
 
+%%
 
-
-
+is.clearCache
 
 
 

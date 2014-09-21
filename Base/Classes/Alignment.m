@@ -10,7 +10,7 @@ classdef Alignment < matlab.mixin.Copyable
       isizes = {};     % image sizes as cell array
       asize = [];      % absolute image size of aligned images
 
-      isource = {};    % (optional) image data sources. assumed to have routines tile(id), tileSizes()
+      isource = [];    % (optional) image data sources. assumed to have routines tile(id), tilesize(id)
    end
   
    methods

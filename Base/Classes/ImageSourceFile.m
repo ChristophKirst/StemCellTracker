@@ -5,7 +5,6 @@ classdef ImageSourceFile < ImageSource
 
    properties 
       ifilename    = '';                % the file name of the image
-      ibasedirectory = '';              % the base directory of the image file
       
       ireader      = @imread_bf;        % the reading routine used to 
       iinforeader  = @imread_bf_info    % the reading routine to obtain the info of the image
@@ -25,7 +24,7 @@ classdef ImageSourceFile < ImageSource
             if isa(varargin{1}, 'ImageSourceFile') %% copy constructor
                obj = copy(varargin{1});
             elseif ischar(varargin{1})
-               obj.ifilename = varargin{1};
+               obj = obj.fromFile(varargin{1});
             else
                error('%s: invalid constructor input, expects char at position %g',class(obj), 1);
             end
@@ -46,47 +45,50 @@ classdef ImageSourceFile < ImageSource
             error('ImageSourceFile: filename needs to be specified');
          end
          
-         if ~isfile(obj.filename)
-            error('ImageSourceFile: filename %s does not point to a file', obj.filename);
+         if ~isfile(obj.ifilename)
+            error('ImageSourceFile: filename %s does not point to a file', obj.ifilename);
          end
 
       end
       
-      
+      function obj = fromFile(obj, filename)
+         obj.ifilename = filename;
+         obj.iinfo = ImageInfo();
+         obj.iinfo.fromFile(filename);
+      end
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % access methods methods 
       % to obtain non-cached cached/preset info
 
-      % get raw image data
+      % get image data
+      
+      function d = getRawData(obj, varargin)
+         d = obj.ireader(obj.ifilename, varargin{:});
+      end 
+
       function d = getData(obj, varargin)
          d = obj.ireader(obj.ifilename, varargin{:});
-
-         if ~isempty(obj.iinfo.irawformat)
-            d = impqlpermute(d, obj.iinfo.irawformat, obj.iinfo.idataformat);
-         end
+         d = obj.iinfo.raw2data(d);
       end
 
       function obj = setData(obj, d)
          warning('ImageSourceFile: writing image data not suported, changes not propagated to disk!');
          obj.iimage = d; 
          obj.chache = true;
-         i = imdata2info(d);
+         i = ImageInfo(); 
+         i.fromData(d);
          obj.setInfo(i);
       end
 
       function i = getInfo(obj, varargin)
          i = obj.iinforeader(obj.filename, varargin{:});
       end
-      
-      function fn = filename(obj, varargin)
-         fn = fullfile(obj.ibasedirectory, obj.ifilename);
-      end 
-
 
       % infoString
       function istr = infoString(obj)
          istr = infoString@ImageSource(obj, 'File');
-         istr = [istr, '\nfilename:   ', obj.filename];
+         istr = [istr, '\nfilename:   ', obj.ifilename];
          istr = [istr, '\nreader:     ', func2str(obj.ireader)];
          istr = [istr, '\ninforeader: ', func2str(obj.iinforeader)]; 
       end

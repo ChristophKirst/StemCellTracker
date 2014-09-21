@@ -13,23 +13,22 @@ classdef ROIRectangle < ROI
    
    methods
       function obj = ROIRectangle(varargin)  % basic constructor
-      %
-      % Rectangle()         empty rectangle
-      % Rectangle(p1, p2)   rectangle with opposite corners p1 and p2
-      %
-      
+         %
+         % Rectangle()         empty rectangle
+         % Rectangle(p1, p2)   rectangle with opposite corners p1 and p2
+         %
+         
          if nargin == 0
             obj.p1 = [0;0];
             obj.p2 = [0;0];
          elseif nargin == 1
-            obj.fromArray(varargin{1});
+            obj.fromPixelArray(varargin{1});
          elseif nargin == 2
-            obj.p1 = varargin{1};
-            obj.p2 = varargin{2};
+            obj.fromPixel(varargin{1}, varargin{2});
          else
             error('%s: invalid argument number %g for constructor', class(obj), nargin);
          end
-
+         
          obj.initialize();
       end
       
@@ -68,22 +67,40 @@ classdef ROIRectangle < ROI
          obj.p1 = a(:,1);
          obj.p2 = a(:,2);
       end
-
       
+      function obj = fromPixel(obj, p1, p2)  
+         obj.p1 = p1 -1;
+         obj.p2 = p2;
+      end
+      
+      function obj = fromPixelArray(obj, a)  
+         obj.fromPixel(a(:,1), a(:,2));
+      end
+      
+      function a = toPixelArray(obj)
+         a = round([obj.p1+1, obj.p2]);
+      end
+
       function p = pixelIdxList(obj, si)
-         for d = obj.dim:-1:1
-            coords{d} = max(floor(obj.p1(d)+1),1):min(floor(obj.p2(d)), si(d));
-         end
-         p = sub2ind(si, coords{:});
+         p = find(obj.mask(si));
       end
       
       function m = mask(obj, si)
          m = zeros(si);
-         m(obj.pixelIdxList(si)) = 1;
+         rng = cell(1, obj.dim);
+         l = round(max(obj.p1+1, 1));
+         u = round(min(obj.p2, si(:)));
+         for d = 1:obj.dim
+            rng{d} = l(d):u(d);
+         end
+         m(rng{:}) = 1;
       end
       
-      function n = npixel(obj)
-         n = prod(min(floor([obj.p2]), si(:))-max(floor([obj.p1])-1, 1), 1);
+      function n = npixel(obj, si)
+         if nargin < 2
+            si = obj.p2;
+         end
+         n = prod(round(min(obj.p2, si(:)))-round(max(obj.p1, 1)), 1);
       end
       
       function o = overlap(obj, roi)
@@ -102,6 +119,20 @@ classdef ROIRectangle < ROI
       end
       
       
+      % exract roi from an array / image
+      function d = extractdata(obj, d)
+         dim = ndims(d);
+         if dim ~= obj.dim
+            error('ROIRectangle: extractdata: data dimension mismatch');
+         end
+         rectlow = obj.p1;
+         recthigh = obj.p2;
+         for i = dim:-1:1
+            rect{i} = rectlow(i):recthigh(i);
+         end
+         d = d(rect{:});
+      end
+
       
       % special functions for rectangle
       function pp = p(obj)

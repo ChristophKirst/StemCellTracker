@@ -11,13 +11,8 @@ function per = impqlformat2permute(frmt1, frmt2)
 % output:
 %     the pemutation uch that permute(img,per) == impqlreshape(img, frmt1, frmt2)
 
-frmt1(frmt1 == 'x') = 'p';
-frmt1(frmt1 == 'y') = 'q';
-frmt1(frmt1 == 'z') = 'l';
-
-frmt2(frmt2 == 'x') = 'p';
-frmt2(frmt2 == 'y') = 'q';
-frmt2(frmt2 == 'z') = 'l';
+frmt1 = impqlformat2format(frmt1);
+frmt2 = impqlformat2format(frmt2); 
 
 [m,per] = ismember(frmt2, frmt1);
 per = per(m);

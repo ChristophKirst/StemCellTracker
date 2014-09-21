@@ -10,7 +10,7 @@ if ischar(cs)
    c = ['''' , cs, ''''];
    return
 elseif ~iscell(cs) && isscalar(cs)
-   if isnumeric(cs)
+   if isnumeric(cs) || islogical(cs)
       c = num2str(cs);
    else
       c = ['<' class(cs) , '>'];

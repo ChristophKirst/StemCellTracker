@@ -1,11 +1,12 @@
 classdef ImageSourceTiled < ImageSource
    %
-   % ImageSourceTiling class represents a tiled image
+   % ImageSourceTiled class represents tiled image data
+   %
+   % description: organizes mapping from images to tiles in space
    % 
 
    properties 
       isource      = [];               % image source
-      ialignment   = ImageAlignment;   % image alignment
       
       itileformat = '';                % format of the tiling, usefull to permute tiling in correct way, to get tiles imuvwpermute(reshape(tiles, tileshape), tileformat, 'uvw') is used
       itileshape  = [];                % shape of the tiling  
@@ -59,7 +60,6 @@ classdef ImageSourceTiled < ImageSource
          obj.itileshape  = ts;
          obj.itileformat = tf;
          
-         obj.ialignment = ImageAlignment(ts);
          obj.isource = source;
       end
          
@@ -194,132 +194,7 @@ classdef ImageSourceTiled < ImageSource
       end
 
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% alignment routines
-
-      function sh = imageShifts(obj)  % image shifts from pairwise shifts
-         %
-         % shifts = imageShifts()
-         %
-         % description
-         %      image shifts from pairwise shifts
-
-         sh = obj.ialignment.imageShifts;
-         
-         if ~isempty(obj.itileformat)
-            per = imuvwformat2permute('uvw', obj.itileformat);
-            ts = obj.itileshape; ts = ts(per);
-            sh = reshape(sh, ts);
-            %sh = imuvwpermute(sh, obj.itileformat, 'uvw');
-         end
-      end
-
-      function obj = alignPairsFromShifts(obj, ishifts)
-         %
-         % obj = alignPairsFromShifts(obj, ishifts)
-         %
-         % description:
-         %    sets the pairwise shifts form image shifts
-         %
-         
-         obj.ialignment.alignPairsFromShifts(ishifts);   
-      end
-      
-      function obj = absoluteShiftsAndSize(obj)
-         %
-         % obj = absoluteShiftsAndSize(obj)
-         %
-         % description:
-         %    calculates absolute size and shifts
-         %
-         % See also: absoluteShiftsAndSize
-         
-         obj.ialignment.absoluteShiftsAndSize(obj);
-      end
-
-
-      function obj = optimizePairwiseShifts(obj)
-         %
-         % obj = optimizePairwiseShifts(obj)
-         %
-         % description:
-         %    globally optimizes pairwise shifts
-         
-         obj.ialignment.optimizePairwiseShifts;
-      end
-      
-      function obj = makeShiftsConsistent(obj)
-         %
-         % obj = makeShiftsConsistent(obj)
-         %
-         % description:
-         %    makes shifts mutually consistent (i.e. paths in the grid commute)
-         
-         obj.ialignment.makeShiftsConsistent;
-      end
-      
-      
-            
-      function q = overlapQuality(obj, varargin)
-         %
-         % obj = overlapQuality(obj)
-         %
-         % description:
-         %    calculates operlap quality of the images
-         %
-         % See also: overlapQuality, overlapStatisticsImagePair
-         
-         obj.ialignment.overlapQuality(obj, varargin{:});
-         q = [obj.ialignment.ipairs.iquality];
-      end
-
-      function comp = connectComponents(obj, varargin)
-         comp = obj.ialignments.connectedAlignments(varargin{:});
-      end
-      
-      
-      
-      function obj = alignPairs(obj, varargin)
-         %
-         % alignPairs(obj, varargin)
-         %
-         % descritpion:
-         %   alignes the individual paris of images
-         %
-         % input:
-         %   param  parameter as for alignImagePair
-         %
-         % See also: alignImagePair
-         
-         obj.ialignment.alignPairs(obj, varargin{:});
-      end
-  
-      
-      function obj = align(obj, varargin)
-         %
-         % obj = align(obj, varargin)
-         %
-         % description:
-         %    aligns images and sets new shifts
-         %
-         % See also: alignImages
-         
-         obj.ialignment.align(obj, varargin{:});
-      end
-
-      
-      function st = stitch(obj, varargin)
-         %
-         % st = stitch(obj, source, param)
-         %
-         % description
-         %     stitches images using the alignment information and source
-         
-         st = obj.ialignment.stitch(obj, varargin{:});
-      end
-      
-      
-      
+   
             
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % sub tilings

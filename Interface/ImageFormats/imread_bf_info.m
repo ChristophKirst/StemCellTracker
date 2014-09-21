@@ -10,7 +10,7 @@ function iinfo = imread_bf_info(fname, varargin)
 %    param   (optional) parameter struct with entries
 %            .metadata  include meta data in iinfo (true)
 %            .table     transform metadata to a table (true)
-%            .struct    return sturct instead of ImageInfo class (false)
+%            .struct    return struct instead of ImageInfo class (false)
 %            .array     return image info for each series separately (false, i.e. assuming it is the same for all series, e.g. for a tiled image)
 %            .squeeze   return info assuming data is squezed by imread_bf (true)
 %            sub image specs as passed imread_bf to determine the returned size
@@ -131,6 +131,10 @@ if ar
    end
 
 else
+   
+   if ~getParameter(param, 'struct', false)
+      iinfo = ImageInfo();
+   end
 
    %%% single series 
    iinfo.iseries = 1:numSeries;

@@ -1,26 +1,10 @@
-classdef ImageSource < matlab.mixin.Copyable
+classdef ImageSourceAligned < Alignment & ImageSource
    %
-   % ImageSource class represents abstract Image data 
+   % ImageSourceAligned class represents Image data coposed of aligned images
    % 
-   % decription:
-   %     this class can be used to represent an Image independent of its actual source
-   %     use obj.data to return the actual image data
-   %
-   % required functions: datasize, dataformat, color, data
-   %
-   
-   % Note: for translation to python, the cache structure should be via a global imge cache class
-   %       that links ImageSource classes to the cached image
-   %
-   properties   
-      iinfo  = ImageInfo;   % info about image with properties/fields: .isize, .iformat, .icolors, .iclass, .icoords
-      
-      icache = true;        % (optional) weather to cache the data or not
-      idata  = [];          % (optional) (cached) image data
-   end
-        
+
    methods   
-      function obj = ImageSource(varargin)  % basic constructor
+      function obj = ImageSourceAligned(varargin)  % basic constructor
          %
          % ImageSource()
          % ImageSource(...,fieldname, fieldvalue,...)
@@ -51,7 +35,7 @@ classdef ImageSource < matlab.mixin.Copyable
 
       function obj = fromData(obj, data)
          obj.iinfo = ImageInfo();
-         obj.iinfo.fromData(data);
+         obj.iinfo = obj.iinfo.fromData(data);
          obj.idata = data; 
       end
 
@@ -66,7 +50,7 @@ classdef ImageSource < matlab.mixin.Copyable
       function f = dataformat(obj)
          f = obj.iinfo.idataformat;
       end
-       
+     
       function s = rawsize(obj)
          s = obj.iinfo.irawsize;
       end
@@ -75,43 +59,6 @@ classdef ImageSource < matlab.mixin.Copyable
          f = obj.iinfo.irawformat;
       end
       
-         
-      function d = subdata(obj, varargin)
-         %
-         % d = subdata(obj, datasepc)
-         %
-         % description:
-         %    extract a subset of the data give the data specifications datasepc
-         %
-         
-         param = parseParameter(varargin);
-         dfrmt = num2cell(obj.dataformat);
-         
-         %find ids in param that match dfrmt
-         fns = fieldnames(param);
-         [ids, pos] = ismember(fns, dfrmt);
-         pos = pos(ids);
-         ids = find(ids);
-            
-         d = obj.data;
-         asgn = repmat({':'}, ndims(d));
-         for i = 1:length(ids)
-            asgn{pos(i)} = param.(fns{ids(i)});
-         end
-         
-         d = d(asgn{:});
-      end
-      
-      function d = extractdata(obj, roi)
-         %
-         % d = subdata(obj, datasepc)
-         %
-         % description:
-         %    extract a subset of the data given the spatial roi 
-         %
-         
-         d = roi.extractdata(obj.data); 
-      end
       
       function d = data(obj, varargin)
          if obj.icache % basic caching
@@ -197,19 +144,6 @@ classdef ImageSource < matlab.mixin.Copyable
          t = obj.iinfo.datasizeT;
       end
 
-      
-      function i = dataformatpos(obj, frmt)       
-         i = obj.iinfo.dataformatpos(frmt);
-      end
-      
-      function i = rawformatpos(obj, frmt)
-         i = obj.iinforawformatpos(frmt);
-      end
-      
-      function i = cellformatpos(obj, frmt)
-         i = obj.iinfo.cellformatpos(frmt);
-      end
-
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % access methods 
@@ -242,6 +176,7 @@ classdef ImageSource < matlab.mixin.Copyable
       end
 
       function obj = setColor(obj, col)
+         obj.initializeInfo();
          if iscell(col)
             obj.iinfo.icolor = col;
          else
@@ -250,6 +185,7 @@ classdef ImageSource < matlab.mixin.Copyable
       end
    
       function obj = setName(obj, nm)
+         obj.initializeInfo();
          obj.iinfo.iname = nm;
       end
       
@@ -269,6 +205,156 @@ classdef ImageSource < matlab.mixin.Copyable
       end
       
 
+      
+      
+      
+      
+      
+      
+      
+           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% alignment routines
+
+      function sh = imageShifts(obj)  % image shifts from pairwise shifts
+         %
+         % shifts = imageShifts()
+         %
+         % description
+         %      image shifts from pairwise shifts
+
+         sh = obj.ialignment.imageShifts;
+         
+         if ~isempty(obj.itileformat)
+            per = imuvwformat2permute('uvw', obj.itileformat);
+            ts = obj.itileshape; ts = ts(per);
+            sh = reshape(sh, ts);
+            %sh = imuvwpermute(sh, obj.itileformat, 'uvw');
+         end
+      end
+
+      function obj = alignPairsFromShifts(obj, ishifts)
+         %
+         % obj = alignPairsFromShifts(obj, ishifts)
+         %
+         % description:
+         %    sets the pairwise shifts form image shifts
+         %
+         
+         obj.ialignment.alignPairsFromShifts(ishifts);   
+      end
+      
+      function obj = absoluteShiftsAndSize(obj)
+         %
+         % obj = absoluteShiftsAndSize(obj)
+         %
+         % description:
+         %    calculates absolute size and shifts
+         %
+         % See also: absoluteShiftsAndSize
+         
+         obj.ialignment.absoluteShiftsAndSize(obj);
+      end
+
+
+      function obj = optimizePairwiseShifts(obj)
+         %
+         % obj = optimizePairwiseShifts(obj)
+         %
+         % description:
+         %    globally optimizes pairwise shifts
+         
+         obj.ialignment.optimizePairwiseShifts;
+      end
+      
+      function obj = makeShiftsConsistent(obj)
+         %
+         % obj = makeShiftsConsistent(obj)
+         %
+         % description:
+         %    makes shifts mutually consistent (i.e. paths in the grid commute)
+         
+         obj.ialignment.makeShiftsConsistent;
+      end
+      
+      
+            
+      function q = overlapQuality(obj, varargin)
+         %
+         % obj = overlapQuality(obj)
+         %
+         % description:
+         %    calculates operlap quality of the images
+         %
+         % See also: overlapQuality, overlapStatisticsImagePair
+         
+         obj.ialignment.overlapQuality(obj, varargin{:});
+         q = [obj.ialignment.ipairs.iquality];
+      end
+
+      function comp = connectComponents(obj, varargin)
+         comp = obj.ialignments.connectedAlignments(varargin{:});
+      end
+      
+      
+      
+      function obj = alignPairs(obj, varargin)
+         %
+         % alignPairs(obj, varargin)
+         %
+         % descritpion:
+         %   alignes the individual paris of images
+         %
+         % input:
+         %   param  parameter as for alignImagePair
+         %
+         % See also: alignImagePair
+         
+         obj.ialignment.alignPairs(obj, varargin{:});
+      end
+  
+      
+      function obj = align(obj, varargin)
+         %
+         % obj = align(obj, varargin)
+         %
+         % description:
+         %    aligns images and sets new shifts
+         %
+         % See also: alignImages
+         
+         obj.ialignment.align(obj, varargin{:});
+      end
+
+      
+      function st = stitch(obj, varargin)
+         %
+         % st = stitch(obj, source, param)
+         %
+         % description
+         %     stitches images using the alignment information and source
+         
+         st = obj.ialignment.stitch(obj, varargin{:});
+      end
+      
+      
+    
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % information / visulaization 
