@@ -16,24 +16,32 @@ verbose = true;
 %% Setup Image Source
 
 % infer the tag expression o he files from the file folder automatically
-texp = tagexpr('./Test/Images/hESCells_Tiling_Large/*.tif', 'tagnames', 'tile')
+texp = tagexpr('/home/ckirst/Desktop/test/*.tif', 'tagnames', 'tile')
 
+
+%%
 is = ImageSourceTagged(texp);
-is.setDataFormat('py');
+is.setDataFormat('xy');
 is.print
 
-%
+%%
 % (optional) restrict tiles to a certain subset
 % - usefull to restrict alignment to a fixed z plane and channel etc
 % - usefull to test on smaller subset
-is.setTagRange('tile', {1,2,3,4,5,6, 28,29,30,31,32,33, 55,56,57,58,59,60});
-is.print
+%is.setTagRange('tile', {1,2,3,4,5,6, 28,29,30,31,32,33, 55,56,57,58,59,60});
+%is.print
 
 
-% if verbose
-%     figure(1); clf
-%     is.plot('tile', {1,2,28,29}, 'tiling', [2,2])
-% end
+if verbose
+    figure(1); clf
+    is.plot('tiling', [2,3])
+end
+
+
+%%
+
+ii = imread_bf_info(tagexpr2string(texp, 'tile', 1))
+ii.imetadata
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,7 +53,7 @@ is.print
 % in total the tiles are obtained via imuvwpermute(reshape(tiles,tileshape), tileformat)
 % if the celldata in is returns the correct tiling already tileshape and tileformat are inferred from there
 
-ist = ImageSourceTiled(is, 'tileshape', [6,3], 'tileformat', 'uv');
+ist = ImageSourceTiled(is, 'tileshape', [2,3], 'tileformat', 'uv');
 ist.print
 
 % dont cache images if the number is large 
@@ -102,12 +110,13 @@ end
 
 
 for s = 1:nsubalgn
-   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 50, 'shift.max', 10);
+   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 110, 'overlap.min', 50, 'shift.max', 80);
 
    if verbose && s < 12
       subalgn(s).print
-      figure(4)
-      imsubplot(4, 3, s);
+      figure(4); clf
+      imsubplot(1, 1, s);
+      subalgn(s).clearCache;
       subalgn(s).plot
    end
 end
@@ -119,7 +128,7 @@ end
 % detect colonies in the aligned images
 clc
 colonies = [];
-for s = 2:nsubalgn
+for s = 1:nsubalgn
    figure(5)
    rois = findROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
    
@@ -128,15 +137,13 @@ for s = 2:nsubalgn
    end
 end
 
-
-%%
 ncolonies = length(colonies)
 
 %%
 
+figure(1); clf
 for c = 1:ncolonies
    img = colonies(c).data;
-   figure(1)
    imsubplot(10,10,c)
    implot(img)
 end

@@ -204,9 +204,7 @@ classdef ImageSourceTiled < ImageSource
       function bkg = backgroundFromMinOfTiles(obj,varargin)
          bkg = backgroundFromMin(obj, varargin{:});
       end
-      
-      
-      
+
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % info / visulaization

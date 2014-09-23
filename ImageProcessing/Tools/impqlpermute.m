@@ -49,11 +49,25 @@ end
 %   error('impqlpermute: input img and format inconsistent!')
 %end
 
-in_format = strrep(in_format, 'x', 'p');
+%in_format = strrep(in_format, 'x', 'p');
 %in_format = strrep(in_format, 'z', 'l');
 
-out_format = strrep(out_format, 'x', 'p');
+%out_format = strrep(out_format, 'x', 'p');
 %out_format = strrep(out_format, 'z', 'l');
+
+%reverse in y if requested
+xposin = strfind(in_format, 'x');
+if ~isempty(xposin)
+   img = flip(img, xposin);
+   in_format(xposin) = 'p';
+%else
+%   pimg = img;
+end
+xpos = strfind(out_format, 'x');
+if ~isempty(xpos)
+   out_format(xpos) = 'p';
+end
+
 
 %reverse in y if requested
 yposin = strfind(in_format, 'y');
@@ -123,6 +137,12 @@ end
 
 % premute and reshape the img coordinates
 img = permute(img, per);
+
+%reverse in y if requested
+if ~isempty(xpos)
+   xpos = strfind(out_format, 'p');
+   img = flip(img, xpos);
+end
 
 %reverse in y if requested
 if ~isempty(ypos)

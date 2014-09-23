@@ -43,11 +43,26 @@ if length(unique(out_format)) ~= length(out_format)
 end
 
 
-in_format = strrep(in_format, 'x', 'u');
+%in_format = strrep(in_format, 'x', 'u');
 %in_format = strrep(in_format, 'z', 'w');
 
-out_format = strrep(out_format, 'x', 'p');
+%out_format = strrep(out_format, 'x', 'p');
 %out_format = strrep(out_format, 'z', 'w');
+
+
+%reverse in y if requested
+xposin = strfind(in_format, 'x');
+if ~isempty(xposin)
+   img = flip(img, xposin);
+   in_format(xposin) = 'u';
+%else
+%   pimg = img;
+end
+xpos = strfind(out_format, 'x');
+if ~isempty(xpos)
+   out_format(xpos) = 'u';
+end
+
 
 %reverse in y if requested
 yposin = strfind(in_format, 'y');
@@ -117,6 +132,12 @@ end
 
 % premute and reshape the img coordinates
 img = permute(img, per);
+
+%reverse in y if requested
+if ~isempty(xpos)
+   xpos = strfind(out_format, 'u');
+   img = flip(img, xpos);
+end
 
 %reverse in y if requested
 if ~isempty(ypos)
