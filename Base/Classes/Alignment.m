@@ -7,9 +7,6 @@ classdef Alignment < matlab.mixin.Copyable
       pairs = [];      % pairs of overlapping images (array of AlignmentPair classes)
       nodes = [];      % ids of images used for this alignment
       
-      isizes = {};     % image sizes as cell array
-      asize = [];      % absolute image size of aligned images
-
       isource = [];    % (optional) image data sources. assumed to have routines tile(id), tilesize(id)
    end
   
@@ -50,46 +47,9 @@ classdef Alignment < matlab.mixin.Copyable
          end
       end
 
-      function d = dim(obj)
-         %
-         % d = dim(obj)
-         %
-         % descritpion:
-         %   number of dimensions of the alignment shifts
-         %
 
-         if ~isempty(obj.pairs)
-            d = obj.pairs(1).dim();
-         else
-            d = 2;
-         end
-      end
       
-      function n = npairs(obj)
-         %
-         % n = npairs(obj)
-         %
-         n = length(obj.pairs);
-      end
-      
-      function n = nnodes(obj)
-         %
-         % n = nnodes(obj)
-         %
-         n = length(obj.nodes);
-      end
-
-      function id = pairIds(obj)
-         %
-         % id = pairIds(obj)
-         %
-         % descritpion:
-         %   returns all ids used in pairs
-         
-         id = unique([[obj.pairs.from], [obj.pairs.to]]);
-      end
-            
-      function obj = fromCell(obj, ca) %#ok<INUSD>
+      function obj = fromCell(obj, ca)
          %
          % obj = fromCell(obj, ca)
          %
@@ -130,9 +90,7 @@ classdef Alignment < matlab.mixin.Copyable
          end
          
          obj.pairs = p;
-         %obj.images = ca(:); to be updated e.g. using ImageSourceGrid
-         obj.isizes = ca(:); % obj.isource.tileSizes(); % cellfunc(@size, obj.images);
-         obj.nodes = 1:numel(obj.isizes);
+         obj.nodes = 1:numel(ca);
       end
       
       
@@ -167,19 +125,79 @@ classdef Alignment < matlab.mixin.Copyable
       end
       
       function obj = fromImageSourceTiled(obj, ist)
+         %
+         % obj = fromImageSourceTiled(obj, ist)
+         %
+         % descritpion:
+         %   intitializes class from ImageSourceTiled class
+         %
+         % input:
+         %   ist  ImagesourceTiled class
+         
          obj.isource = ist;
          ts = ist.tileSizes();
          obj.fromCell(ts);
       end
       
       
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % basics 
       
+      function d = dim(obj)
+         %
+         % d = dim(obj)
+         %
+         % descritpion:
+         %   number of dimensions of the alignment shifts
+         %
+
+         if ~isempty(obj.pairs)
+            d = obj.pairs(1).dim();
+         else
+            d = 2;
+         end
+      end
       
+      function n = npairs(obj)
+         %
+         % n = npairs(obj)
+         %
+         n = length(obj.pairs);
+      end
       
+      function n = nnodes(obj)
+         %
+         % n = nnodes(obj)
+         %
+         n = length(obj.nodes);
+      end
+
+      function id = pairIds(obj)
+         %
+         % id = pairIds(obj)
+         %
+         % descritpion:
+         %   returns all ids used in pairs
+         
+         id = unique([[obj.pairs.from], [obj.pairs.to]]);
+      end
+            
       
+      function ts = tilesizes(obj)
+         ts = obj.isource.tilesizes;
+         ts = ts(obj.nodes);
+      end
+      
+      function tf = tileformat(obj)
+         tf = obj.isource.tileformat;
+      end
+
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % alignment routines
+      
+      
+      % routines modifying the class
       
       function obj = removeLowQualityPairs(obj, thq)
          %
@@ -213,62 +231,50 @@ classdef Alignment < matlab.mixin.Copyable
          
          obj.pairs = obj.pairs(ids);
       end
-         
-% 
-%       function obj = reduceImages(obj)
-%          %
-%          % obj = reduceImages(obj)
-%          %
-%          % description: 
-%          %    relables nodes to 1:nnodes in nodes and pairs and orders/drops images accordingly
-%          %
-% 
-%          % make sure alignment is consistent
-%          if ~isempty(setdiff(obj.pairIds, obj.nodes))
-%             error('Alignment: there are image ids in pairs tthat do not appear in nodes: %s', var2char(setdiff(obj.pairIds, obj.nodes)));
-%          end
-%          
-%          iids = obj.nodes;
-%          nids = 1:length(iids);
-%          
-%          idconv = zeros(1,max(iids));
-%          idconv(iids) = nids;
-%          
-%          if ~isempty(obj.pairs)
-%             pi = [obj.pairs.from];
-%             pi = num2cell(idconv(pi));
-%             [obj.pairs.from] = pi{:};
-%          
-%             pi = [obj.pairs.to];
-%             pi = num2cell(idconv(pi));
-%             [obj.pairs.to] = pi{:};
-%          end
-%          
-%          if ~isempty(obj.sizes)
-%             obj.sizes = obj.sizes(iids);  
-%          end
-%                   
-%          if ~isempty(obj.images)
-%             obj.images = obj.images(iids);  
-%          end
-%          
-%          obj.nodes = nids;
-%          
-%          obj.asize = [];
-%       end
-
-      function obj = imageSizesFromSource(obj)
+      
+      function obj = removeBackgroundNodes(obj, thb)
          %
-         % obj = imageSizes(obj)
+         % comp = removeBackgroundNodes(obj, thb)
          %
          % descritpion:
-         %   calcualtes the image sizes
+         %   give an array of alignments remove the ones in the node list
+         %   for which there is no signal in the images
+         %
+         % input:
+         %   thb    threshold for background intensity
 
-         %obj.sizes = cellfunc(@size, obj.images);
-         obj.isizes = obj.isource.tileSizes();
+         
+         nds = obj.nodes;
+         n = obj.nnodes;
+         rmn = zeros(1,n);
+         for i = 1:n
+            img = obj.isource.tile(nds(i));
+            rmn(i) = max(img(:)) < thb;
+         end
+         
+         if any(rmn)
+            obj.nnodes = nds(~rmn);
+            obj.reducePairs();
+         end
       end
       
-        
+      function obj = overlapQuality(obj, varargin)
+         %
+         % obj = overlapQuality(obj) 
+         %
+         % description:
+         %    calculates operlap quality of the images
+         %
+         % See also: overlapQuality, overlapStatisticsImagePair
+         
+         for p = 1:obj.npairs
+            pp = obj.pairs(p).copy();
+            pp.from = obj.isource.getTile(pp.from);
+            pp.to   = obj.isource.getTile(pp.to); 
+            obj.pairs(p).quality = overlapQuality(pp, varargin{:});
+         end
+      end
+
       function obj = alignPairs(obj, varargin)
          %
          % alignPairs(obj, varargin)
@@ -296,70 +302,6 @@ classdef Alignment < matlab.mixin.Copyable
             obj.pairs(i).quality = p.quality;
          end
       end
-
-
-      function comp = connectedComponents(obj, varargin)
-         %
-         % comp = connectedComponents(obj, varargin)
-         %
-         % descritpion:
-         %   given quality factors of pairs returns cell array of Alignemnts with connected images
-         %
-         % input:
-         %   param   parameter as in connectedAlignments
-         %
-         % See also: connectedAlignments
-         
-         comp = connectedAlignments(obj, varargin{:});
-         
-      end
-      
-      
-%       function comp = removeBlackComponents(obj, varargin)
-%          %
-%          % comp = removeBlackComponents(obj, varargin)
-%          %
-%          % descritpion:
-%          %   give an array of alignments remove the ones for which there is no signal in the images
-%          %
-%          % input:
-%          %   param   parameter as in connectedAlignments
-%          %
-%          % See also: connectedAlignments
-%       end
-
-      function obj = overlapQuality(obj, varargin)
-         %
-         % obj = overlapQuality(obj)
-         %
-         % description:
-         %    calculates operlap quality of the images
-         %
-         % See also: overlapQuality, overlapStatisticsImagePair
-         
-         for p = 1:obj.npairs
-            pp = obj.pairs(p).copy();
-            pp.from = obj.isource.getTile(pp.from);
-            pp.to   = obj.isource.getTile(pp.to); 
-            obj.pairs(p).quality = overlapQuality(pp, varargin{:});
-         end
-      end
-      
-      function [ashifts, as] = absoluteShiftsAndSize(obj)
-         %
-         % obj = absoluteShiftsAndSize(obj)
-         %
-         % description:
-         %    calculates absolute size and shifts
-         %
-         % See also: absoluteShiftsAndSize
-         
-         [ashifts, as] = absoluteShiftsAndSize(obj.imageShifts, obj.sizes);
-         
-         %obj.asize = as;
-         %obj.pairs = alignPairsFromShifts(obj.pairs, ashifts, obj.nodes);
-      end
-      
      
       function obj = optimizePairwiseShifts(obj)
          %
@@ -372,23 +314,43 @@ classdef Alignment < matlab.mixin.Copyable
          
          obj.pairs = optimizePairwiseShifts(obj.pairs);
       end
+
+
+      % routines not modifying the class
       
-      
-      function obj = align(obj, varargin)
+      function comp = connectedComponents(obj, varargin)
          %
-         % obj = align(obj, varargin)
+         % comp = connectedComponents(obj, varargin)
+         %
+         % descritpion:
+         %   given quality factors of pairs returns cell array of Alignemnts with connected images
+         %
+         % input:
+         %   param   parameter as in connectedAlignments
+         %
+         % See also: connectedAlignments
+         
+         comp = connectedAlignments(obj, varargin{:});   
+      end
+ 
+      function [ashifts, as] = absoluteShiftsAndSize(obj)
+         %
+         % obj = absoluteShiftsAndSize(obj)
          %
          % description:
-         %    aligns images and sets new shifts
+         %    calculates absolute size and shifts
          %
-         % See also: alignImages
+         % See also: absoluteShiftsAndSize
+                
+%          obj.nodes
+%          obj.tilesizes
+%          obj.imageShifts
          
-         shifts = alignImages(obj.isource, 'pairs', obj.pairs, varargin{:});
+         [ashifts, as] = absoluteShiftsAndSize(obj.imageShifts, obj.tilesizes);
          
-         [obj.pairs.shift] = shifts{:};
+         %obj.pairs = alignPairsFromShifts(obj.pairs, ashifts, obj.nodes);
       end
-      
-      
+   
       function shifts = imageShifts(obj)
          %
          % shifts = imageShifts()
@@ -421,13 +383,23 @@ classdef Alignment < matlab.mixin.Copyable
             shifts{i} = shifts{i} - sh;
          end
       end
+      
+      
+      % align and stitch
 
-      function si = sizes(obj)
-         si = obj.isizes;
-         %si = obj.isizes(obj.nodes); %TODO: fixme 
+      function obj = align(obj, varargin)
+         %
+         % obj = align(obj, varargin)
+         %
+         % description:
+         %    aligns images and sets new shifts
+         %
+         % See also: alignImages
+         
+         [~, prs] = alignImages(obj.isource, 'pairs', obj.pairs, varargin{:});
+         obj.pairs = prs;
       end
-      
-      
+
       function st = stitch(obj, varargin)
          %
          % st = stitch(obj, source, param)
@@ -435,12 +407,10 @@ classdef Alignment < matlab.mixin.Copyable
          % description
          %     stitches images using the alignment information and source
          
-         st  = stitchImages(obj.isource.getTiles(obj.nodes), obj.imageShifts, varargin{:});  
+         st  = stitchImages(obj.isource.getTiles(obj.nodes), obj.imageShifts, varargin{:});
       end
       
-      
-      
-      
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % plotting
       
@@ -475,16 +445,15 @@ classdef Alignment < matlab.mixin.Copyable
    methods(Access = protected)
        % Override copyElement method:
       function cpObj = copyElement(obj)
-         % Make a shallow copy of all four properties
+         % copy of all four properties
          cpObj = copyElement@matlab.mixin.Copyable(obj);
          % Make a deep copy of the pairs object
          cpObj.pairs = copy(obj.pairs);
       end
    end
    
-   methods(Access = private)
-   
-   
-   end
+%    methods(Access = private)
+%       
+%    end
    
 end

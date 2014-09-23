@@ -1,10 +1,10 @@
  classdef Colony < matlab.mixin.Copyable
     
     properties 
-       isource     = [];   % image source pointing to the data
-       iobjects    = [];   % object data, i.e. array of ObjectData classes representing the segmentation result
-       
+       isource     = [];   % image source pointing to the data       
        iroi        = [];   % region information about the the colony (ROI class)
+
+       iobjects    = [];   % object data, i.e. array of ObjectData classes representing the segmentation result
     end
     
     
@@ -27,7 +27,7 @@
             elseif isa(varargin{1}, 'ImageSource')
                obj.isource = varargin{1};
                if nargin > 1 && isa(varargin{2}, 'ROI')
-                  obj.iroi = varargin{2};
+                  obj.fromImageSourceAligendAndROI(varargin{1}, varargin{2});
                end
                if nargin > 2 && isa(varargin{3}, 'Object')
                   obj.iobjects = varargin{3};
@@ -47,15 +47,23 @@
          end
       end
 
+      function obj = fromImageSourceAligendAndROI(obj, ia, roi)
+         obj.isource = ia.copy();
+         nds = obj.isource.nodes; 
+         nds = nds(obj.isource.roi2tileids(roi.boundingbox));
+         obj.isource.nodes = nds;
+         obj.isource.reducePairs;
+         obj.iroi = roi;
+      end
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % basic functionality
       
-      function img = getImage(obj)
-         img = obj.isource.getROI(obj.iroi);
+      function img = data(obj)
+         img = obj.isource.extractdata(obj.iroi.boundingbox);
       end
       
-      function dat = getObjects(obj)
+      function dat = objects(obj)
          dat = obj.iobjects;
       end
       
@@ -78,7 +86,7 @@
       function img = plotDataAndImage(obj)
          % overlay image and data
          
-         imgo = obj.getImage();
+         imgo = obj.data();
          imgo = imoverlaylabel(imgo,  obj.iobjects.labeledImage());
          
          imgo = implot(imgo);

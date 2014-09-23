@@ -28,6 +28,7 @@ tagexp = tagexpr('./Test/Images/hESCells_Tiling/*', 'tagnames', {'field'})
 
 % generate image source for tagged images
 is = ImageSourceTagged(tagexp);
+is.setDataFormat('pq')
 is.print
 
 % generate ImageSourceTiled class
@@ -52,17 +53,19 @@ end
 
 %% Align the images
 
-ist.align('overlap.max', 120, 'overlap.min', 90, 'shift.max', 10);
+ia = ImageSourceAligned(ist);
+
+ia.align('overlap.max', 120, 'overlap.min', 90, 'shift.max', 10);
 
 if verbose
    figure(2+figure_offset); clf;
-   ist.plotAlignedImages
+   ia.plotAlignedImages
 end
 
 
 %% Stictch the images
 
-imgst = ist.stitch('method', 'Mean');
+imgst = ia.stitch('method', 'Mean');
 
 if verbose
    figure(3+figure_offset); clf;

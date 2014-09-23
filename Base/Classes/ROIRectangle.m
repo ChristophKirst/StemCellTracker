@@ -125,7 +125,7 @@ classdef ROIRectangle < ROI
          if dim ~= obj.dim
             error('ROIRectangle: extractdata: data dimension mismatch');
          end
-         rectlow = obj.p1;
+         rectlow = obj.p1 + 1;
          recthigh = obj.p2;
          for i = dim:-1:1
             rect{i} = rectlow(i):recthigh(i);

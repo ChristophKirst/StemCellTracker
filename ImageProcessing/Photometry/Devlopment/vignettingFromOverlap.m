@@ -6,4 +6,6 @@ function imgscor = optimzePhotometry(imgs, varargin)
 %    use overlapping images to estimate vignetting and correct for it
 
 
+
+
 end

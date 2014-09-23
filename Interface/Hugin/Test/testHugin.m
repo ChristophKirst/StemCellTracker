@@ -10,7 +10,7 @@ initialize
 hiinitialize
 bfinitialize
 
-%%
+%% Load Images
 img = loadTestImage();
 
 img1 = img(1:300, 1:300);
@@ -23,7 +23,6 @@ imgsg = cellfun(@mat2gray, imgs, 'UniformOutput', false);
 
 figure(1); clf
 implottiling(imgs)
-
 
 
 %% Align Images using RMS method as reference

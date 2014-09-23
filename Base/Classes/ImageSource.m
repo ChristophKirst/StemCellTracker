@@ -146,6 +146,11 @@ classdef ImageSource < matlab.mixin.Copyable
          cf = obj.iinfo.icellformat;
       end
       
+      function n = ncells(obj, varargin)
+         n = prod(obj.cellsize(varargin{:}));
+      end
+      
+      
       function d = ndatadims(obj)
          % full number of image dimensinos
          d = length(obj.datasize);
@@ -241,6 +246,11 @@ classdef ImageSource < matlab.mixin.Copyable
          obj.idata = d;
       end
 
+      function obj = setDataFormat(obj, dfrmt)         
+         obj.clearCache();
+         obj.iinfo.idataformat = dfrmt;
+      end
+       
       function obj = setColor(obj, col)
          if iscell(col)
             obj.iinfo.icolor = col;

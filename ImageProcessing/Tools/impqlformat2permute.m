@@ -9,7 +9,7 @@ function per = impqlformat2permute(frmt1, frmt2)
 %     frmt*   the image/cell formats as chars
 %
 % output:
-%     the pemutation uch that permute(img,per) == impqlreshape(img, frmt1, frmt2)
+%     the pemutation such that permute(img,per) == impqlreshape(img, frmt1, frmt2) up to axis inversions
 
 frmt1 = impqlformat2format(frmt1);
 frmt2 = impqlformat2format(frmt2); 

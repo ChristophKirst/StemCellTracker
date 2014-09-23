@@ -20,6 +20,8 @@ function [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes)
 %isizes
 
 if ~iscell(isizes) || ~iscell(shifts) || numel(isizes) ~= numel(shifts)
+%    var2char(isizes)
+%    var2char(shifts)
    error('absoluteShiftsAndSize: inconsistent input');
 end
 

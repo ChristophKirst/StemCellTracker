@@ -11,15 +11,15 @@ function ids = roi2imageids(shifts, isizes, rect)
 
 if isa(rect, 'ROI')
    rect = rect.boundingbox;
-   rect = rect.toArray();
+   rect = rect.toPixelArray();
 end
 
 n = numel(shifts);
-ids = zeros(1, n);
+ids = zeros(1, n) > 0;
 for i = 1:n
    r = shiftsAndSizeToRect(shifts{i}, isizes{i});
    if isoverlapping(r, rect)
-      ids(n) = 1;
+      ids(i) = 1;
    end
 end
 
@@ -37,5 +37,5 @@ function b = isoverlapping(a, b)
    r1 = max(a1, b1);
    r2 = min(a2, b2);
    
-   b = ~any(r1 < r2);  
+   b = all(r1 <= r2);  
 end

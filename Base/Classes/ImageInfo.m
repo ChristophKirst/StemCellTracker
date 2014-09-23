@@ -18,7 +18,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       icellsize   = 1;               % size of the cell structure as returend when using .celldata routine
       icellformat = '';              % format of the cell structure (usually fixed subset of uvwrs)
      
-      irawsize   = [];               % size of the raw data, [] = isize
+      irawsize   = [];               % size of the raw data, [] = idatasize
       irawformat = '';               % format of the raw image data, when read from a file, '' = iformat
   
       idataclass = '';               % class of the image

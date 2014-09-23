@@ -42,10 +42,14 @@ if ~isempty(shuffle)
    opt = [opt, {shuffle}];
 end
 
-if ndims(imglab) == 2 %#ok<ISMAT>
-   imgcol = label2rgb(imglab, cmap, opt{:});
+if ~isempty(cmap)
+   if ndims(imglab) == 2 %#ok<ISMAT>
+      imgcol = label2rgb(imglab, cmap, opt{:});
+   else
+      imgcol = label2rgb3d(imglab, cmap, opt{:});
+   end
 else
-   imgcol = label2rgb3d(imglab, cmap, opt{:});
+   imgcol = cat(ndims(imglab)+1, imglab, imglab, imglab);
 end
 
 imgcol = double(imgcol) / double(max(imgcol(:)));

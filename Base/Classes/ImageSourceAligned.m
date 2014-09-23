@@ -1,19 +1,29 @@
 classdef ImageSourceAligned < Alignment & ImageSource
    %
-   % ImageSourceAligned class represents Image data coposed of aligned images
-   % 
+   % ImageSourceAligned class represents Image data composed of aligned images
+   %
+   % description: 
+   %    it unifies the Alignenet and ImageSource classes
+   %    explictly separated from ImageSourceTiled to allow for easy splitting of non-alignable components
+   %    ImageSourceAligned classes then share the data (and possibly cached) source ImageSourceTiled
+   %    the ids of the tiles contributing to this image are stored in the Alignemnt class as nodes
+   %
+   
+   properties
+      asize = [];     % full absolute image size of  aligned images
+   end
 
    methods   
       function obj = ImageSourceAligned(varargin)  % basic constructor
          %
-         % ImageSource()
-         % ImageSource(...,fieldname, fieldvalue,...)
+         % ImageSourceAligned()
+         % ImageSourceAligned(...,fieldname, fieldvalue,...)
          %
          if nargin == 1 
-            if isa(varargin{1}, 'ImageSource') %% copy constructor
+            if isa(varargin{1}, 'ImageSourceAligned') %% copy constructor
                obj = copy(varargin{1});
-            elseif isnumeric(varargin{1})
-               obj = obj.fromData(varargin{1});
+            elseif isa(varargin{1}, 'ImageSourceTiled')
+               obj = obj.fromImageSourceTiled(varargin{1});
             else
                error('%s: not valid arguments for constructor', class(obj));
             end
@@ -27,138 +37,89 @@ classdef ImageSourceAligned < Alignment & ImageSource
                else
                   warning('%s: unknown property name: %s ', class(obj), varargin{i})
                end
-            end
-   
-            %obj.initialize();           
+            end        
          end
       end
-
-      function obj = fromData(obj, data)
-         obj.iinfo = ImageInfo();
-         obj.iinfo = obj.iinfo.fromData(data);
-         obj.idata = data; 
+      
+      function obj = fromImageSourceTiled(obj, ist)
+         obj.isource = ist;
+         ts = ist.tilesizes();
+         obj.fromCell(ts);
+         
+         % initialize the image information from isource
+         obj.iinfo = ist.isource.iinfo;
+         
+         obj.asize = [];  % [] = image not aligned
       end
+       
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % base methods
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % base methods - redefinitions 
       %      
 
       function s = datasize(obj)
-         s = obj.iinfo.idatasize;
+%          if isempty(obj.asize)
+%             error('%s: datasize: images not aligned, cannot infer data size!', class(obj));
+%          end
+         s = obj.asize;
       end
- 
-      function f = dataformat(obj)
-         f = obj.iinfo.idataformat;
-      end
-     
+
       function s = rawsize(obj)
-         s = obj.iinfo.irawsize;
+%          if isempty(obj.asize)
+%             error('%s: datasize: images not aligned, cannot infer raw data size!', class(obj));
+%          end
+         if isempty(obj.rawformat)
+            s = obj.asize;
+         else
+            per = impqlformat2permute(obj.dataformat, obj.rawformat);
+            s = obj.asize;
+            s = permute(s, per);
+         end
       end
-      
-      function f = rawformat(obj)
-         f = obj.iinfo.irawformat;
-      end
-      
-      
+
       function d = data(obj, varargin)
          if obj.icache % basic caching
             if ~isempty(obj.idata)
                d = obj.idata;
             else
-               %get data the data
+               % stictch the data
                d = obj.getData(varargin{:});
                
                % cache it
                obj.idata = d;
             end
          else
-            d = obj.getData(varargin{:});
+            d = obj.stitch(varargin{:});
          end
       end
       
       function d = rawdata(obj, varargin)
-         d = obj.getRawData();
+         d = obj.data();
+         d = obj.iinfo.data2raw(d);
       end
       
       
       function c = celldata(obj, varargin)
-         c = {obj.data};  % trivial here
+         % get all tiles used by alignment
+         c = obj.isource.tiles(obj.nodes);
       end
       
       function cs = cellsize(obj, varargin)
-         cs = obj.iinfo.icellsize;
+         cs = length(obj.nodes);
       end
 
-      function cf = cellformat(obj, varargin)
-         cf = obj.iinfo.icellformat;
+      function cf = cellformat(~, varargin)
+         cf = 'u';
       end
       
-      function d = ndatadims(obj)
-         % full number of image dimensinos
-         d = length(obj.datasize);
-      end
-      
-      function d = nsdatadims(obj)
-         % spatial image dimensions
-         d = imsdims(obj.dataformat);
-      end
-
-      function c = dataclass(obj)  % we dont use class here as this would overwrte the class routine
-         c = obj.iinfo.idataclass;
-      end
-       
-      function c = color(obj)
-         c = obj.iinfo.icolor;
-      end
-      
-      function s = scale(obj)         
-         s = obj.iinfo.iscale;
-      end
-      
-      function l = name(obj)
-         l = obj.iinfo.iname;
-      end 
-
-      function i = info(obj)
-         i = obj.iinfo;
-      end
-      
-      function s =datasizePQLCT(obj)
-         s = obj.iinfo.idatasizePQLCT;
-      end
-      
-
-      function p = datasizeP(obj)
-         p = obj.iinfo.datasizeP;
-      end
-      function q = datasizeQ(obj)
-         q = obj.iinfo.datasizeQ;
-      end
-      function l = datasizeL(obj)
-         l = obj.iinfo.datasizeL;
-      end
-      function c = datasizeC(obj)
-         c = obj.iinfo.datasizeC;
-      end
-      function t = datasizeT(obj)
-         t = obj.iinfo.datasizeT;
-      end
-
-
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % access methods 
-      % to obtain non-cached/preset info
-      %
-      % usually overwritten by sepcific super class
-
       function d = getData(obj, varargin)  % obtain the image data
          %
          % d = getData(obj, varargin)
          %
          % description:
          %     obtain image data in the format given by obj.dataformat
-         
-         d = obj.idata;     % trivial here ->  to be implemented depending on ImageSource superclass
+
+         d = obj.stitch(varargin{:});
       end
       
       function d = getRawData(obj, varargin)
@@ -168,33 +129,14 @@ classdef ImageSourceAligned < Alignment & ImageSource
          % description:
          %     obtain raw image data in the format given by obj.rawformat
          
-         d = obj.iinfo.data2raw(obj.idata);     % trivial here ->  to be implemented depending on ImageSource superclass
+         d = obj.iinfo.data2raw(obj.getData(varargin{:}));     % trivial here ->  to be implemented depending on ImageSource superclass
       end
       
-      function obj = setData(obj, d)  % set the image data
-         obj.idata = d;
+      function obj = setData(obj, ~)  % set the image data
+         error('%s: setData: canot set data!', class(obj));
       end
 
-      function obj = setColor(obj, col)
-         obj.initializeInfo();
-         if iscell(col)
-            obj.iinfo.icolor = col;
-         else
-            obj.iinfo.icolor = num2cell(col);
-         end
-      end
-   
-      function obj = setName(obj, nm)
-         obj.initializeInfo();
-         obj.iinfo.iname = nm;
-      end
-      
-      
-      function obj = setInfo(obj, info)
-         obj.iinfo = info;
-      end
 
- 
       function obj = clearCache(obj)
          obj.idata = [];
       end
@@ -204,114 +146,34 @@ classdef ImageSourceAligned < Alignment & ImageSource
          obj.clearCache();
       end
       
-
+      function clear(obj)
+         obj.clearCache();
+         obj.asize = [];
+      end
       
       
+ 
       
       
-      
-      
-      
-           %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% alignment routines
 
-      function sh = imageShifts(obj)  % image shifts from pairwise shifts
-         %
-         % shifts = imageShifts()
-         %
-         % description
-         %      image shifts from pairwise shifts
-
-         sh = obj.ialignment.imageShifts;
-         
-         if ~isempty(obj.itileformat)
-            per = imuvwformat2permute('uvw', obj.itileformat);
-            ts = obj.itileshape; ts = ts(per);
-            sh = reshape(sh, ts);
-            %sh = imuvwpermute(sh, obj.itileformat, 'uvw');
-         end
-      end
-
-      function obj = alignPairsFromShifts(obj, ishifts)
-         %
-         % obj = alignPairsFromShifts(obj, ishifts)
-         %
-         % description:
-         %    sets the pairwise shifts form image shifts
-         %
-         
-         obj.ialignment.alignPairsFromShifts(ishifts);   
-      end
       
-      function obj = absoluteShiftsAndSize(obj)
+      function comp = connectedComponents(obj, varargin)
          %
-         % obj = absoluteShiftsAndSize(obj)
-         %
-         % description:
-         %    calculates absolute size and shifts
-         %
-         % See also: absoluteShiftsAndSize
-         
-         obj.ialignment.absoluteShiftsAndSize(obj);
-      end
-
-
-      function obj = optimizePairwiseShifts(obj)
-         %
-         % obj = optimizePairwiseShifts(obj)
-         %
-         % description:
-         %    globally optimizes pairwise shifts
-         
-         obj.ialignment.optimizePairwiseShifts;
-      end
-      
-      function obj = makeShiftsConsistent(obj)
-         %
-         % obj = makeShiftsConsistent(obj)
-         %
-         % description:
-         %    makes shifts mutually consistent (i.e. paths in the grid commute)
-         
-         obj.ialignment.makeShiftsConsistent;
-      end
-      
-      
-            
-      function q = overlapQuality(obj, varargin)
-         %
-         % obj = overlapQuality(obj)
-         %
-         % description:
-         %    calculates operlap quality of the images
-         %
-         % See also: overlapQuality, overlapStatisticsImagePair
-         
-         obj.ialignment.overlapQuality(obj, varargin{:});
-         q = [obj.ialignment.ipairs.iquality];
-      end
-
-      function comp = connectComponents(obj, varargin)
-         comp = obj.ialignments.connectedAlignments(varargin{:});
-      end
-      
-      
-      
-      function obj = alignPairs(obj, varargin)
-         %
-         % alignPairs(obj, varargin)
+         % comp = connectedComponents(obj, varargin)
          %
          % descritpion:
-         %   alignes the individual paris of images
+         %   given quality factors of pairs returns cell array of Alignemnts with connected images
          %
          % input:
-         %   param  parameter as for alignImagePair
+         %   param   parameter as in connectedAlignments
          %
-         % See also: alignImagePair
+         % See also: connectedAlignments
          
-         obj.ialignment.alignPairs(obj, varargin{:});
+         comp = connectedAlignments(obj, varargin{:});   
       end
-  
+      
       
       function obj = align(obj, varargin)
          %
@@ -322,65 +184,118 @@ classdef ImageSourceAligned < Alignment & ImageSource
          %
          % See also: alignImages
          
-         obj.ialignment.align(obj, varargin{:});
+         [~, prs] = alignImages(obj.isource, 'pairs', obj.pairs, varargin{:});
+         
+         obj.pairs = prs;
+         [~, as] = obj.absoluteShiftsAndSize();
+         obj.asize = as;
       end
-
-      
-      function st = stitch(obj, varargin)
+        
+  
+      function sti = stitch(obj, varargin)
          %
          % st = stitch(obj, source, param)
          %
          % description
          %     stitches images using the alignment information and source
          
-         st = obj.ialignment.stitch(obj, varargin{:});
+         st  = stitchImages(obj.isource.getTiles(obj.nodes), obj.imageShifts, varargin{:});
+         
+         obj.asize = size(st);
+         if obj.icache  % cache this result
+            obj.idata = st; 
+         end
+         
+         if nargout > 0
+            sti = st;
+         end
+      end
+
+      
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % tiling 
+      
+      function img = tile(obj, id)
+         img = obj.isource.getTile(id);
+      end
+      
+      function imgs = tiles(obj, varargin)
+         imgs = obj.isource.getTiles(varargin{:});
+      end
+
+      function tsi = tilesize(obj)
+         tsi = obj.isource.tilesize;
+      end
+      
+      function td = tiledim(obj)
+         td = length(obj.tilesize);
+      end
+      
+      function n = ntiles(obj)
+         n = prod(obj.tilesize);
       end
       
       
-    
+      function ids = roi2tileids(obj, roi)
+         %
+         % ids = roi2tileids(obj, roi)
+         %
+         % description:
+         %    identifies the ids of the tiles that contribute to the roi
+         
+         [ash, ~] = obj.absoluteShiftsAndSize();
+         ids = roi2imageids(ash, obj.tilesizes, roi);
+      end
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % plotting
+      
+      function plotAlignedImages(obj)
+         %
+         % plotAlignedImages(obj)
+         %
+         % description:
+         %    visualizes the alignment using plotAlignedImages
+         %
+         % See also: plot
+         
+         plotAlignedImages(obj.isource.tiles(obj.nodes), obj.imageShifts);
+      end
       
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+      function plot(obj, varargin)
+         %
+         % plot(obj)
+         %
+         % description:
+         %    plot the stitched image
+         %
+         % See also: plotAlignedImages
+                  
+         implot(obj.data(varargin{:}));
+      end
+
+
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % information / visulaization 
-      function istr = infoString(obj, varargin)
-         if nargin > 1
-            cls = varargin{1};
+      function istr = infoString(obj)
+         istr = infoString@ImageSource(obj, 'Aligned');
+         istr = [istr, '\nsource: ', class(obj.isource)];
+         istr = [istr, '\nnodes:  ', var2char(obj.nnodes)];
+         istr = [istr, '\npairs:  ', var2char(obj.npairs)];
+         
+         if isempty(obj.asize)
+            istr = [istr, '\naligned:', 'false'];
          else
-            cls = '';
+            istr = [istr, '\naligned:', 'true'];
+            %istr = [istr, '\nsize:   ', var2char(obj.datasize)];
          end
-         istr = ['ImageSource: ',  cls];
-         if ~isempty(obj.name)
-            istr = [istr, '\nname:   ', var2char(obj.name)];
-         end
-         istr = [istr, '\nsize:   ', var2char(obj.datasize)];
-         istr = [istr, '\nformat: ', var2char(obj.dataformat)];
-         istr = [istr, '\nclass:  ', var2char(obj.dataclass)];
-         istr = [istr, '\ncolor:  ', var2char(obj.color)];
       end
 
-      function print(obj)
-         fprintf([obj.infoString, '\n']);
-      end
 
-      function plot(obj)
-         implotis(obj);
-      end
       
    end
    

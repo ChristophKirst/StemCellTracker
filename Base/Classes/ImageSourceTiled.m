@@ -65,7 +65,7 @@ classdef ImageSourceTiled < ImageSource
          
       
       
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% routines required by alignment 
       
       function id = tile2cellid(obj, id)
@@ -153,8 +153,8 @@ classdef ImageSourceTiled < ImageSource
          imgs = obj.getTiles(varargin{:});
       end
       
-      function imgs = tileSizes(obj)
-         imgs = obj.getTileSizes();
+      function ts = tilesizes(obj)
+         ts = obj.getTileSizes();
       end
       
       function tsi = tilesize(obj)
@@ -178,15 +178,19 @@ classdef ImageSourceTiled < ImageSource
       end
       
       
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data access
-
+      
       function d = getData(obj, varargin)
-         d = obj.ialignment.stitch(obj, varargin{:}); %if cache is on this will be cached automatically after first run when using the data routine
+         if nargin > 0 && isnumeric(varargin{1})
+            d = obj.isource.data(obj.tile2cellid(id));
+         else
+            d = obj.isource.data(varargin{:});
+         end
       end
    
       function si = datasize(obj, varargin)
-         si = obj.ialignment.iasize(varargin{:});
+         si = obj.iinfo.datasize;
       end
       
       function ci = cellsize(~) 
@@ -194,31 +198,17 @@ classdef ImageSourceTiled < ImageSource
       end
 
 
-   
-            
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % sub tilings
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% utility
       
-      function sub = split2ConnectedComponents()
-         %
-         % description: calculates connected components and returns an ImageSourceTiled class for each component
-         %              with only the sub components
-         
-      end
-      
-      
-      function ids = roi2tileids(obj, roi)
-         ids = roi2imageids(obj.imageShifts, obj.tileSizes, roi);
+      function bkg = backgroundFromMinOfTiles(obj,varargin)
+         bkg = backgroundFromMin(obj, varargin{:});
       end
       
       
       
       
-      
-      
-
-      
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % info / visulaization
   
       function plotAlignedImages(obj)
@@ -235,7 +225,8 @@ classdef ImageSourceTiled < ImageSource
  
 
       function istr = infoString(obj)
-         istr = infoString@ImageSource(obj, 'Tiled');
+         %istr = infoString@ImageSource(obj, 'Tiled');
+         istr = 'ImageSource: Tiled';
          istr = [istr, '\ntileformat:     ', var2char(obj.itileformat)];
          istr = [istr, '\ntileshape:      ', var2char(obj.itileshape)];
          istr = [istr, '\ncachetiles:     ', var2char(obj.icachetiles)];  

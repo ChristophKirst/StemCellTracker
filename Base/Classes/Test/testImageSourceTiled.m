@@ -86,5 +86,7 @@ implottiling(tl, 'tiling', [4,4])
 ts = ist.getTileSizes
 ts{1}
 
+%%
 
+ist.ntiles
 

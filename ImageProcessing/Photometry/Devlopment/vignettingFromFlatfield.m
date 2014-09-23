@@ -13,8 +13,9 @@ function vig = vignettingFromFlatfield(flatfield, varargin)
 %   param        paramerter struct with entries
 %                optimize.center  optimze center of the vignetting (true)
 %                optimize.order   maxim order of the radial polynomial to optimize 2,4,6 (6)
-%
-% 
+
+
+
 
 
 

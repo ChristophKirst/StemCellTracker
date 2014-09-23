@@ -10,20 +10,18 @@ function comp = connectedAlignments(a, varargin)
 %    a         Alignment class
 %    param     parameter struct with entries
 %              .threshold.quality     quality threshold (-Inf)
-%              .reduce                reduce images in each sub-alignment and relabel (true)
 %
 % output:
 %    comp      connected components as array of Alignment classes
 %
 % See also: Alignment
 
-if ~isa(a, 'Alignment') && ~isa(a,'ImageAlignment')
-   error('connectedAlignments: expects Alignment class as input');
+if ~isa(a, 'Alignment') && ~isa(a,'ImageSourceAligned')
+   error('connectedAlignments: expects Alignment or ImageSourceAligned class as input');
 end
 
 param = parseParameter(varargin{:});
 thq = getParameter(param, 'threshold.quality', -Inf);
-red = getParameter(param, 'reduce', false);
 
 if thq == -Inf
    comp = a;
@@ -44,22 +42,20 @@ end
 adj = edges2AdjacencyMatrix(e, a.nnodes);
 c = adjacencyMatrix2ConnectedComponents(adj);
 
-% construct Alignment classes
+% construct Alignment / ImageSourceAligned classes
 
 nodes = a.nodes;
-isizes = a.sizes;
 
 for i = length(c):-1:1
-   as = Alignment(a);
+   if isa(a, 'ImageSourceAligned')
+      as = ImageSourceAligned(a);
+   else
+      as = Alignment(a);
+   end
+   
    as.nodes = nodes(c{i});
-   as.isizes = isizes(c{i});
    as.reducePairs();
    as.removeLowQualityPairs(thq);
-   
-   if red
-      warning('reduceImages not implemented yet');
-      as.reduceImages(); % todo: not working for the moment!
-   end
 
    comp(i) = as;
 end

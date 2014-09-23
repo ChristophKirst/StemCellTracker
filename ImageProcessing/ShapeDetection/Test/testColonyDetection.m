@@ -25,19 +25,23 @@ figure(1); clf;
 implottiling(tl)
 
 
-% align
+%% align
 
+ia = ImageSourceAligned(ist);
+
+
+%%
 tic
-ist.align('overlap.max', 120,  'overlap.min', 80, 'shift.max', 20)
+ia.align('overlap.max', 120,  'overlap.min', 80, 'shift.max', 20)
 toc
 
 figure(1); clf
-ist.plotAlignedImages
+ia.plotAlignedImages
 
 
 % stitch
 
-img = ist.stitch('method', 'Mean');
+img = ia.stitch('method', 'Mean');
 
 figure(2); clf
 implot(img);
@@ -77,8 +81,12 @@ implottiling(cellfunc(@mat2gray, {imgr; imgrf; imgro; imgm}));
 imglab = bwlabeln(imgm);
 imgsurf = impixelsurface(imglab);
 
-%%
 implottiling(cellfunc(@mat2gray, {imgr, imgrf, imgro; imgm, imglab, imgsurf}'));
+
+
+%%
+
+rp = regionprops(imglab, 'PixelIdxList')
 
 
 %%

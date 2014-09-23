@@ -183,11 +183,6 @@
          obj.itagformat = tfrmt;
       end
       
-      
-      function initializeInfo(obj, varargin)
-         obj.iinfo = obj.getInfo();
-      end
-
 
       function info = getDataInfo(obj)
          % single image info
@@ -199,6 +194,8 @@
       
 
       function info = getInfo(obj) 
+         disp 'running get info'
+  
          info = ImageInfo();
          
          % get info of the first data set
@@ -273,7 +270,7 @@
       % obj = setTagRange(obj, name, range)
       %
          if ~ismember(name, obj.tagnames)
-            error('ImagesourceTagged: setTagRange: %s is not a tag!', name);
+            error('ImageSourceTagged: setTagRange: %s is not a tag!', name);
          end
 
          if ~iscell(range)
@@ -281,7 +278,14 @@
          end
          obj.itagranges.(name) = range;
        
+         dfrmt = obj.dataformat;
          obj.iinfo = obj.getInfo();
+         
+         if (length(dfrmt) == length(obj.dataformat))
+            obj.iinfo.idataformat = dfrmt;
+         else
+            warning('ImageSourceTagged: dataformat has changed from %s to %s, dfrm, obj.iinfo.idataformat')
+         end
       end
       
 
@@ -575,7 +579,8 @@
          end
 
          % order according to output format
-         d = impqlpermute(d, frmt, obj.info.idataformat);
+         %obj.info.idataformat
+         d = impqlpermute(d, frmt, obj.iinfo.idataformat);
          
          % remove singeltons
          d = squeeze(d);
@@ -649,7 +654,7 @@
             end
 
             % order according to output format
-            d = impqlpermute(d, frmt, obj.info.idataformat);
+            d = impqlpermute(d, frmt, obj.iinfo.idataformat);
          
             % remove singeltons
             d = squeeze(d);
@@ -732,7 +737,7 @@
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       
       function info = infoString(obj)
-         info = infoString@ImageSource(obj);
+         info = infoString@ImageSource(obj, 'Tagged');
          info = [info, '\nfilename:    ', obj.filename];
          info = [info, '\nreadcommand: ', obj.ireadcommand];
          info = [info, '\ninfocommand: ', obj.iinfocommand]; 
