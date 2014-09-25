@@ -134,6 +134,14 @@ classdef ROIRectangle < ROI
       end
 
       
+      
+      function shift(obj, sh)
+         obj.p1 = obj.p1 + sh;
+         obj.p2 = obj.p2 + sh;
+      end
+      
+      
+      
       % special functions for rectangle
       function pp = p(obj)
          pp = obj.p1(1);

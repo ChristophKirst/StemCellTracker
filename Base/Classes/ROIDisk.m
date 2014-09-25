@@ -110,7 +110,12 @@ classdef ROIDisk < ROI
          d = immask(d, obj.mask);
       end
       
+
+      function shift(obj, sh)
+         obj.center = obj.center + sh;
+      end
       
+
       % special functions for disk
       function rr = r(obj)
          rr = obj.radius;

@@ -49,9 +49,7 @@
 
       function obj = fromImageSourceAligendAndROI(obj, ia, roi)
          obj.isource = ia.copy();
-         nds = obj.isource.nodes; 
-         nds = nds(obj.isource.roi2tileids(roi.boundingbox));
-         obj.isource.nodes = nds;
+         obj.isource.nodes = obj.isource.roi2tileids(roi.boundingbox);
          obj.isource.reducePairs;
          obj.iroi = roi;
       end

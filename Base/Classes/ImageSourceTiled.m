@@ -118,6 +118,13 @@ classdef ImageSourceTiled < ImageSource
          obj.itiles = [];
       end
       
+      function obj = setCache(obj, c)
+         obj.icachetiles = c;
+         if ~c
+            obj.clearCache();
+         end
+      end
+      
       function si = getTileSizes(obj)
          ti = obj.isource.datasize;
          

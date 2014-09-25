@@ -53,6 +53,10 @@ classdef ROIMask < ROI
       function d = extractdata(obj, d)
          d = immask(d, obj.mask);
       end
+      
+      function shift(obj, ~)
+         error('%s: shift not implemented yet!', class(obj));
+      end
        
    end
       

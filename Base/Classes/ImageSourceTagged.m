@@ -265,26 +265,32 @@
       end
       
 
-      function obj = setTagRange(obj, name, range)
+      function obj = setTagRange(obj, varargin)
       %
       % obj = setTagRange(obj, name, range)
       %
-         if ~ismember(name, obj.tagnames)
-            error('ImageSourceTagged: setTagRange: %s is not a tag!', name);
-         end
+      
+         for i = 1:2:nargin-1
+            name = varargin{i};
+            range = varargin{i+1};
 
-         if ~iscell(range)
-            range = num2cell(range);
+            if ~ismember(name, obj.tagnames)
+               error('ImageSourceTagged: setTagRange: %s is not a tag!', name);
+            end
+
+            if ~iscell(range)
+               range = num2cell(range);
+            end
+            obj.itagranges.(name) = range;
          end
-         obj.itagranges.(name) = range;
-       
+         
          dfrmt = obj.dataformat;
          obj.iinfo = obj.getInfo();
          
          if (length(dfrmt) == length(obj.dataformat))
             obj.iinfo.idataformat = dfrmt;
          else
-            warning('ImageSourceTagged: dataformat has changed from %s to %s, dfrm, obj.iinfo.idataformat')
+            warning('ImageSourceTagged: dataformat has changed from %s to %s', dfrmt, obj.iinfo.idataformat)
          end
       end
       

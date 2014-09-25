@@ -237,8 +237,7 @@ classdef ImageSourceAligned < Alignment & ImageSource
          n = prod(obj.tilesize);
       end
       
-      
-      function ids = roi2tileids(obj, roi)
+      function [ids, shids, ash] = roi2tileids(obj, roi)
          %
          % ids = roi2tileids(obj, roi)
          %
@@ -246,7 +245,48 @@ classdef ImageSourceAligned < Alignment & ImageSource
          %    identifies the ids of the tiles that contribute to the roi
          
          [ash, ~] = obj.absoluteShiftsAndSize();
-         ids = roi2imageids(ash, obj.tilesizes, roi);
+         shids = roi2imageids(ash, obj.tilesizes, roi);
+         nds = obj.nodes;
+         ids = nds(shids);
+      end
+      
+      
+      
+      function d = extractdata(obj, roi, varargin)
+         %
+         % d = extractdata(obj, roi)
+         %
+         % description:
+         %    extract a subset of the data given the spatial roi 
+         %
+         
+         if obj.icache
+            if isempty(obj.idata)
+               obj.stitch(varargin{:});
+            end
+            
+            d = roi.extractdata(obj.idata);
+         else % serial processing
+
+            % we dont ant to stitch a huge image for a small roi -> find tileids and pairs first
+            
+            [ids, shids, ash] = obj.roi2tileids(roi);
+
+            ash = ash(shids);
+            tsi =obj.isource.tilsizes;
+            tsi= tsi(ids);
+
+            st  = stitchImages(obj.isource.tiles(ids), ash, varargin{:});
+            
+            as = absoluteShiftsAndSize(ash, tsi);
+            
+            % correct roi
+            bb = roi.boundingbox;
+            bb.shift(as{1}-ash{1});
+
+            % extract
+            d = bb.extractdata(st);
+         end
       end
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
