@@ -45,11 +45,12 @@ end
 
 %edjucated guessing 2
 if ~found && isunix && ~ismac()
-   hintpath = '~/programs/ImageJ/';
-   
-   [ipath, ijjar, viewer3djar] = findij(hintpath);
-   if ~isempty(ipath)
-      found = 1;
+   hintpath = '~/Programs/ImageJ/';
+   if isdir(hintpath)
+      [ipath, ijjar, viewer3djar] = findij(hintpath);
+      if ~isempty(ipath)
+         found = 1;
+      end
    end
 end
 
