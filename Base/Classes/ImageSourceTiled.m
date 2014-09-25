@@ -123,6 +123,7 @@ classdef ImageSourceTiled < ImageSource
          if ~c
             obj.clearCache();
          end
+         obj.icache = c;
       end
       
       function si = getTileSizes(obj)

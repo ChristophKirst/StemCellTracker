@@ -47,7 +47,7 @@ methd = getParameter(param, 'method', 'global');
 if strcmp(methd, 'full')
    
    if istiling
-      imgs = imgs.getTiles();
+      imgs = imgs.tiles();
    end
    shifts = alignImagesByHugin(imgs, param);
    
@@ -58,10 +58,10 @@ if strcmp(methd, 'full')
 else
    
    pairs = getParameter(param, 'pairs', {});
- 
-   if isempty(pairs)
+
+   if isempty(pairs) && ~isa(pairs, 'AlignmentPair')
       if istiling
-         imgs = imgs.getTiles();
+         imgs = imgs.tiles();
       end
       shifts = alignImagesOnGrid(imgs, param);
       
@@ -74,7 +74,7 @@ else
       if ~strcmp(methd, 'global')
          warning('alignImages: method %s not applicable with specified pairs: using global instead!', methd);
       end
-      
+       
       [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param);
    end
  
@@ -96,8 +96,6 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
          error('alignImages: alignment %s not in %s', align, var2char(alignnames));
       end
 
-
-
       np = length(pairs);
   
       if isentry(pairs, 'orientation') && ~isempty(pairs(1).orientation)  %% assuming either all pairs have oriantion or none
@@ -115,11 +113,11 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
             for p = 1:np
                switch pairs(p).orientation
                   case 1
-                     aimgs = {imgs.getTile(pairs(p).from); imgs.getTile(pairs(p).to)};
+                     aimgs = {imgs.tile(pairs(p).from); imgs.tile(pairs(p).to)};
                   case 2
-                     aimgs = {imgs.getTile(pairs(p).from), imgs.getTile(pairs(p).to)};
+                     aimgs = {imgs.tile(pairs(p).from), imgs.tile(pairs(p).to)};
                   case 3
-                     c{1,1,1} = imgs.getTile(pairs(p).from); c{1,1,2} = imgs.getTile(pairs(p).to);
+                     c{1,1,1} = imgs.tile(pairs(p).from); c{1,1,2} = imgs.tile(pairs(p).to);
                      aimgs = c;
                   otherwise
                      error('alignImages: image pair %g does not have valid orientation!', p);
@@ -131,7 +129,7 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
          else
          
             for p = 1:np
-               pairs(p).shift =  fun(imgs.getTile(pairs(p).from), imgs.getTile(pairs(p).to), param);
+               pairs(p).shift =  fun(imgs.tile(pairs(p).from), imgs.tile(pairs(p).to), param);
             end
          end
          
