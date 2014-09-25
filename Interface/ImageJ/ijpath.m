@@ -37,9 +37,11 @@ if ~found
       error('ijpath: operating system not supported, modify ijpath.m!');
    end
    
-   [ipath, ijjar, viewer3djar] = findij(hintpath);
-   if ~isempty(ipath)
-      found = 1;
+   if isdir(hintpath)
+      [ipath, ijjar, viewer3djar] = findij(hintpath);
+      if ~isempty(ipath)
+         found = 1;
+      end
    end
 end
 
@@ -54,6 +56,16 @@ if ~found && isunix && ~ismac()
    end
 end
 
+%edjucated guessing 2
+if ~found && isunix && ~ismac()
+   hintpath = '~/programs/ImageJ/';
+   if isdir(hintpath)
+      [ipath, ijjar, viewer3djar] = findij(hintpath);
+      if ~isempty(ipath)
+         found = 1;
+      end
+   end
+end
 
 % guessing for Fiji
 if ~found
@@ -67,10 +79,12 @@ if ~found
       error('ijinitialize: ImageJ runs on Linux, Max or Windows only!');
    end
    
-   [ipath, ijjar, viewer3djar] = findij(hintpath);
+   if isdir(hintpath)
+      [ipath, ijjar, viewer3djar] = findij(hintpath);
 
-   if ~isempty(ipath)
-      found = 1;
+      if ~isempty(ipath)
+         found = 1;
+      end
    end
 end
 
@@ -79,10 +93,12 @@ if ~found
    if ispc()
       hintpath = 'C:\Fiji.app';
       
-      [ipath, ijjar, viewer3djar] = findij(hintpath);
+      if isdir(hintpath)
+         [ipath, ijjar, viewer3djar] = findij(hintpath);
 
-      if ~isempty(ipath)
-        found = 1;
+         if ~isempty(ipath)
+            found = 1;
+         end
       end
    end
 end
