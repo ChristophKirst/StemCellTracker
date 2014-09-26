@@ -110,6 +110,10 @@ if fig
         % Plot boundary edges and point set
         x = X(:,1);
         y = X(:,2);
+        
+        B
+        
+        
         plot(x(B)',y(B)','r','linewidth',2), hold on
         plot(x,y,'k.'), hold off
         str = 'Area';

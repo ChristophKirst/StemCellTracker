@@ -57,4 +57,35 @@ figure(2); clf
 implot(m)
 
 
+%% ROIPolygon
+
+
+p = 3 + [1,1; 1,6; 3,9; 8,12 ]'
+
+roi = ROIPolygon(p)
+
+
+bb= roi.boundingbox
+bb.toPixelArray
+
+
+r = roi.mask([20,20]);
+figure(1); clf
+implot(r)
+
+
+%%
+clc
+d = rand(20,30);
+de= roi.extractdata(d);
+
+de2 = immask(d, roi.mask(size(d)));
+
+figure(2); clf
+implottiling({d; de; de2}, 'link', false)
+
+
+
+
+
 

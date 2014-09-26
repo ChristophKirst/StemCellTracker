@@ -61,6 +61,12 @@ classdef ImageSourceTiled < ImageSource
          obj.itileformat = tf;
          
          obj.isource = source;
+         
+         
+         %check tileshape
+         if prod(obj.itileshape) > source.cellsize
+            warning('%s: tileshape %s has to many image files', class(obj), obj.itileshape)
+         end
       end
          
       

@@ -53,6 +53,20 @@ classdef ImageSourceAligned < Alignment & ImageSource
       end
        
 
+      function [obj, roi] = reduceToROI(obj, roi)   
+         [ids, shids, ash] = obj.roi2tileids(roi.boundingbox);
+         obj.nodes = ids;
+         obj.reducePairs;
+         
+         sh = cell2mat(ash(shids));
+         sh = min(sh, [], 1);
+
+         roi.shift(-sh);
+         
+         [~, obj.asize] = obj.absoluteShiftsAndSize;
+      end
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % base methods - redefinitions 
       %      
@@ -244,7 +258,7 @@ classdef ImageSourceAligned < Alignment & ImageSource
          % description:
          %    identifies the ids of the tiles that contribute to the roi
          
-         [ash, ~] = obj.absoluteShiftsAndSize();
+         ash = obj.absoluteShiftsAndSize();
          shids = roi2imageids(ash, obj.tilesizes, roi);
          nds = obj.nodes;
          ids = nds(shids);
@@ -268,12 +282,12 @@ classdef ImageSourceAligned < Alignment & ImageSource
             d = roi.extractdata(obj.idata);
          else % serial processing
 
-            % we dont ant to stitch a huge image for a small roi -> find tileids and pairs first
+            % we dont want to stitch a huge image for a small roi -> find tileids and pairs first
             
             [ids, shids, ash] = obj.roi2tileids(roi);
 
             ash = ash(shids);
-            tsi =obj.isource.tilsizes;
+            tsi =obj.isource.tilesizes;
             tsi= tsi(ids);
 
             st  = stitchImages(obj.isource.tiles(ids), ash, varargin{:});

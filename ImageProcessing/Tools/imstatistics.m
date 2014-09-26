@@ -201,6 +201,13 @@ if ~isempty(regprops)
       [regstats.BoundingBox] = dat{:};
    end
    
+   %PixelList: correct [x,y] -> [x;y] 
+   if isfield(regstats, 'PixelList')
+      dat = {regstats.PixelList};
+      dat = cellfun(@(x) x', dat, 'UniformOutput', false);
+      [regstats.PixelList] = dat{:};
+   end
+   
    % add fields to stats
    for sn = fieldnames(regstats)'
       [stats.(sn{1})] = regstats.(sn{1});

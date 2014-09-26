@@ -125,19 +125,19 @@ classdef ROIRectangle < ROI
          if dim ~= obj.dim
             error('ROIRectangle: extractdata: data dimension mismatch');
          end
-         rectlow = obj.p1 + 1;
-         recthigh = obj.p2;
+         rectlow = round(obj.p1 + 1);
+         recthigh = round(obj.p2);
+         si = size(d);
          for i = dim:-1:1
-            rect{i} = rectlow(i):recthigh(i);
-         end
+            rect{i} = max(rectlow(i),1):min(recthigh(i), si(i));
+         end  
          d = d(rect{:});
       end
 
-      
-      
+
       function shift(obj, sh)
-         obj.p1 = obj.p1 + sh;
-         obj.p2 = obj.p2 + sh;
+         obj.p1 = obj.p1 + sh(:);
+         obj.p2 = obj.p2 + sh(:);
       end
       
       

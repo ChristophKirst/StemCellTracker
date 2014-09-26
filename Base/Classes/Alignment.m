@@ -180,8 +180,7 @@ classdef Alignment < matlab.mixin.Copyable
          %   returns all ids used in pairs
          
          id = unique([[obj.pairs.from], [obj.pairs.to]]);
-      end
-            
+      end      
       
       function ts = tilesizes(obj)
          ts = obj.isource.tilesizes;
@@ -191,7 +190,24 @@ classdef Alignment < matlab.mixin.Copyable
       function tf = tileformat(obj)
          tf = obj.isource.tileformat;
       end
+      
+      
+      function img = image(obj, id)
+         nds = obj.nodes;
+         img = obj.isource.tile(nds(id));
+      end
 
+      function is = imageSizes(obj, varargin)
+         is = obj.isource.tilesizes;
+         nds = obj.nodes;
+         if nargin > 1
+            is = is(nds(varargin{1}));
+         else
+            is = is(nds);
+         end
+      end
+         
+      
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % alignment routines

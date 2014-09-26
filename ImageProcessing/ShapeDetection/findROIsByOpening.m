@@ -1,9 +1,9 @@
 function imglab = findROIsByOpening(img, varargin)
 %
-% imglab = findShapes(img, param)
+% imglab = findROIsByOpening(img, param)
 %
 % descritption:
-%     finds shapes in aan image img
+%     finds shapes in an image img using morphological opening and thresholding
 %
 % input:
 %    img    image

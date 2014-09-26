@@ -97,7 +97,12 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
       end
 
       np = length(pairs);
-  
+
+      if np == 0
+        shifts = [];
+        return
+      end
+      
       if isentry(pairs, 'orientation') && ~isempty(pairs(1).orientation)  %% assuming either all pairs have oriantion or none
          isorient = true;
          fun = str2func(['align2ImagesOnGridBy' algn]);
