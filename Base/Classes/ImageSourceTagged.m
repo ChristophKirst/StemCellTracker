@@ -292,6 +292,8 @@
          else
             warning('ImageSourceTagged: dataformat has changed from %s to %s', dfrmt, obj.iinfo.idataformat)
          end
+         
+         obj.clearCache;
       end
       
 

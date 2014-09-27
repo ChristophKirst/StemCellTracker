@@ -8,7 +8,7 @@ function iinfo = imfinfo2info(iminfo)
 
 iinfo = ImageInfo();
 
-iinfo.isizePQLCT = [iminfo.Width, iminfo.Height, 1, iminfo.SamplesPerPixel, 1];
+iinfo.idatasizePQLCT = [iminfo.Width, iminfo.Height, 1, iminfo.SamplesPerPixel, 1];
 
 if iminfo.SamplesPerPixel == 1
    iinfo.isize      = [iminfo.Width, iminfo.Height];

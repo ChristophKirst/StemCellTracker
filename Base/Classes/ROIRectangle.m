@@ -119,8 +119,22 @@ classdef ROIRectangle < ROI
       end
       
       
-      % exract roi from an array / image
-      function d = extractdata(obj, d)
+      % extract roi from an array / image
+      function [d, sh] = extractdata(obj, d)
+         %
+         % [d, sh] = extractdata(obj, d)
+         %
+         % description:
+         %     extracts data from boudnign box
+         %
+         % input:
+         %     d    data
+         %
+         % output:
+         %     d    extracted data
+         %    sh    (optional) shift of lower left corner w.r.t to full image
+         
+         
          dim = ndims(d);
          if dim ~= obj.dim
             error('ROIRectangle: extractdata: data dimension mismatch');
@@ -128,10 +142,13 @@ classdef ROIRectangle < ROI
          rectlow = round(obj.p1 + 1);
          recthigh = round(obj.p2);
          si = size(d);
+         sh = zeros(1,dim);
          for i = dim:-1:1
-            rect{i} = max(rectlow(i),1):min(recthigh(i), si(i));
+            sh(i)   = max(rectlow(i),1);
+            rect{i} = sh(i):min(recthigh(i), si(i));
          end  
          d = d(rect{:});
+         
       end
 
 

@@ -41,9 +41,6 @@ ns = length(shapes);
 bfrom = bnd(:,1)';
 bto   = bnd(:,2)';
 
-bw = getParameter(param, 'dilate', []);
-
-
 for s = 1:ns
    id = shapes{s}(1);
    
@@ -57,8 +54,34 @@ for s = 1:ns
    end
 
    shapes{s} = pts(:,pol);
-   
-   if ~isempty(bw)
+end
+
+% check for holes = shapes inside shapes and remove
+
+shapescheck = ones(1, ns);
+shapeskeep  = ones(1, ns);
+
+for sc = 1:ns
+   if shapescheck(sc)
+      shc = shapes{sc};
+      for i = find(shapeskeep)
+         if i ~= sc
+            if ispolygonInPolygon(shapes{i}, shc)
+               shapescheck(i) = 0;
+               shapeskeep(i)  = 0;
+            end
+         end
+      end
+      %shapescheck(sc) = 0;
+   end
+end
+
+shapes = shapes(shapeskeep > 0);
+
+% dilate
+bw = getParameter(param, 'dilate', []);
+if ~isempty(bw)
+   for s = 1:length(shapes)
       shapes{s} = dilatePolygon(shapes{s}, bw);
    end
 end

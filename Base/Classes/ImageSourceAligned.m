@@ -10,7 +10,8 @@ classdef ImageSourceAligned < Alignment & ImageSource
    %
    
    properties
-      asize = [];     % full absolute image size of  aligned images
+      asize = [];     % image size of aligned images
+      ashifts = {};   % absolute shifts 
    end
 
    methods   
@@ -50,20 +51,22 @@ classdef ImageSourceAligned < Alignment & ImageSource
          obj.iinfo = ist.isource.iinfo;
          
          obj.asize = [];  % [] = image not aligned
+         obj.ashifts = {};
       end
        
 
       function [obj, roi] = reduceToROI(obj, roi)   
-         [ids, shids, ash] = obj.roi2tileids(roi.boundingbox);
+         [ids, shids] = obj.roi2tileids(roi.boundingbox);
+      
+         sh = cell2mat(obj.ashifts(shids));
+         sh = min(sh, [], 1);
+         
          obj.nodes = ids;
          obj.reducePairs;
-         
-         sh = cell2mat(ash(shids));
-         sh = min(sh, [], 1);
 
          roi.shift(-sh);
          
-         [~, obj.asize] = obj.absoluteShiftsAndSize;
+         obj.absoluteShiftsAndSize;
       end
       
       
@@ -188,6 +191,21 @@ classdef ImageSourceAligned < Alignment & ImageSource
          comp = connectedAlignments(obj, varargin{:});   
       end
       
+      function [ashifts, asize] = absoluteShiftsAndSize(obj)
+         %
+         % obj = absoluteShiftsAndSize(obj)
+         %
+         % description:
+         %    calculates and sets absolute size and shifts
+         %
+         % See also: absoluteShiftsAndSize
+
+         [obj.ashifts, obj.asize] = absoluteShiftsAndSize(obj.imageShifts, obj.tilesizes);
+         ashifts = obj.ashifts;
+         asize = obj.asize;
+      end
+      
+      
       
       function obj = align(obj, varargin)
          %
@@ -201,8 +219,7 @@ classdef ImageSourceAligned < Alignment & ImageSource
          [~, prs] = alignImages(obj.isource, 'pairs', obj.pairs, varargin{:});
          
          obj.pairs = prs;
-         [~, as] = obj.absoluteShiftsAndSize();
-         obj.asize = as;
+         obj.absoluteShiftsAndSize();
       end
         
   
@@ -213,7 +230,11 @@ classdef ImageSourceAligned < Alignment & ImageSource
          % description
          %     stitches images using the alignment information and source
          
-         st  = stitchImages(obj.isource.getTiles(obj.nodes), obj.imageShifts, varargin{:});
+         if isempty(obj.asize)
+            error('%s: cannot stich images, images not aligned !', class(obj));
+         end
+         
+         st  = stitchImages(obj.isource.tiles(obj.nodes), obj.ashifts, varargin{:});
          
          obj.asize = size(st);
          if obj.icache  % cache this result
@@ -251,22 +272,25 @@ classdef ImageSourceAligned < Alignment & ImageSource
          n = prod(obj.tilesize);
       end
       
-      function [ids, shids, ash] = roi2tileids(obj, roi)
+      function [ids, shids] = roi2tileids(obj, roi)
          %
-         % ids = roi2tileids(obj, roi)
+         % [ids, shids] = roi2tileids(obj, roi)
          %
          % description:
          %    identifies the ids of the tiles that contribute to the roi
          
-         ash = obj.absoluteShiftsAndSize();
-         shids = roi2imageids(ash, obj.tilesizes, roi);
+         if isempty(obj.asize)
+            error('%s: cannot infer tiles for roi, images not aligned !', class(obj));
+         end
+         
+         shids = roi2imageids(obj.ashifts, obj.tilesizes, roi);
          nds = obj.nodes;
          ids = nds(shids);
       end
       
       
       
-      function d = extractdata(obj, roi, varargin)
+      function [d, sh] = extractdata(obj, roi, varargin)
          %
          % d = extractdata(obj, roi)
          %
@@ -279,14 +303,15 @@ classdef ImageSourceAligned < Alignment & ImageSource
                obj.stitch(varargin{:});
             end
             
-            d = roi.extractdata(obj.idata);
+            [d, sh] = roi.extractdata(obj.idata);
+            
          else % serial processing
 
             % we dont want to stitch a huge image for a small roi -> find tileids and pairs first
             
-            [ids, shids, ash] = obj.roi2tileids(roi);
+            [ids, shids] = obj.roi2tileids(roi);
 
-            ash = ash(shids);
+            ash = obj.ashifts(shids);
             tsi =obj.isource.tilesizes;
             tsi= tsi(ids);
 
@@ -295,11 +320,13 @@ classdef ImageSourceAligned < Alignment & ImageSource
             as = absoluteShiftsAndSize(ash, tsi);
             
             % correct roi
-            bb = roi.boundingbox;
-            bb.shift(as{1}-ash{1});
+            r = roi.copy;
+            r.shift(as{1}-ash{1});
 
             % extract
-            d = bb.extractdata(st);
+            [d, sh] = r.extractdata(st);
+            
+            sh = sh + ash{1}-as{1};
          end
       end
 

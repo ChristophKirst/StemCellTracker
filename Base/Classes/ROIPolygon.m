@@ -67,6 +67,9 @@ classdef ROIPolygon < ROI
          %for i = 1:n
          %   m = impixelline(m, obj.p(:,i), obj.p(:,mod(i,n)+1), 1);
          %end
+         x = round(x); y = round(y);
+         ids = and(and(x > 0, x <= si(1)), and(y > 0, y <= si(2)));
+         x = x(ids); y = y(ids);
          ids = sub2ind(si, x,y); % add corners
          m(ids) = 1;
       end
@@ -81,14 +84,27 @@ classdef ROIPolygon < ROI
       
       
       % exract roi from an array / image
-      function d = extractdata(obj, d)
+      function [d, sh] = extractdata(obj, d)
+         %
+         % [d, sh] = extractdata(obj, d)
+         %
+         % description:
+         %     extracts data from boudnign box
+         %
+         % input:
+         %     d    data
+         %
+         % output:
+         %     d    extracted data
+         %    sh    (optional) shift of lower left corner w.r.t to full image
+         
+         
          bb = obj.boundingbox;
-         d = bb.extractdata(d);
-         sh = bb.p1;
-         sh = repmat(sh(:), 1, size(obj.p,2));
-         obj.p = obj.p - sh;
+         [d, sh] = bb.extractdata(d);
+         shr = repmat(sh(:), 1, size(obj.p,2));
+         obj.p = obj.p - shr;
          m = obj.mask(size(d));
-         obj.p = obj.p + sh;
+         obj.p = obj.p + shr;
          d = immask(d, m);
       end
 

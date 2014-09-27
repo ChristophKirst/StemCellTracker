@@ -13,7 +13,6 @@ function [roi, pks] = findROIsByPeakVolume(imgs, varargin)
 %    isalgn ImageSourceAligned class
 %    param  paramteer struct
 %           .radius    probe radius passed to alphavol (100)
-%           
 %           .plot      plot the result
 %           other parametre as in stitchPeaks, findPeaksByHmax
 %           
@@ -58,6 +57,12 @@ else
    pks = stitchPoints(pks, shifts, cellfunc(@size, imgs), param);
 end
 
+
+if size(pks,2) < 3
+   roi = [];
+   return
+end
+   
 % get the polygons from the points
 roi = points2shapes(pks,param);
 nr = length(roi);
@@ -68,9 +73,10 @@ if getParameter(param, 'plot', false)
    
    hold on;
    for ii=1:nr
-      rr = roi{ii};
-      %plot(rr(1,:)', rr(2,:)', '.', 'Color', cc(ii,:));
+      rr = roi{ii};      
       plot(rr(1,:)', rr(2,:)', 'LineWidth',1, 'Color', cc(ii,:));
+      
+      plot(pks(1,:), pks(2,:), '.', 'Color', 'k');
    end
 end
 

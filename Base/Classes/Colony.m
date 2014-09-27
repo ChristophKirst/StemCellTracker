@@ -50,7 +50,7 @@
       function obj = fromImageSourceAligendAndROI(obj, ia, roi)
          obj.isource = ia.copy();
          r = roi.copy();
-         [~, r] = obj.isource.reduceToROI(r);
+         %[~, r] = obj.isource.reduceToROI(r);
          obj.iroi = r;
       end
       
@@ -60,6 +60,18 @@
       function img = data(obj)
          img = obj.isource.extractdata(obj.iroi.boundingbox);
       end
+      
+      function img = extract(obj)
+         img = obj.isource.extractdata(obj.iroi);
+      end
+      
+      function img = mask(obj)
+         %todo: does no fit to returned data as that gets extraced !!
+         img = obj.iroi.mask(obj.isource.datasize);
+         img = obj.iroi.boundingbox.extractdata(img);
+      end
+      
+      
       
       function dat = objects(obj)
          dat = obj.iobjects;

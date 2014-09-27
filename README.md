@@ -1,24 +1,33 @@
 Cell Tracker
 =============
 
-Version 0.1 
-Jan 22 2014
+Version 0.8 
+Sep 26 2014
 
-Christoph Kirst, 
+
+Installation
+------------
+
+   - see INSTALL.md
+
+
+Get Started:
+------------
+   - look into the Scripts/Examples folder open a script and run it cell by cell
+
+
+Examples
+--------
+
+   - look into the Scripts/Examples folder, open a script and run it cell by cell
+
+
+
+Copyright
+---------
+
+Christoph Kirst
 Rockefeller University, 
 ckirst@rockefeller.edu
 
-
-Usage
------
-
-just do it !
-
-Example
--------
-
-
-
-Algorithm
----------
 

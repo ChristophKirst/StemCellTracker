@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Segmentation of a tiled Colony %%%
+%%% Segmentation of a Tiled Colony %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Clean Start
@@ -63,7 +63,7 @@ if verbose
 end
 
 
-%% Stictch the images
+%% Stitch the images
 
 imgst = ia.stitch('method', 'Mean');
 
@@ -572,7 +572,7 @@ end
 
 
 
-%% Create Objects and Frame form labeled image
+%% Create Objects and Frame form Labeled Image
 
 param = setParameter('time' ,  0, ...   % time for objects (0)
                      'rescale',1, ...   % rescale coordinates r by this factor ([1, 1(, 1)])
@@ -589,7 +589,7 @@ frame = Frame('objects', objs, 't', 0);
 stats = imstatistics(imgpost,  stats, {'Centroid', 'SurfacePixelIdxList', 'MedianIntensity'}, img)
 
 
-%% Add to data objects
+%% Add to Data Objects
 
 objs.setChannelData('dapi', [stats.('MedianIntensity')])
 objs.dataFields

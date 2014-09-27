@@ -79,15 +79,15 @@ if ar
       iinfo(s).inimages = r.getImageCount();
       
       % dimensions
-      isizePQLCT = [0,0,0,0,0];
+      idatasizePQLCT = [0,0,0,0,0];
       
-      isizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
-      isizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
-      isizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
-      isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
-      isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
+      idatasizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
+      idatasizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
+      idatasizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
+      idatasizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
+      idatasizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
 
-      iinfo(s).idatasizePQLCT = isizePQLCT;
+      iinfo(s).idatasizePQLCT = idatasizePQLCT;
       
       isize = iinfo(s).idatasizePQLCT;
       iformat = 'pqlct';
@@ -144,15 +144,15 @@ else
 
    % dimensions
    % dimensions
-   isizePQLCT = [0,0,0,0,0];
+   idatasizePQLCT = [0,0,0,0,0];
    
-   isizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
-   isizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
-   isizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
-   isizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
-   isizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
+   idatasizePQLCT(5) = getSize(param, 'time'   , 't', r.getSizeT());
+   idatasizePQLCT(4) = getSize(param, 'channel', 'c', r.getSizeC());
+   idatasizePQLCT(3) = getSize(param, 'z',       'l', r.getSizeZ());
+   idatasizePQLCT(2) = getSize(param, 'y',       'q', r.getSizeY());
+   idatasizePQLCT(1) = getSize(param, 'x',       'p', r.getSizeX());
    
-   iinfo.idatasizePQLCT = isizePQLCT;
+   iinfo.idatasizePQLCT = idatasizePQLCT;
    
    isize = iinfo.idatasizePQLCT;
    iformat = 'pqlct';
@@ -218,8 +218,17 @@ function iinfo = determineScale(iinfo)
       return
    end
 
-
-   %TODO:  %ZVI  %LIF
+   
+   %ZVI: todo: depth
+   xs = iinfo.imetadata.get('Scale Factor for Y');
+   if ~isempty(xs)
+      iinfo.iscale = [str2double(xs), str2double(iinfo.imetadata.get('Scale Factor for X'))];
+      iinfo.iunit  = 'um';
+   end
+      
+   
+   
+   %TODO:  %LIF
    % ICS todo: check
    voxelsizes = iinfo.imetadata.get('parameter scale');
    if ~isempty(voxelsizes)% if possible pixelsizes are added (only ics files)
@@ -250,7 +259,7 @@ function iinfo = determineColor(iinfo)
          case 'RGB'
             c = {'r', 'g', 'b'};
          otherwise
-            c = imcolorlist(iinfo.isizePQLCT(4));
+            c = imcolorlist(iinfo.idatasizePQLCT(4));
       end
 
       iinfo.icolor = c;
@@ -258,16 +267,14 @@ function iinfo = determineColor(iinfo)
       return
    end
 
-   iinfo.icolor = imcolorlist(iinfo.isizePQLCT(4));
+   iinfo.icolor = imcolorlist(iinfo.idatasizePQLCT(4));
    
    %TODO:
    %ZVI
    %LIF
  
 end
- 
-
-   
+  
 
 function si = getSize(param, name, nameshort, isize)
       

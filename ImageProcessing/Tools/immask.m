@@ -12,6 +12,6 @@ function masked = immask(image, mask)
 % output:
 %    masked    masked image
 
-masked = image .* cast(mask, class(image));
+masked = image .* cast(mask, 'like', image);
 
 end
