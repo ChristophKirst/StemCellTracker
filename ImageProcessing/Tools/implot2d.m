@@ -56,7 +56,7 @@ switch ndims(img)
 end
       
 axis on
-xlabel('p'); ylabel('q'); 
+xlabel('X'); ylabel('Y'); 
 set(gca,'YDir','normal');
 
 

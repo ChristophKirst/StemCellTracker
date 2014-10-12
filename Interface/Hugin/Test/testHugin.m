@@ -54,7 +54,7 @@ implot(imgst);
 %% Align Real Data via Hugin
 
 for t = 1:4
-   imgs{t} = imread_bf('./Test/Images/hESCells_Colony.zvi', 'series', t, 'channel', 1);
+   imgs{t} = imreadBF('./Test/Images/hESCells_Colony.zvi', 'series', t, 'channel', 1);
    imgs{t} = imgs{t} - imopen(imgs{t}, strel('disk', 75));
 end
 imgs = {imgs{3}, imgs{4}; imgs{1}, imgs{2}};
@@ -121,8 +121,8 @@ implot(st)
 
 %% check
 
-% i1 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0001.tif');
-% i2 = imread_bf('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0002.tif');
+% i1 = imreadBF('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0001.tif');
+% i2 = imreadBF('/tmp/tp06f22ffe_1917_4c3f_a26d_01a8bc2bd5fa0002.tif');
 % 
 % i1.imetadata
 % i2.imetadata
@@ -376,7 +376,7 @@ end
 imfinfo('test0001.tif')
 
 %%
-in = imread_bf_info('test0001.tif')
+in = imreadBFInfo('test0001.tif')
 in.imetadata
 
 %%

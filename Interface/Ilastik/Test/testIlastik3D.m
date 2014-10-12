@@ -100,7 +100,7 @@ implottiling(imoverlaylabel(img, imglab3))
 % masking, might want to use differnt method, either another backgroudnclassifier or thresholding...
 imgmask = ~(imgcls == 1); 
 
-imgf = medianFilter(img, 3);
+imgf = filterMedian(img, 3);
 imgf = mat2gray(imgf); 
 % imgf = imgf - * imgcls(:,:,:,3); imgf(imgf < 0) = 0;
 

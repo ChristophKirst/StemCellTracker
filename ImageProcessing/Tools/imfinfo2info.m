@@ -1,50 +1,53 @@
-function iinfo = imfinfo2info(iminfo)
+function iinfo = imfinfo2info(finfo)
 %
-%  info = imfinfo2info(iinfo)
+%  info = imfinfo2info(finfo)
 %
 % description:
-%   convert from info obtained form matlabs imfinfo to ImageInfo class
-
+%   convert info obtained form imfinfo to ImageInfo class
+%
+% input:
+%   finfo    info struct obtained by imfinfo
 
 iinfo = ImageInfo();
 
-iinfo.idatasizePQLCT = [iminfo.Width, iminfo.Height, 1, iminfo.SamplesPerPixel, 1];
-
-if iminfo.SamplesPerPixel == 1
-   iinfo.isize      = [iminfo.Width, iminfo.Height];
-   iinfo.iformat    = ['pq'];
+if finfo.SamplesPerPixel == 1
+   iinfo.idatasize      = [finfo.Width, finfo.Height];
+   iinfo.idataformat    = 'pq';
 else
-   iinfo.isize      = [iminfo.Width, iminfo.Height, iminfo.SamplesPerPixel];
-   iinfo.iformat    = ['pqc'];
+   iinfo.idatasize      = [finfo.Width, finfo.Height, finfo.SamplesPerPixel];
+   iinfo.idataformat    = 'pqc';
 end
 
-switch iminfo.ColorType
+iinfo.pqlctsizeFromFormatAndSize;
+
+switch finfo.ColorType
    case 'truecolor'
       iinfo.icolor = imcolorlist(3);
    case 'grayscale'
       iinfo.icolor = {'gray'};
+   case 'indexed'
+      iinfo.icolor  = imcolorlist(iinfo.datasizeC);
    otherwise
-      iinfo.icolor = imcolorlist(iinfo.sizeC);
+      iinfo.icolor = imcolorlist(iinfo.datasizeC);
 end
 
-bps = max(iminfo.BitsPerSample);
+bps = max(finfo.BitsPerSample);
 switch bps
    case 8
-      iinfo.iclass = 'uint8';
+      iinfo.idataclass = 'uint8';
    case 16
-      iinfo.iclass = 'uint16';
+      iinfo.idataclass = 'uint16';
    case 32
-      iinfo.iclass = 'uint32';   
+      iinfo.idataclass = 'uint32';   
    case 64
-      iinfo.iclass = 'uint64';
+      iinfo.idataclass = 'uint64';
    otherwise
-      iinfo.iclass = 'double';
+      iinfo.idataclass = 'double';
 end
 
-iinfo = determineScale(iinfo, iminfo);
+iinfo = determineScale(iinfo, finfo);
 
 end
-
 
 
 
@@ -63,8 +66,7 @@ function iinfo = determineScale(iinfo, iminfo)
 
       return
    end
-
-
-   %TODO:  %ZVI  %LIF
+   
+   %Todo: bmp, png etc
 end
 

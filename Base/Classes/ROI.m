@@ -26,14 +26,14 @@ classdef ROI < matlab.mixin.Copyable
          error('%s: volume not implemented!', class(obj));
       end
       
-      function b = boundingbox(obj, varargin)
+      function b = boundingBox(obj, varargin)
          %
-         % b = boundingbox(obj)
+         % b = boundingBox(obj)
          %
          % description
          %     bounding box of the shape, returns a ROIRectangle
          
-         error('%s: boundingbox not implemented!', class(obj));
+         error('%s: boundingBox not implemented!', class(obj));
       end
 
       function p = polygon(obj, varargin)
@@ -60,9 +60,9 @@ classdef ROI < matlab.mixin.Copyable
          error('%s: mask not implemented!', class(obj));
       end
 
-      function n = npixel(obj, varargin)
+      function n = nPixel(obj, varargin)
          %
-         %  n = npixel(obj, varargin)
+         %  n = nPixel(obj, varargin)
          %
          % description
          %    returns number of pixel in the mask

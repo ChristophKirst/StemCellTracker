@@ -8,7 +8,7 @@ clc
 %% load some image data
 
 img = imread('./Test/Images/raw.tif');
-[imggrad, imggraddir] = imgradient(gaussianFilter(img,3));
+[imggrad, imggraddir] = imgradient(filterGaussian(img,3));
 imggrad = mat2gray(imggrad);
 
 % plot
@@ -29,10 +29,10 @@ crop = [166.5 207.5 194.5 191.5];
 imgd = imcrop(img, crop);
 imgdgrad =  imcrop(imggrad, crop);
 
-imgd = mat2gray(medianFilter(imgd,3));
+imgd = mat2gray(filterMedian(imgd,3));
 
-%imgd = gaussianFilter(imgd,3, 100);
-%imgdgrad = gaussianFilter(imgdgrad,3, 100);
+%imgd = filterGaussian(imgd,3, 100);
+%imgdgrad = filterGaussian(imgdgrad,3, 100);
 
 % plot
 figure(1)
@@ -151,22 +151,22 @@ findRayRadius(imgth, imgdgrad, seeds, param);
 %% detect a bunch of maxima
 
 % gaussian smoothing
-%imgdg = gaussianFilter(imgd,3,10);
+%imgdg = filterGaussian(imgd,3,10);
 imgdg = imgd;
 
 
 % median filter
-%imgf = medianFilter(imgdg, 3);
+%imgf = filterMedian(imgdg, 3);
 
 % mean shift 
-%imgf = meanShiftFilter(imgd, 3, 0.1);
+%imgf = filterMeanShift(imgd, 3, 0.1);
 
 % disk
-%imgf = diskFilter(imgmed, 3, 4, 1, -1);
+%imgf = filterDisk(imgmed, 3, 4, 1, -1);
 
-% Laplcaina of Gaussians
+% Laplcian of Gaussians
 param.filter.logsize = [15, 15];
-imgf = logFilter(max(imgdg(:)) - imgdg, param.filter.logsize);
+imgf = filterLoG(max(imgdg(:)) - imgdg, param.filter.logsize);
 
 
 % find maxima using h-max detection 

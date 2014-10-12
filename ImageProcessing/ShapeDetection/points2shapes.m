@@ -14,13 +14,13 @@ function shapes = points2shapes(pts, varargin)
 % output:
 %   shapes  cell array of shapeborders as arrays of the boundary point coordinates as row vectors
 %
-% See also: alphavol, dilatePolygon
+% See also: detectAlphaVolume, dilatePolygon
 
 param = parseParameter(varargin);
 
 % alpha vol
 r = getParameter(param, 'radius', 100);
-[~, av] = alphavol(pts', r);
+[~, av] = detectAlphaVolume(pts', r);
 bnd = av.bnd;
 
 %conneected components

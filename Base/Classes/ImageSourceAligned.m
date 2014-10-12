@@ -10,8 +10,8 @@ classdef ImageSourceAligned < Alignment & ImageSource
    %
    
    properties
-      asize = [];     % image size of aligned images
-      ashifts = {};   % absolute shifts 
+      size = [];     % image size of aligned images
+      shifts = {};   % absolute shifts 
    end
 
    methods   
@@ -29,17 +29,12 @@ classdef ImageSourceAligned < Alignment & ImageSource
                error('%s: not valid arguments for constructor', class(obj));
             end
          else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, varargin{i})
-                  obj.(varargin{i}) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
-               end
-            end        
+            obj.fromParameter(varargin);
          end
+      end
+      
+      function obj = fromParameter(obj, varargin)
+         obj = classFromParameter(obj, [], varargin);
       end
       
       function obj = fromImageSourceTiled(obj, ist)
@@ -53,7 +48,6 @@ classdef ImageSourceAligned < Alignment & ImageSource
          obj.asize = [];  % [] = image not aligned
          obj.ashifts = {};
       end
-       
 
       function [obj, roi] = reduceToROI(obj, roi)   
          [ids, shids] = obj.roi2tileids(roi.boundingbox);
@@ -71,17 +65,16 @@ classdef ImageSourceAligned < Alignment & ImageSource
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % base methods - redefinitions 
-      %      
+      % basics      
 
-      function s = datasize(obj)
+      function s = dataSize(obj)
 %          if isempty(obj.asize)
 %             error('%s: datasize: images not aligned, cannot infer data size!', class(obj));
 %          end
          s = obj.asize;
       end
 
-      function s = rawsize(obj)
+      function s = rawSize(obj)
 %          if isempty(obj.asize)
 %             error('%s: datasize: images not aligned, cannot infer raw data size!', class(obj));
 %          end
@@ -330,7 +323,7 @@ classdef ImageSourceAligned < Alignment & ImageSource
          end
       end
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % plotting
       
       function plotAlignedImages(obj)

@@ -13,7 +13,7 @@ function bw = binarizeImage(image, threshold, varargin)
 % output:
 %     bw        binarized image
 %
-% See also: im2bw, otsuThreshold, entropyThreshold, mixtureOfGaussiansThreshold, mutualEntropyThreshold
+% See also: im2bw
 
 if nargin < 1
    threshold = 'Otsu';

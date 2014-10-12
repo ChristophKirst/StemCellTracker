@@ -15,50 +15,57 @@ bfinitialize
 
 ii = ImageInfo
 
-ii.size
-ii.dim
+ii.dataSize
+ii.dataSizeC
+
 
 %% from image file
  
-ii = imread_bf_info('./Test/Images/hESCells_DAPI.tif')
+ii = imreadBFInfo('./Test/Images/hESCells_DAPI.tif')
 
-ii.size
-ii.dim                                              
-
-%%
-
-ii.setSize([100,200])
+ii.dataSize
+ii.dataDims                                             
 
 
 %% Test reformatting
 
-ii.renameInFormat('p','c')
-
-%%
-
-ii.permuteToFormat('qc')
-
-%%
-
-ii.formatpos('c')
-ii.dataformatpos('c')
-
-%% series integration
-
-ii = ImageInfo
+ii.renameFormat('Y','Z')
 
 
-ii.isize = [100,200,3];
-ii.iformat = 'pqc';
 
-ii.iseries = 1:100;
-ii.iseriesdim = 'c';
-
-
-ii.pqlctsizeFromFormatAndSize
+%% test some reshape functionality
+clc
+ii.setReshape('X', 'XY', [16,32])
 
 
-ii.seriesAssignmentIds
+
+%% test with some data
+
+d = rand(512, 512);
+
+dr = ii.reshapeData(d);
+size(dr)
+
+
+
+%% ranges
+
+clc
+
+clear all
+clear classes
+close all
+
+
+ii = imreadBFInfo('./Test/Images/hESCells_DAPI.tif')
+
+
+
+%% 
+
+clc
+ii.setRange('X', 1:10);
+ii.printInfo
 
 
 

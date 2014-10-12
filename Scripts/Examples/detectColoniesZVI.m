@@ -144,8 +144,8 @@ for s = 1:nsubalgn
       implot(subalgn(s).data)
    end
    
-   %rois = findROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
-   [rois, pks] = findROIsByPeakVolume(subalgn(s), 'radius', 200, 'dilate', 100, 'center', true, 'hmax', th, 'plot', plt);
+   %rois = detectROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
+   [rois, pks] = detectROIsByPeakVolume(subalgn(s), 'radius', 200, 'dilate', 100, 'center', true, 'hmax', th, 'plot', plt);
    
    fprintf('Found %g regoins of interest\n', length(rois))
    
@@ -174,7 +174,7 @@ if verbose
    for c = 1:ncolonies
       figure(11);
       img = colonies(c).extract;
-      imsubplot(5,1,c)
+      imsubplot(5,1,c);
       implot(img)
    end
 end
@@ -184,7 +184,7 @@ if verbose
    for c = 1:ncolonies
       figure(12);
       img = colonies(c).mask;
-      imsubplot(5,1,c)
+      imsubplot(5,1,c);
       implot(img)
    end
 end

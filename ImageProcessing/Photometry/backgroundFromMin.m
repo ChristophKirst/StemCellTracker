@@ -57,7 +57,7 @@ for i = irange
 end
 
 if getParameter(param, 'filter', true)
-   bkg = gaussianFilter(bkg, getParameter(param, 'filtersize', 100));
+   bkg = filterGaussian(bkg, getParameter(param, 'filtersize', 100));
 end
 
 end

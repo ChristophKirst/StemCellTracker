@@ -27,7 +27,7 @@ if nargin > 1
          end
       end
    end
-   comp = adjacencyMatrix2ConnectedComponents(conn);
+   comp = graphAdjacencyMatrixToConnectedComponents(conn);
    
    for i = length(comp):-1:1  
       taggroup  = tinfo(comp{i});

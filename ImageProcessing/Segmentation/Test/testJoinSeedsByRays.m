@@ -18,10 +18,10 @@ implot(img)
 %% Detect Centers
 
 imgf = mat2gray(log(double(img+eps)));
-imgf = medianFilter(imgf, 3);
+imgf = filterMedian(imgf, 3);
 imgf(imgf < 0.075) = 0;
 imgmask = imgf > 0;
-imgf = diskFilter(imgf, 3);
+imgf = filterDisk(imgf, 3);
 
 imgmax = imextendedmax(imgf, 0.005);
 imgmax = immask(imgmax, imgmask);

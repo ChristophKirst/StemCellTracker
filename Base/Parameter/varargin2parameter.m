@@ -14,39 +14,43 @@ function param = varargin2parameter(varargin)
 %    param         nested param struct
 
 param = struct();
-
-
+%fprintf('new call varargin: %s\n', var2char(varargin));
 n = 1;
+
 while n <= nargin
    
    in = varargin{n};
-   
-   if ischar(in)
-      if nargin < n+1
-         error('varargin2parameter: cannot parse parameter, expected value after name: %s !', in);
-      end
 
-      %check for sub struct
-      pn = strsplit(in, '.');
-      param = setsubparam(param, pn, varargin{n+1});
-      n = n + 1;
+   if ~isempty(in) && ~isemptystruct(in)
       
-   elseif isstruct(in)  
+      if ischar(in)
+         if nargin < n+1
+            error('varargin2parameter: cannot parse parameter, expected value after name: %s !', in);
+         end
+
+         %check for sub struct
+         pn = strsplit(in, '.');
+         param = setsubparam(param, pn, varargin{n+1});
+         n = n + 1;
       
-      param = appendparameter(param, in);
+      elseif isstruct(in)  
       
-   elseif iscell(in)
+         param = appendparameter(param, in);
       
-      addparam = varargin2parameter(in{:});
-      param = appendparameter(param, addparam);
+      elseif iscell(in)
       
-   else
-      if ~isemptyparameter(in)
-         error('varargin2parameter: cannot parse parameter, unknonw input: %s !', var2char(in));
+         addparam = varargin2parameter(in{:});
+         param = appendparameter(param, addparam);
+      
+      else
+         if ~isemptyparameter(in)
+            error('varargin2parameter: cannot parse parameter, unknonw input: %s !', var2char(in));
+         end
       end
    end
-   
+
    n = n + 1;
+
 end
       
 

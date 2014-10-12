@@ -59,7 +59,11 @@ merged_bottom = (m-max(subplot_row)) * (height + gap_h) + marg_h(1);          % 
 merged_left   = (min(subplot_col)-1) * (width  + gap_w) - gap_w + marg_w(1);  % merged subplot left position
 pos_vec = [merged_left merged_bottom merged_width merged_height];
 
-h_subplot=subplot('Position', pos_vec, varg{:} );
+h_subplotv=subplot('Position', pos_vec, varg{:} );
+
+if nargout > 0
+   h_subplot = h_subplotv;
+end
 
 end
 

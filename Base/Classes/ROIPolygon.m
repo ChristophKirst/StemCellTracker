@@ -45,7 +45,7 @@ classdef ROIPolygon < ROI
          d = size(obj(1).p, 1);
       end
 
-      function b = boundingbox(obj, varargin)
+      function b = boundingBox(obj, varargin)
          b = ROIRectangle(min(obj.p,[],2), max(obj.p,[],2));
       end
       
@@ -84,7 +84,7 @@ classdef ROIPolygon < ROI
       
       
       % exract roi from an array / image
-      function [d, sh] = extractdata(obj, d)
+      function [d, sh] = extractData(obj, d)
          %
          % [d, sh] = extractdata(obj, d)
          %
@@ -99,8 +99,8 @@ classdef ROIPolygon < ROI
          %    sh    (optional) shift of lower left corner w.r.t to full image
          
          
-         bb = obj.boundingbox;
-         [d, sh] = bb.extractdata(d);
+         bb = obj.boundingBox;
+         [d, sh] = bb.extractData(d);
          shr = repmat(sh(:), 1, size(obj.p,2));
          obj.p = obj.p - shr;
          m = obj.mask(size(d));

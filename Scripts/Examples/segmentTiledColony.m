@@ -141,31 +141,31 @@ imgpre2 = imgpre;
 
 % appy addiitonal filters 
 % gaussian filter
-%param.filter.ksize = [5, 5];    % size of the filter kernel (q x p box)
-%param.filter.sigma = []         % std of gaussian [] = param.filter.ksize / 2 / sqrt(2 * log(2)); 
-%imgpre2 = gaussianFilter(imgpre2, param.filter.ksize, param.filter.sigma);
+%param.ksize = [5, 5];    % size of the filter kernel (q x p box)
+%param.sigma = []         % std of gaussian [] = param.filter.ksize / 2 / sqrt(2 * log(2)); 
+%imgpre2 = filterGaussian(imgpre2, param.ksize, param.sigma);
 
 % mean shift filter - edge preserving 
-%param.filter.ksize = [3 3];              % size of the filter kernel (q x p box)
-%param.filter.intensity_width = 0.1;  % max deviaiton of intensity values to include in mean
-%param.filter.iterations = 1;         % number of iterating the filtering 
-%imgpre2 = meanShiftFilter(imgpre2, param.filter.ksize, param.filter.intensity_width, param.filter.iterations);
+%param.ksize = [3 3];              % size of the filter kernel (q x p box)
+%param.intensity_width = 0.1;  % max deviaiton of intensity values to include in mean
+%param.iterations = 1;         % number of iterating the filtering 
+%imgpre2 = filterMeanShift(imgpre2, param.ksize, param.intensity_width, param.iterations);
 
 % median filter - edge preserving
 %ksize = [3, 3];               % size of the filter kernel (q x p box) 
-%imgpre2 = medianFilter(imgpre2, ksize);
+%imgpre2 = filterMedian(imgpre2, ksize);
 
 % bilateral filter - edge preserving
-%param.filter.ksize = 3;              % size of the filter kernel (h x w box) 
-%param.filter.sigma_space = [];       % std of gaussian in space  [] = param.filter.ksize / 2 / sqrt(2 * log(2));
-%param.filter.sigma_intensity = [];   % std fo gaussian in intensity [] = 1.1 * std(img(:));
-%imgpre2 = bilateralFilter(imgpre2, param.filter.ksize, param.filter.sigma_space, param.filter.sigma_intensity);
+%param.ksize = 3;              % size of the filter kernel (h x w box) 
+%param.sigma_space = [];       % std of gaussian in space  [] = param.filter.ksize / 2 / sqrt(2 * log(2));
+%param.sigma_intensity = [];   % std fo gaussian in intensity [] = 1.1 * std(img(:));
+%imgpre2 = filterBilateral(imgpre2, param.ksize, param.sigma_space, param.sigma_intensity);
 
 % function filter
-%param.filter.ksize = [5, 5];                    % size of the filter kernel (h x w box) 
-%param.filter.function = @(x)(max(x,[],2)); ;    % function acting on array that for each pixel (1st dim) contains its neighbourhood in 2nd dim
-%                                                % should return a vector of the new pixel values
-%imgpre2 = medianFilter(imgpre2, param.filter.ksize, param.filter.function);
+%param.ksize = [5, 5];                    % size of the filter kernel (h x w box) 
+%param.function = @(x)(max(x,[],2)); ;    % function acting on array that for each pixel (1st dim) contains its neighbourhood in 2nd dim
+%                                         % should return a vector of the new pixel values
+%imgpre2 = filterFunction(imgpre2, param.filter.ksize, param.filter.function);
 
 % thresholding and clipping
 imgpre2 = imclip(mat2gray(imgpre2), 0.6, 0.9);
@@ -178,7 +178,7 @@ imgpre2 = imgpre2 - imggrad;
 imgpre2(imgpre2 < 0) = 0;
 
 
-% others: see ./Filtering folder
+% others: see ./Filtering folder or type filter
 
 
 if verbose
@@ -208,8 +208,8 @@ param.threshold.MoG = 0.5;          % probability of a pixel belonging to foregr
 
 % direct thresholding methods (with optional prefiltering)
 
-%param.filter.ksize = 3;
-%imgf = medianFilter(img, param.filter.ksize);
+%param.ksize = 3;
+%imgf = filterMedian(img, param.ksize);
 imgf = img;
 
 thotsu = thresholdOtsu(imgf);
@@ -311,41 +311,41 @@ end
 %imgf = imgraw;
 
 % gaussian smoothing
-%imgf = gaussianFilter(imgf,3,10);
+%imgf = filterGaussian(imgf,3,10);
 
 % median filter / if note cumpted above or different parameter set
-%imgf = medianFilter(imgf, 3);
+%imgf = filterMedian(imgf, 3);
 
 % mean shift 
-%imgf = meanShiftFilter(imgf, 3, 0.1);
+%imgf = filterMeanShift(imgf, 3, 0.1);
 
 imgf = imgpre2;
 
 %%% center enhancing filter to detect seeds
 
 % Laplacian of Gaussians (LoG) - more robust / use on inverse image !
-%param.filter.ksize = [15, 15];       % size of the filter = diameter of nuclei
-%param.filter.sigma = [];           % std of gaussian ([] = ksize / 4 / sqrt(2 * log(2)))
-%imgf = logFilter(max(imgf(:)) - imgf, param.filter.ksize, param.filter.sigma);
+%param.ksize = [15, 15];       % size of the filter = diameter of nuclei
+%param.sigma = [];           % std of gaussian ([] = ksize / 4 / sqrt(2 * log(2)))
+%imgf = filterLoG(max(imgf(:)) - imgf, param.ksize, param.filter.sigma);
 
 % disk filter (consists of inner disk and optional outer ring to enhanve edges
-%param.filter.ksize = 12;            % size of filer h or [h, w]
-%param.filter.ring_width = 2;        % width fo ring (disk radius is determined by outer radius - ringh_width)
-%param.filter.disk_weight = 1;       % weight on inner disk
-%param.filter.ring_weight = -1;      % weight on outer ring
-%imgf = diskFilter(imgf, param.filter.ksize, param.filter.ring_width, param.filter.disk_weight, param.filter.ring_weight);
+%param.ksize = 12;            % size of filer h or [h, w]
+%param.ring_width = 2;        % width fo ring (disk radius is determined by outer radius - ringh_width)
+%param.disk_weight = 1;       % weight on inner disk
+%param.ring_weight = -1;      % weight on outer ring
+%imgf = filterDisk(imgf, param.ksize, param.ring_width, param.disk_weight, param.ring_weight);
 
 % Difference of Gaussians (DoG) - similar to LoG but less robust
-%param.filter.ksize = [15, 15];      % size of the filter
-%param.filter.sigma_in = [];         % std of inner Gaussian ([] = 1/1.5 * sigma_out)
-%param.filter.sigma_out = [];        % std of outer negative Gaussian ([] = ksize / 2 / sqrt(2 log(2)) )
-%imgf = dogFilter(imgf, param.filter.ksize,  param.filter.sigma_in,  param.filter.sigma_out);
+%param.ksize = [15, 15];      % size of the filter
+%param.sigma_in = [];         % std of inner Gaussian ([] = 1/1.5 * sigma_out)
+%param.sigma_out = [];        % std of outer negative Gaussian ([] = ksize / 2 / sqrt(2 log(2)) )
+%imgf = filterDoG(imgf, param.ksize,  param.sigma_in,  param.sigma_out);
 
 % sphere filter
-param.filter.ksize = 10 * [1, 1];
-ker = fspecial2('sphere', param.filter.ksize);
-%ker = fspecial2('disk',  param.filter.ksize, 1, 1, -.2);
-imgf = linearFilter(imgf, ker);
+param.ksize = 10 * [1, 1];
+ker = fspecial2('sphere', param.ksize);
+%ker = fspecial2('disk',  param.ksize, 1, 1, -.2);
+imgf = filterLinear(imgf, ker);
 
 
 % normalize
@@ -354,8 +354,8 @@ imgf = mat2gray(imgf);
 %%% Maxima detection
 
 % h-max detection (only local maxima with height > hmax are considered as maxima
-param.filter.hmax = 0.001;  %0.02;
-imgmax = imextendedmax(mat2gray(imgf), param.filter.hmax);
+param.hmax = 0.001;  %0.02;
+imgmax = imextendedmax(mat2gray(imgf), param.hmax);
 
 %local max
 %imgmax = imregionalmax(imgf);
@@ -428,7 +428,7 @@ end
 
 % optional fitlering if alternative use of  imgpre, imgpre2 fails
 
-%imgf = medianFilter(img,3);
+%imgf = filterMedian(img,3);
 %dilating the maxima can improve segmentation
 
 imgmaxws = imdilate(imgjoin, strel('disk', 0));
@@ -476,7 +476,7 @@ implottiling({imoverlaylabel(mat2gray(img), imgseg, false); imoverlaylabel(img, 
 
 if false
    
-imgf = medianFilter(img,3);
+imgf = filterMedian(img,3);
 
 imgfgrad = imgradient(img);
 mi = max(imgf(:));

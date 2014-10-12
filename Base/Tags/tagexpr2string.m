@@ -24,18 +24,12 @@ if nargin < 2
    return 
 end
 
-if nargin == 2
-   tags = varargin{1};
-else
-   tags = parseParameter(varargin{:});
-end
-%tags
+tags = parseParameter(varargin);
 
-
- if isempty(tags) || isemptystruct(tags)
+if isempty(tags) || isemptystruct(tags)
    name = texpr;
-   return 
- end 
+   return
+end
 
 lt = length(tags);
 if lt > 1
@@ -76,7 +70,6 @@ name = tsplit{1};
 for i = 1:length(res);
    name = [name,  res{i}, tsplit{i+1}]; %#ok<AGROW>
 end
-
 
 end
    

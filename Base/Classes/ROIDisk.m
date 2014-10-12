@@ -41,7 +41,7 @@ classdef ROIDisk < ROI
          end
       end
 
-      function b = boundingbox(obj, varargin)
+      function b = boundingBox(obj, varargin)
          b = Rectangle(obj.center - r, obj.center + r);
       end
 
@@ -61,7 +61,7 @@ classdef ROIDisk < ROI
          m = ((x- x0).^2 + (y-y0).^2 - r^2 <= eps);
       end
       
-      function n = npixel(obj)
+      function n = nPixel(obj)
          n = total(obj.mask);
       end
       
@@ -69,7 +69,7 @@ classdef ROIDisk < ROI
          error('%s: overlap with % s not implemented!', class(obj), class(roi));
       end
 
-      function su = pixelsurfaceIdxList(obj, si)
+      function su = pixelSurfaceIdxList(obj, si)
          x0 = obj.center(1);
          y0 = obj.center(2);
          
@@ -106,7 +106,7 @@ classdef ROIDisk < ROI
       end
       
 
-      function d = extractdata(obj, d)
+      function d = extractData(obj, d)
          d = immask(d, obj.mask);
       end
       

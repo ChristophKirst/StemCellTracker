@@ -28,6 +28,8 @@ classdef ImageSourceTiled < ImageSource
          elseif nargin >= 1
             if isa(varargin{1}, 'ImageSourceTiled') %% copy constructor
                obj = copy(varargin{1});
+            elseif isa(varargin{1}, 'ImageSourceBF')
+               obj = obj.fromImageSourceBF(varargin{:});
             elseif isa(varargin{1}, 'ImageSource')
                obj = obj.fromImageSource(varargin{:});
             %else
@@ -51,6 +53,8 @@ classdef ImageSourceTiled < ImageSource
       end
       
       
+      
+      
       function obj = fromImageSource(obj, source, varargin)
          param = parseParameter(varargin);
          ts = getParameter(param, 'tileshape', source.cellsize);
@@ -68,6 +72,29 @@ classdef ImageSourceTiled < ImageSource
             warning('%s: tileshape %s has to many image files', class(obj), obj.itileshape)
          end
       end
+      
+      
+      function obj = fromImageSourceBF(obj, source, varargin)
+         
+         
+         
+         param = parseParameter(varargin);
+         ts = getParameter(param, 'tileshape', source.cellsize);
+         tf = 'uvw';
+         tf = getParameter(param, 'tileformat', tf(1:length(ts)));
+
+         obj.itileshape  = ts;
+         obj.itileformat = tf;
+         
+         obj.isource = source;
+         
+         
+         %check tileshape
+         if prod(obj.itileshape) > source.cellsize
+            warning('%s: tileshape %s has to many image files', class(obj), obj.itileshape)
+         end
+      end
+      
          
       
       

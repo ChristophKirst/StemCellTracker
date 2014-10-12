@@ -12,12 +12,12 @@ function varargout = implot(img, varargin)
 
 % switch 2d / 3d image
 
-imf = imformat(img);
+imf = lower(imfrmtFormat(img));
 
 switch imf
-   case {'pq', 'pqc'}
+   case {'xy', 'xyc'}
       img = implot2d(img, varargin{:});
-   case {'pql', 'pqlc'}
+   case {'xyz', 'xyzc'}
       img = implot3d(img, varargin{:});
    otherwise
       error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);

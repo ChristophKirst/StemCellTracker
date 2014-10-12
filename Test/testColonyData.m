@@ -81,7 +81,7 @@ isdic.initialize();
 
 imgdic = isdic.getData();
 imggfp = isgfp.getData();
-imgf = medianFilter(imggfp, 3);
+imgf = filterMedian(imggfp, 3);
 
 if verbose
    figure(11); clf;
@@ -91,7 +91,7 @@ end
 
 %% Simple 2D segmentation
 
-imgl = logFilter(imgf, [15, 15]);
+imgl = filterLoG(imgf, [15, 15]);
 imgl = iminvert(mat2gray(imgl));
 
 imgmax = imextendedmax(imgl, 0.05);

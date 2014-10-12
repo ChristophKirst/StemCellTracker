@@ -3,7 +3,7 @@ function [ol, or] = filteroffsets(ksize)
 % [ol, or] = filteroffsets(hsize)
 %
 % description:
-%    returns bw image with pixels at points set to white
+%    returns radial offsets used by fspecial2 or fspecial3
 %
 % input:
 %    ksize     input size of filter

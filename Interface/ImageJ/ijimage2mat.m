@@ -11,7 +11,7 @@ function data = ijimage2mat(ijplus)
 % output:
 %    data           image data
 %
-% See also: imread_bf
+% See also: imreadBF
 
 
 if ~isa(ijplus, 'ij.ImagePlus')

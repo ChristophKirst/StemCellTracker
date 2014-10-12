@@ -37,7 +37,7 @@ if isempty(pairs)
    cids = 1;
 else
    edges = [[pairs.from]', [pairs.to]'];
-   cids = vertexColoring(1:numel(imgsizes), edges);
+   cids = graphVertexColoring(1:numel(imgsizes), edges);
 end
 
 ncols = min(max(cids), 8);

@@ -4,7 +4,7 @@ function [centroids, mainaxes, varargout] = imellipsoid(labeledimage, stats)
 % [centroids, mainaxes, stats] = imellipsoid(labeledimage, stats);
 %
 % description:
-%     finds the ellipsoids of the labeled regoins in labeled images that fit the first two moments
+%     finds the ellipsoids of the labeled regions in labeled images that fit the first two moments
 %
 % input:
 %     labeledimage  labeled image 

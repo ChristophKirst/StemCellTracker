@@ -29,7 +29,7 @@ end
 if ~found
    if ismac()
       rpath = '/Applications/';
-      hintpath = dir('/Applications/ilastic*');
+      hintpath = dir('/Applications/ilastik*');
       hintpath = hintpath([hintpath.isdir]);
    elseif isunix()
       rpath = '/usr/local/';
@@ -39,7 +39,7 @@ if ~found
       rpath = 'C:\Program Files\';
       hintpath = 'C:\Program Files\ilastik*';
    else
-      error('ilpath: operating system not supported, modify ilpath.m!');
+      error('ilpath: operating system not supported !');
    end
    
    if ~isempty(hintpath)
@@ -50,7 +50,7 @@ if ~found
    end
 end
 
-%edjucated guessing 2
+%ckirst specific guessing 
 if ~found && isunix() && ~ismac()
    hintpath = dir('~/programs/ilasti*');
   
@@ -86,16 +86,16 @@ function [ilrun, ilroot, ilpy] = checkpath(ipath)
       return
    end
  
-   [ilroot, ilpy] = ilfilepatterns(ipath);
+   [ilroot, ilpy] = ilfilepatterns(ipath, false);
 
-   if ~isdir(ilroot)
+   if ~isdir(ilroot) || ~isfile(ilpy)
+      [ilroot, ilpy] = ilfilepatterns(ipath, true);
+   end
+      
+   if ~isdir(ilroot) || ~isfile(ilpy)
       return
    end
-   
-   if ~isfile(ilpy)
-      return
-   end
-   
+
    if ismac()
       
       [~, appn, appe] = fileparts(ipath);
@@ -116,16 +116,19 @@ function [ilrun, ilroot, ilpy] = checkpath(ipath)
    else
       error('ilpath: ilpath for windows not implemented yet!');
    end
-   
 
 end
 
 
 
 
-function [ilroot, ilpy] = ilfilepatterns(ipath)
+function [ilroot, ilpy] = ilfilepatterns(ipath, sub)
    if ismac()
-      ilroot = fullfile(ipath, '/Contents/Resources/lib/python2.7');
+      if sub
+         ilroot = fullfile(ipath, '/Contents/Resources/lib/python2.7');
+      else
+         ilroot = ipath;
+      end
    else
       ilroot = ipath;
    end
@@ -162,5 +165,7 @@ function [rpath, ilrun] = findil(ipath)
          return;
       end
    end
+   
+   
 
 end

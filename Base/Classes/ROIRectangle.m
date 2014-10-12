@@ -51,7 +51,7 @@ classdef ROIRectangle < ROI
          d = length(obj(1).p1);
       end
 
-      function b = boundingbox(obj, varargin)
+      function b = boundingBox(obj, varargin)
          b = obj.copy();  % rhe rectangle is its bbox
       end
       
@@ -96,7 +96,7 @@ classdef ROIRectangle < ROI
          m(rng{:}) = 1;
       end
       
-      function n = npixel(obj, si)
+      function n = nPixel(obj, si)
          if nargin < 2
             si = obj.p2;
          end
@@ -120,9 +120,9 @@ classdef ROIRectangle < ROI
       
       
       % extract roi from an array / image
-      function [d, sh] = extractdata(obj, d)
+      function [d, sh] = extractData(obj, d)
          %
-         % [d, sh] = extractdata(obj, d)
+         % [d, sh] = extractData(obj, d)
          %
          % description:
          %     extracts data from boudnign box

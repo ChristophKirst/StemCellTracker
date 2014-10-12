@@ -25,18 +25,14 @@ classdef Frame < handle
          if nargin == 1 && isa(varargin{1}, 'Frame') %% copy constructor
             obj = copy(varargin{1});
          else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, lower(varargin{i}))
-                  obj.(lower(varargin{i})) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
-               end
-            end
+            obj.fromParameter(varargin);
          end
       end
+      
+      function obj = fromParameter(obj, varargin)
+         obj = classFromParameter(obj, [], varargin);
+      end
+      
 
       function newobj = copy(obj)
       % 
@@ -57,6 +53,20 @@ classdef Frame < handle
       end
       
       
+      function data = toArray(obj)
+      %
+      % data = toArray(obj)
+      %
+      % description:
+      %    convert data of all objects to array
+      %  
+         data = obj.objects.toArray;
+      end
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % basic functionality
+      
       function d = dim(obj)
          %
          % d = dim()
@@ -65,16 +75,19 @@ classdef Frame < handle
          %
          d = obj(1).objects(1).dim;
       end
-
-      function data = toArray(obj)
+      
+      
+      function n = nobjects(obj)
       %
-      % data = toArray(obj)
+      % n = nobjects(obj)
       %
-      % convert data of all objects to array
-      %  
-         data = obj.objects.toArray;
+      % output:
+      %   n    number of objects in this frame
+      %
+         n = length(obj.objects);
       end
-           
+
+
       function t = time(obj)
       %
       % t = time(obj)
@@ -162,19 +175,31 @@ classdef Frame < handle
          end   
       end
       
- 
-      function n = nobjects(obj)
+      
+      function img = data(obj, varargin)
       %
-      % n = nobjects(obj)
+      % img = readData()
       %
-      % output:
-      %   n    number of objects in this frame
+      % returns the image data for this frame
       %
-         n = length(obj.objects);
+         img = obj.source.data(varargin);   
       end
       
+      
+      %TODO:
+      function img = readData(obj) % only for compability with this version: todo remove
+      %
+      % img = readData()
+      %
+      % returns the image data of this frame
+      %
+         img = obj.getImage();   
+      end
+      
+ 
 
-      %%% Utils
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % utils
       
       function obj = transformCoordinates(obj, R, T, C)
       %
@@ -187,29 +212,16 @@ classdef Frame < handle
       end
       
       
-      function img = getImage(obj)
-      %
-      % img = readData()
-      %
-      % returns the image data of this frame
-      %
-         img = obj.source.getData();   
-      end
-
-      function img = readData(obj) % only for compability with this version: todo remove
-      %
-      % img = readData()
-      %
-      % returns the image data of this frame
-      %
-         img = obj.getImage();   
-      end
-      
-      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % visualization 
 
       % image
       function imglab = labeledImage(obj)
          imglab = obj.objects.labeledImage();
+      end
+      
+      function plot(obj)
+         implot(obj.data);
       end
 
    end

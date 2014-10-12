@@ -34,21 +34,14 @@ classdef Alignment < matlab.mixin.Copyable
                error('%s: not valid arguments for constructor', class(obj));
             end
          else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, varargin{i})
-                  obj.(varargin{i}) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
-               end
-            end
+            obj.fromParameter(varargin);
          end
       end
 
+      function obj = fromParameter(obj, varargin)
+         obj = classFromParameter(obj, [], varargin);
+      end
 
-      
       function obj = fromCell(obj, ca)
          %
          % obj = fromCell(obj, ca)
@@ -92,8 +85,7 @@ classdef Alignment < matlab.mixin.Copyable
          obj.pairs = p;
          obj.nodes = 1:numel(ca);
       end
-      
-      
+
       function obj = fromStruct(obj, st)
          %
          % obj = fromStruct(obj, st)
@@ -109,7 +101,6 @@ classdef Alignment < matlab.mixin.Copyable
          obj.nodes = obj.pairIds();
       end
       
-            
       function obj = fromAlignmentPair(obj, ap)
          %
          % obj = fromAlignmentPair(obj, ap)
@@ -140,7 +131,7 @@ classdef Alignment < matlab.mixin.Copyable
       end
       
       
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % basics 
       
       function d = dim(obj)
@@ -209,11 +200,10 @@ classdef Alignment < matlab.mixin.Copyable
          
       
       
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % alignment routines
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % alignment
       
-      
-      % routines modifying the class
+      %%% routines modifying the class
       
       function obj = removeLowQualityPairs(obj, thq)
          %
@@ -235,7 +225,6 @@ classdef Alignment < matlab.mixin.Copyable
          %
          % description: 
          %     removes all paris not connecting two nodes in obj.nodes
-         %
 
          iids = obj.nodes;
           
@@ -258,8 +247,7 @@ classdef Alignment < matlab.mixin.Copyable
          %
          % input:
          %   thb    threshold for background intensity
-
-         
+    
          nds = obj.nodes;
          n = obj.nnodes;
          rmn = zeros(1,n);
@@ -332,7 +320,9 @@ classdef Alignment < matlab.mixin.Copyable
       end
 
 
-      % routines not modifying the class
+      
+      
+      %%% routines not modifying the class
       
       function comp = connectedComponents(obj, varargin)
          %
@@ -357,13 +347,8 @@ classdef Alignment < matlab.mixin.Copyable
          %    calculates absolute size and shifts
          %
          % See also: absoluteShiftsAndSize
-                
-%          obj.nodes
-%          obj.tilesizes
-%          obj.imageShifts
          
          [ashifts, as] = absoluteShiftsAndSize(obj.imageShifts, obj.tilesizes);
-         
          %obj.pairs = alignPairsFromShifts(obj.pairs, ashifts, obj.nodes);
       end
    
@@ -377,6 +362,7 @@ classdef Alignment < matlab.mixin.Copyable
          % input:
          %    anchor   (optional) = 1
          %
+         % See also: absoluteShiftsAndSize
 
          if obj.nnodes == 1
             shifts = {zeros(1,obj.dim)};
@@ -390,7 +376,7 @@ classdef Alignment < matlab.mixin.Copyable
          shifts = num2cell(ic',2);
          %var2char(shifts);
          
-         %todo optimize optimization to nodes that are really there and not max node number
+         %todo reduce optimization to nodes that are really there and not max node number
          shifts = shifts(obj.nodes);
          %var2char(shifts);
          
@@ -402,7 +388,6 @@ classdef Alignment < matlab.mixin.Copyable
       
       
       % align and stitch
-
       function obj = align(obj, varargin)
          %
          % obj = align(obj, varargin)
@@ -427,8 +412,9 @@ classdef Alignment < matlab.mixin.Copyable
       end
       
 
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % plotting
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % visualization
       
       function plotAlignedImages(obj)
          %

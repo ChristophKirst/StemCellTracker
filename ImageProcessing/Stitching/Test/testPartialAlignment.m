@@ -301,7 +301,7 @@ for i = 1:nt
       %ivar = max(ivar, var(img(:)));
       
       
-      info{i,j} = imread_bf_info(tagexpr2string(tag, 'pos', p));
+      info{i,j} = imreadBFInfo(tagexpr2string(tag, 'pos', p));
    end
 end
 

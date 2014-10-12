@@ -26,8 +26,8 @@ classdef ROIMask < ROI
          v = total(obj.mask);
       end
 
-      function b = boundingbox(obj, varargin)
-         [p1, p2] = imboundingbox(obj.mask);
+      function b = boundingBox(obj, varargin)
+         [p1, p2] = imboundingBox(obj.mask);
          b = ROIRectangle(p1, p2);
       end
 
@@ -35,7 +35,7 @@ classdef ROIMask < ROI
          p = find(obj.mask);
       end
             
-      function n = npixel(obj)
+      function n = nPixel(obj)
          n = obj.volume;
       end
       
@@ -44,13 +44,13 @@ classdef ROIMask < ROI
       end
       
 
-      function ps = pixelsurfaceIdxList(obj)
+      function ps = pixelSurfaceIdxList(obj)
          ps= impixelsurface(obj.mask);
          ps = find(ps);
       end
       
 
-      function d = extractdata(obj, d)
+      function d = extractdDta(obj, d)
          d = immask(d, obj.mask);
       end
       

@@ -39,8 +39,8 @@ for p = 1:a.npairs
    end
 end
 
-adj = edges2AdjacencyMatrix(e, a.nnodes);
-c = adjacencyMatrix2ConnectedComponents(adj);
+adj = graphEdgesToAdjacencyMatrix(e, a.nnodes);
+c = graphAdjacencyMatrixToConnectedComponents(adj);
 
 % construct Alignment / ImageSourceAligned classes
 

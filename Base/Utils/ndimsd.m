@@ -8,7 +8,7 @@ function d = ndimsd(val)
 % See also: ndims, ndims1
 
 si = size(val);
-si(si == 1) = [];
+si(si <= 1) = [];
 d = length(si);
 
 end

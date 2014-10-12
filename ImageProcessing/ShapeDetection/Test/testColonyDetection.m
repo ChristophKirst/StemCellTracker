@@ -54,7 +54,7 @@ implot(img);
 imgr = imresize(img, 0.5);
 size(imgr)
 
-imgrf = gaussianFilter(imgr, 20);
+imgrf = filterGaussian(imgr, 20);
 imgro = imclose(imgrf, strel('disk', 20));
 
 figure(4); clf;
@@ -150,7 +150,7 @@ viscircles(centers(id,:), radii(id), 'EdgeColor', 'b')
 
 imgd = mat2gray(imgr);
 
-imgf = medianFilter(imgd, 5);
+imgf = filterMedian(imgd, 5);
 imgf = mat2gray(imgf);
 
 imgp =imextendedmax(imgf, 0.01);
@@ -166,6 +166,6 @@ implottiling({255 * imgd; 255 * imgf; imoverlay(imgd, imgp)})
 X= [p,q];
 
 clf
-alphavol(X,20,1);
+detectAlphaVolume(X,20,1);
 
 

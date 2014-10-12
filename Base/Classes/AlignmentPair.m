@@ -44,25 +44,90 @@ classdef AlignmentPair < matlab.mixin.Copyable
                obj.shift = varargin{3};  
             end
          else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, varargin{i})
-                  obj.(varargin{i}) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), varargin{i})
-               end
-            end
+            obj.fromParameter(varargin);
          end
          
          obj.initialize();
       end
-       
+      
       function initialize(obj)
          for i = 1:length(obj)
             obj(i).orientation = obj.orientation2number(obj(i).orientation);
          end
+      end
+      
+      function obj = fromParamete(obj, varargin)
+         obj = classFromParameter(obj, [], varargin);
+         obj.initialize();
+      end
+      
+      function obj = fromStruct(obj, st)
+         %
+         % obj = fromStruct(obj, st)
+         %
+         % descritpion:
+         %   initializes AlignmentPair array form struct array st
+         
+         for i = 1:length(st)
+            obj(i).from  = st(i).from;         
+            obj(i).to    = st(i).to;        
+         end
+         
+         fields = {'orientation', 'shift', 'quality'};
+         for f = 1:length(fields)
+            fn = fields{f};
+            if isfield(st, fn)
+               for i = 1:length(st)
+                  obj(i).(fn) = st(i).(fn);
+               end
+            end
+         end  
+         
+         obj.initialize();
+      end
+
+      function obj = fromCell(obj, ca)         
+         %
+         % obj = fromCell(obj, st)
+         %
+         % descritpion:
+         %   initializes AlignmentPair form a pair of ids given as peraligned cell array
+         
+         si = size(ca);
+         obj.from = ca{1};
+         obj.to   = ca{2};
+         obj.orientation = find(si == 2, 1);
+      end
+      
+      function ca = toCell(obj)         
+         %
+         % ca = toCell(obj) 
+         %
+         % descritpion:
+         %   converts the data into cell array representation
+         
+         if obj.orientation > 0
+            pos = num2cell(ones(1,obj.dim));
+            ca{pos{:}} = obj.from;
+            pos{obj.orientation} = 2;
+            ca{pos{:}} = obj.to;
+         else
+            ca = {obj.from, obj.to};
+         end
+      end
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % basics
+
+      function d = dim(obj)
+         %
+         % d = dim(obj)
+         %
+         % descritpion:
+         %   dimension of alignment problem = dimension of shift vector
+         
+         d = ndims(obj.shift);
       end
       
       function n = orientation2number(~, o)
@@ -88,72 +153,9 @@ classdef AlignmentPair < matlab.mixin.Copyable
          end
       end
 
-      function d = dim(obj)
-         %
-         % d = dim(obj)
-         %
-         % descritpion:
-         %   dimension of alignment problem = dimension of shift vector
-         %
-         d = ndims(obj.shift);
-      end
       
-      function obj = fromStruct(obj, st)
-         %
-         % obj = fromStruct(obj, st)
-         %
-         % descritpion:
-         %   initializes AlignmentPair array form struct array st
-         %
-         for i = 1:length(st)
-            obj(i).from  = st(i).from;         
-            obj(i).to    = st(i).to;        
-         end
-         
-         fields = {'orientation', 'shift', 'quality'};
-         for f = 1:length(fields)
-            fn = fields{f};
-            if isfield(st, fn)
-               for i = 1:length(st)
-                  obj(i).(fn) = st(i).(fn);
-               end
-            end
-         end  
-         
-         obj.initialize();
-      end
-
-      function obj = fromCell(obj, ca)         
-         %
-         % obj = fromCell(obj, st)
-         %
-         % descritpion:
-         %   initializes AlignmentPair form a pair of ids given as peraligned cell array
-         %
-         
-         si = size(ca);
-         obj.from = ca{1};
-         obj.to   = ca{2};
-         obj.orientation = find(si == 2, 1);
-      end
-      
-      function ca = toCell(obj)         
-         %
-         % ca = toCell(obj) 
-         %
-         % descritpion:
-         %   converts the data into cell array representation
-         %    
-         if obj.orientation > 0
-            pos = num2cell(ones(1,obj.dim));
-            ca{pos{:}} = obj.from;
-            pos{obj.orientation} = 2;
-            ca{pos{:}} = obj.to;
-         else
-            ca = {obj.from, obj.to};
-         end
-      end
-      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % alignment
       
       function obj = align(obj, varargin)
          %
@@ -192,6 +194,10 @@ classdef AlignmentPair < matlab.mixin.Copyable
          [ovl1, ovl2] = overlap2ImagesOnGrid(obj.toCell, varargin{:});       
       end
 
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % visualization
+      
       function plot(obj)
          %
          % plot(obj)

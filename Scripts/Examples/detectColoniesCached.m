@@ -134,8 +134,8 @@ for s = 1:nsubalgn
       implot(subalgn(s).data)
    end
    
-   %rois = findROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
-   rois = findROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', 500, 'plot', plt);
+   %rois = detectROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
+   rois = detectROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', 500, 'plot', plt);
    
    fprintf('Found %g regoins of interest\n', length(rois))
    

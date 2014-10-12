@@ -25,7 +25,7 @@ imagesc(gf)
 colormap jet
 colorbar
 
-imgf = gaussianFilter(img, 15, 15);
+imgf = filterGaussian(img, 15, 15);
 
 figure(3)
 implottiling({img, imgf})
@@ -43,7 +43,7 @@ colormap jet
 colorbar
 
 
-imgf = gaussianFilter(img, 15, 15);
+imgf = filterGaussian(img, 15, 15);
 
 figure(3)
 implottiling({img, imgf})
@@ -61,7 +61,7 @@ colormap jet
 colorbar
 
 
-imgf = gaussianFilter(img, 15, 15);
+imgf = filterGaussian(img, 15, 15);
 
 figure(3)
 implottiling({img, imgf})
@@ -80,7 +80,7 @@ colormap jet
 colorbar
 
 
-imgf = gaussianFilter(img, 15, 15);
+imgf = filterGaussian(img, 15, 15);
 
 figure(3)
 implottiling({img, imgf})

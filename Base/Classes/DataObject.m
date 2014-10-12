@@ -19,26 +19,25 @@ classdef DataObject < Object
             if isa(varargin{1}, 'DataObject') %% copy constructor
                obj = copy(varargin{1});
             elseif isa(varargin{1}, 'Object')
-               oldobj = varargin{1};
-               nobjs = length(oldobj);
-               obj(nobjs) = DataObject();
-               props = properties(oldobj);
-               for k = 1:nobjs
-                  for i = 1:length(props)
-                     obj(k).(props{i}) = oldobj(k).(props{i});
-                  end
-               end
+               obj.fromObject(varargin{1});
             end
          else
-            for i = 1:2:nargin % constructor from arguments
-               if ~ischar(varargin{i})
-                  error('%s: invalid constructor input, expects char at position %g',class(obj), i);
-               end
-               if isprop(obj, lower(varargin{i}))
-                  obj.(lower(varargin{i})) = varargin{i+1};
-               else
-                  warning('%s: unknown property name: %s ', class(obj), lower(varargin{i}))
-               end
+            obj.fromParameter(varargin);
+         end
+      end
+      
+      function obj = fromParameter(obj, varargin)
+         obj = classFromParameter(obj, [], varargin);
+      end
+      
+      function obj = fromObject(obj, o) 
+         oldobj = o;
+         nobjs = length(oldobj);
+         obj(nobjs) = DataObject();
+         props = properties(oldobj);
+         for k = 1:nobjs
+            for i = 1:length(props)
+               obj(k).(props{i}) = oldobj(k).(props{i});
             end
          end
       end
@@ -61,6 +60,9 @@ classdef DataObject < Object
       end
       
       
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % basics
+
       % get statistics names
       function fnames = dataFields(obj)
          %
@@ -77,9 +79,9 @@ classdef DataObject < Object
       end
       
       
-      function val = getData(obj, sname)
+      function val = dataValues(obj, sname)
          %
-         % val = obj.getData(sname)
+         % val = obj.dataValue(sname)
          %
          % description:
          %     returns the value of the field sname
@@ -170,9 +172,7 @@ classdef DataObject < Object
             obj.setData(cname, vals);
 
          end
-            
-      
-
+ 
       end
       
       
@@ -225,7 +225,20 @@ classdef DataObject < Object
             
       end  
       
-      %some specialized data access function 
+      function imglab = labeledImage(obj)
+         shape = [obj.segment];
+         [idx, isize] = shape.pixelIdxList();
+         imglab = zeros(isize);
+         for i = 1:length(idx)
+            imglab(idx{i}) = obj(i).id;
+         end
+      end
+      
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % specialized data access functions
+      
       function val = dapi(obj)
          %
          % val = dapi(obj)
@@ -235,7 +248,6 @@ classdef DataObject < Object
             val = [obj.data];
             val = [val.('ch_dapi')]; 
       end
-      
       
       %add more here if needed...
 
@@ -254,13 +266,12 @@ classdef DataObject < Object
          end
       end
 
-      function imglab = labeledImage(obj)
-         shape = [obj.segment];
-         [idx, isize] = shape.pixelIdxList();
-         imglab = zeros(isize);
-         for i = 1:length(idx)
-            imglab(idx{i}) = obj(i).id;
-         end
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % visualization
+      
+      function plot(obj)
+         implot(obj.labeledImage)
       end
       
 
