@@ -14,8 +14,12 @@ function [posref, posfrmt]  = imfrmtPosition(reffrmt, frmt)
 %
 % See also: imfrmtFormat
 
-frmt = imfrmtFormat(frmt);
-reffrmt = imfrmtFormat(reffrmt);
+if ~iscellstr(frmt)
+   frmt = imfrmtFormat(frmt);
+end
+if ~iscellstr(reffrmt)
+   reffrmt = imfrmtFormat(reffrmt);
+end
 
 frmt = lower(frmt);
 reffrmt = lower(reffrmt);

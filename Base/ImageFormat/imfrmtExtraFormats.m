@@ -15,8 +15,12 @@ function [extrafrmt, extrapos]  = imfrmtExtraFormats(reffrmt, frmt)
 %
 % See also: imfrmtFormat
 
-frmt = imfrmtFormat(frmt);
-reffrmt = imfrmtFormat(reffrmt);
+if ~iscell(frmt)
+   frmt = imfrmtFormat(frmt);
+end
+if ~iscell(reffrmt)
+   reffrmt = imfrmtFormat(reffrmt);
+end
 
 frmtl = lower(frmt);
 reffrmt = lower(reffrmt);

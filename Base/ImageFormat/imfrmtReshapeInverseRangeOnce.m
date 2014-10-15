@@ -65,9 +65,9 @@ rawIdx = imfrmtRangeToIndex(reshapeToSize, reshapeTo, range);
 
 % assign to reshape from frmt
 if isemptystruct(rawRange)
-   rawRange = struct(reshapeFrom, rawIdx);
+   rawRange = struct(reshapeFrom, rawIdx(:)');
 else
-   rawRange.(reshapeFrom) = rawIdx;
+   rawRange.(reshapeFrom) = rawIdx(:)';
 end
 
 end

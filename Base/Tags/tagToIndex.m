@@ -1,13 +1,13 @@
-function id = tag2ind(tagranges, tag)
+function id = tagToIndex(tagRange, tag)
 %
-% id = tag2ind(tagranges, tag)
+% id = tagToIndex(tagRange, tag)
 %
 % description:
 %   converts tag to the index i using tagranges
 
-si = tagrangesize(tagranges);
+si = tagRangeSize(tagRange);
 
-names = fieldnames(tagranges);
+names = fieldnames(tagRange);
 nnames = length(names);
 
 nt = length(tag);
@@ -19,7 +19,7 @@ for k = 1:nt
    fac = 1;
    id(k) = 0;
    for i = 1:nnames
-      tr = tagranges.(names{i});
+      tr = tagRange.(names{i});
       idi = find(ismember(tr, tag(k).(names{i})));
       
       id(k) = id(k) + fac * (idi-1);

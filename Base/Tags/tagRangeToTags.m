@@ -1,13 +1,13 @@
-function tags = tagranges2tags(tagranges)
+function tags = tagRangeToTags(tagRange)
 %
-% tags = tagranges2tags(tagranges)
+% tags = tagRangeToTags(tagranges)
 %
 % dewcription:
-%   converts tagranges in to tags struct array 
+%   converts tagRange in to tag struct array 
 %
-% See also: tags2tagranges
+% See also: tagToTagRange
 
-names = fieldnames(tagranges);
+names = fieldnames(tagRange);
 nnames = length(names);
 
 if isempty(names)
@@ -18,7 +18,7 @@ end
 % assemble tag values for each name
 vals = cell(1, nnames);
 for n = 1:nnames
-   vals{n} = tagranges.(names{n});
+   vals{n} = tagRange.(names{n});
 end
 
 grc = ndgridc(vals{:});

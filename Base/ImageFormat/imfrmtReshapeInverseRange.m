@@ -66,8 +66,10 @@ for r = n:-1:1
    tempSize{r} = imfrmtReshapeInverseSizeOnce(tempSize{r+1}, tempFrmt{r+1}, tempFrmt{r}, reshapeFrom{r}, reshapeTo{r}, reshapeSize{r});
 end
 % 
+% disp Reshape
 % var2char(tempFrmt)
 % var2char(tempSize)
+% dataSize
 
 
 % inverse reshaping the ranges
@@ -77,7 +79,7 @@ rawReshape = cell(1,n);
 for r = n:-1:1
    if nargout > 1
       si = imfrmtReformatSize(tempSize{r+1}, tempFrmt{r+1}, reshapeTo{r});
-      rawReshape{r} = imfrmtRangeSize(si, reshapeTo{r}, rawRange);                                      
+      rawReshape{r} = imfrmtRangeSize(si, reshapeTo{r}, rawRange);
    end
    
    rawRange = imfrmtReshapeInverseRangeOnce(tempSize{r+1}, tempFrmt{r+1}, tempFrmt{r}, ...

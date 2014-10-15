@@ -1,19 +1,19 @@
-function [tags, texpr] = tagsreduce(tags, varargin)
+function [tags, texpr] = tagsReduce(tags, varargin)
 %
 % tags = tagsreduce(tags)
-% [tags, texpr] = tagsreduce(tags, texpr)
+% [tags, texpr] = tagsReduce(tags, texpr)
 %
 % description:
-%   checks for identical tags and reduces them
+%   checks for for identical tag values / tag ranges and only keeps the first
+%   if texpr is given also removes tags not in the tag expression
 
 names = fieldnames(tags)';
 
 if nargin > 1
    texpr = varargin{1};
-   [tnames, tsplit, tinfo] = tagexpr2tagnames(texpr);
+   [tnames, tsplit, tinfo] = tagExpressionToTagNames(texpr);
    
    % remove all field names in tags not in texpr
-   
    ids = ismember(names, tnames);
    tags = rmfield(tags, names(~ids));
    names = fieldnames(tags);
@@ -42,7 +42,7 @@ if nargin > 1
       tagsinfonew(i).type  = taggroup(1).type;
    end
 
-   texpr = taginfo2tagexpr(tsplit, tagsinfonew);
+   texpr = tagInfoToTagExpression(tsplit, tagsinfonew);
    
    ids = ismember(names, {tagsinfonew.name});
    tags = rmfield(tags, names(~ids));
@@ -54,7 +54,6 @@ else
       for n2 = n1+1:nnames
          if isequal({tags.(names{n1})}, {tags.(names{n2})})
             red = [red, names(n2)]; %#ok<AGROW>
-
          end
       end
    end

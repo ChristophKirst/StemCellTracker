@@ -27,6 +27,7 @@ else
 end
 
 csize = size(cdata);
+csize = padright(csize, cdim, 1);
 
 cc = cdata;
 for cd = 1:cdim

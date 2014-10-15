@@ -6,18 +6,23 @@ classdef ImageSource < ImageInfo
    %     this class can be used to represent an Image independent of its actual source
    %     use obj.data to return the actual image data
    %
-   % required functions: datasize, dataformat, color, data
-   %
-   
-   % Note: for translation to python, the cache structure should be via a global imge cache class
-   %       that links ImageSource classes to the cached image
-   %
-   properties   
-      icache = true;        % (optional) cache the data or not
-      icelldata    = [];    % (cached) image data as cell array
+   % note:
+   %     design is as follows: output formats are wrt to the raw formats
+   %     a new data / cell data request will read the raw data and reshape it to the output data
+   %     if caching is activaed the final cell data will be cached
+   %     if raw caching is activated the raw cell data will be cached
+   %     for a data request the coordinate ranges are taken over written by specific user cell data specs
+   %     the ranges are then inversly reshaed to the raw ranges neccessary to laod the data
+    
+     properties   
+      icache = true;         % (optional) cache the data or not
+      icelldata    = [];     % (cached) image data as cell array
       
-      irawcache = true;     % (optional) cache the raw cell data
-      irawcelldata = [];    % (cached) raw data
+      irawcache = true;      % (optional) cache the raw cell data
+      irawcelldata = [];     % (cached) raw data
+      
+      idatacorrect = false;      % (optional) switch on/off image correction
+      idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data 
    end
         
    methods   
@@ -40,7 +45,6 @@ classdef ImageSource < ImageInfo
       end
       
       function obj = fromParameter(obj, varargin)
-         disp source
          obj = classFromParameter(obj, 'i', varargin);
       end
       
@@ -87,18 +91,16 @@ classdef ImageSource < ImageInfo
       end
       
       function obj = setCaching(obj,c)
+         % activate caching, usually the final data needs to be cached only
          obj.setCellDataCaching(c);
-         obj.setRawCellDataCaching(c);
+         %obj.setRawCellDataCaching(c); % explicitly specified by user
       end
-      
-      
+
       function obj = cleatCache(obj)
          obj.clearCellDataCache;
          obj.clearRawCellDataCache;
       end
-         
-      
-      
+
       function initializeCache(obj)
          % initialize cache by reading all images
          obj.setCaching(true);
@@ -115,34 +117,82 @@ classdef ImageSource < ImageInfo
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % data access methods
 
+      % raw data access routine to be overwritten by super class 
+      function d = getRawData(obj, range)
+         %
+         % d = getRawData(obj, varargin)
+         %
+         % description:
+         %     obtain raw image data in the format given by obj.rawformat
+         %     data specs use raw formats and sizes
+
+         cid = obj.rawCellIndex(range);
+         if length(cid) > 1
+            error('%s: getRawData: cell dimensinos are not specified to be singeltons!', class(obj));
+         end
+         d = obj.irawcelldata{cid}; % trivial here
+         
+         range = parseParameter(varargin);
+         d = imfrmtDataSubset(d, obj.rawDataFormat, range);
+      end
+ 
+      % raw cell data access routine to be overwritten by super class 
+      function d = getRawCellData(obj, range)
+         %
+         % d = getRawData(obj, varargin)
+         %
+         % description:
+         %     obtain raw cell data in the format given by obj.rawformat
+         %     data specs use raw formats and sizes
+                  
+         if nargin > 1
+            id = obj.rawCellIndex(range);
+            d = obj.irawcelldata(id);     
+         else
+            d = obj.irawcelldata; % trivial here
+         end
+         
+         % restrict the data for range
+         for i = 1:length(d)
+            d{i} = imfrmtDataSubset(d{i}, obj.rawDataFormat, range);
+         end
+      end
+ 
+
       function d = getDataFromRaw(obj, varargin)  % obtain the image data
          %
          % d = getData(obj, varargin)
          %
          % description:
          %     obtain data from raw data
-         
-         % range
-         range = parseParameter(varargin);
+         %     determines inverse coordinate range
+         %     then uses getRawCellData to obtain raw data 
+         %     then reshape to output data
+         %     checks result for single data cell
+         %
+         % note: indices passed as arguments refer to cell indices, and full data of that cell is returned
          
          % check if all cell dims are singeltons
-         cid = obj.cellIndex(range);
+         cid = obj.cellIndex(varargin{:});
          if length(cid) > 1
             error('%s: getData: cell dimensions not specified to singeltons!', class(obj));
          end
          
+         % range
+         range = obj.cellRangeFromVarargin(varargin{:}); 
+         
          % find raw ranges necessary to load the raw data
-         [rawRange, rawReshapeSize] = imfrmtReshapeInverseCellDataRange(obj.dataSize, obj.dataFormat, obj.rawDataFormat, ...
-                                                                 obj.cellSize, obj.cellFormat, obj.rawCellFormat, obj.reshapeFrom, ...
+         [rawRange, rawReshapeSize] = imfrmtReshapeInverseCellDataRange(obj.dataSizeFromRaw, obj.dataFormat, obj.rawDataFormat, ...
+                                                                 obj.cellSizeFromRaw, obj.cellFormat, obj.rawCellFormat, obj.reshapeFrom, ...
                                                                  obj.reshapeTo, obj.reshapeSize, range);
-
+ 
          %rawRange
-         %rawReshapeSize
+         %rawReshapeSize{1}
                                                  
                                                               
          % load raw cell data
          cd = obj.getRawCellData(rawRange);
-         
+
          % transform to output cell data 
          cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
    
@@ -152,8 +202,31 @@ classdef ImageSource < ImageInfo
          end
          
          d = cd{1};
-      end
+         
 
+      end
+      
+      
+      function cd = getCellDataFromRaw(obj, varargin)
+         %
+         % cd = getCellDataFromRaw(obj, varargin)
+         %
+         % description:
+         %     determines inverse coordinate range
+         %     then uses getRawCellData to obtain raw cell data 
+         %     then reshape to output cell data
+
+         % ranges necessary to load the raw data
+         [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
+         
+         % load raw data as cell data
+         cd = obj.getRawCellData(rawRange);
+         
+         % transform to output cell data 
+         cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
+         
+      end
+  
       function obj = setData(obj, d, varargin)
          id = obj.dataIndex(varargin{:});
          if length(id) ~= 1
@@ -163,20 +236,6 @@ classdef ImageSource < ImageInfo
       end
       
       
-      function d = getRawData(obj, varargin)
-         %
-         % d = getRawData(obj, varargin)
-         %
-         % description:
-         %     obtain raw image data in the format given by obj.rawformat
-         
-         cid = obj.rawCellIndex(varargin{:});
-         if length(cid) > 1
-            error('%s: getRawData: cell dimensinos are not specified to be singeltons!', class(obj));
-         end
-         d = obj.irawcelldata{cid}; % trivial here
-      end
-      
       function obj = setRawData(obj, d, varargin)
          id = obj.rawDataIndex(varargin{:});
          if length(id) ~= 1
@@ -184,61 +243,20 @@ classdef ImageSource < ImageInfo
          end 
          obj.irawcelldata{id} = d;
       end
-      
-      
-      function d = getRawCellData(obj, varargin)
-         %
-         % d = getRawData(obj, varargin)
-         %
-         % description:
-         %     obtain raw image data in the format given by obj.rawformat
-         
-         if nargin > 1
-            id = obj.rawCellIndex(varargin{:});
-            d = obj.irawcelldata(id);     
-         else
-            d = obj.irawcelldata; % trivial here
-         end
-      end
 
-      function obj = setRawCellData(obj, cd)  % set the image data
-         obj.irawcelldata = cd;
-      end
-
-      function cd = getCellData(obj, varargin)
-         cd = getCellDataFromRaw(obj, varargin{:});
-      end
       
       function obj = setCellData(obj, cd)
          obj.icelldata = cd;
       end
       
-      
-      function cd = getCellDataFromRaw(obj, varargin)
-         %
-         % cd = getCellDataFromRaw(obj, varargin)
-         %
-         % description:
-         %     obtain cell data from raw data and reshape specifications
-         
-         % range parameter
-         range = imfrmtParseRangeLast(obj.irange, varargin);
-         
-         % find raw ranges necessary to load the raw data
-         [rawRange, rawReshapeSize] = imfrmtReshapeInverseCellDataRange(obj.dataSize, obj.dataFormat, obj.rawDataFormat, obj.cellSize, obj.cellFormat, obj.rawCellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, range);
-         
-         % load raw data as cell data
-         cd = obj.getRawCellData(rawRange);
-         
-%          disp IS
-%          var2char({ obj.rawDataFormat, obj.rawCellFormat, obj.dataFormat, obj.cellFormat})
-%          size(cd)
-%          size(cd{1})
-         
-         % transform to output cell data 
-         cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
+      function obj = setRawCellData(obj, cd)  % set the image data
+         obj.irawcelldata = cd;
       end
+      
 
+      
+      
+ 
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % data methods      
@@ -259,11 +277,18 @@ classdef ImageSource < ImageInfo
                d = obj.icelldata{id};
             else
                d = obj.getDataFromRaw(varargin{:});
+               
+               % optional image correction 
+               d = obj.correctData(d);
+               
                obj.icelldata{id} = d;
             end
 
          else
             d = obj.getDataFromRaw(varargin{:});
+            
+            % optional image correction 
+            d = obj.correctData(d);
          end
       end
       
@@ -287,6 +312,9 @@ classdef ImageSource < ImageInfo
             c = obj.icelldata(id);
          else
             c = obj.getCellDataFromRaw(varargin{:});
+            
+            % (optional) image correction
+            c = cellfunc(@(x)obj.correctData(x), c);
          end
       end
       
@@ -330,25 +358,79 @@ classdef ImageSource < ImageInfo
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% casting and intensity scaling
      
-      function m = initializeRawDataIntensity(obj, varargin)
-         cd = obj.rawCellData(varargin);
+      function obj = initializeRawDataIntensity(obj, varargin)
+         cd = obj.rawCellData(varargin{:});
          m = cellfun(@(x) min(x(:)), cd);
          obj.iminrawintensity = min(m(:));
          m = cellfun(@(x) max(x(:)), cd);
          obj.imaxrawintensity = max(m(:));  
       end
       
-      function m = initializeDataIntensity(obj, varargin)
-         cd = obj.cellData(varargin);
+      function obj = initializeDataIntensity(obj, varargin)
+         cd = obj.cell(varargin{:});
          m = cellfun(@(x) min(x(:)), cd);
-         obj.imindataintensity = min(m(:));
+         obj.iminintensity = min(m(:));
          m = cellfun(@(x) max(x(:)), cd);
-         obj.imaxdataintensity = max(m(:));   
+         obj.imaxintensity = max(m(:));   
       end 
       
+          
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% image correction
+     
+      function obj = setDataCorrect(obj, c)
+         obj.idatacorrect = c;
+      end
       
+      function obj = resetDataCorrect(obj)
+         obj.idatacorrect = false;
+         obj.idatacorrectfunction = [];
+      end
+ 
+      function c = dataCorrect(obj)
+         c = obj.idatacorrect;
+      end
+
+      function c = dataCorrectFunction(obj)
+         c = obj.idatacorrectfunction;
+      end
       
+      function obj = setDataCorrectFunction(obj, c)
+         obj.idatacorrectfunction = c;
+      end
       
+      function obj = setBackgroundAndFlatFieldCorrection(obj, bkg, flt)
+         obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
+         obj.idatacorrect = true;
+      end
+      
+      function d = correctData(obj, d)
+         if obj.dataCorrect
+            c = obj.idatacorrectfunction;
+            if ~isempty(c)
+               d = c(d);
+            end
+         end
+      end
+      
+      function [bkg, flt] = backgroundAndFlatFieldFromMin(obj, varargin)
+         [bkg, flt] = backgroundFromMin(obj, varargin{:});
+      end
+
+      function [bkg, flt] = backgroudnAndFlatFieldFromDataCorrectFunction(obj)
+         [bkg, flt] = backgroundAndFlatFieldFromCorrectBackgroundAndFlatFieldHandle(obj.idatacorrectfunction);
+      end
+      
+      function obj = initializeBackgroundCorrectionFromMin(obj, varargin)
+         [bkg, flt] = backgroundFromMin(obj, varargin{:});
+         obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
+      end
+      
+      function obj = initializeBackgroundCorrectionFromBackgroudnAndFlatField(obj, bkg, flt)
+         obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
+      end
+
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % information / visulaization 
       

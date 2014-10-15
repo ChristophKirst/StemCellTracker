@@ -1,20 +1,20 @@
-function [tag, ids] = ind2tag(tagranges, i)
+function [tag, ids] = tagFromIndex(tagRange, i)
 %
-% tag = ind2tag(tagranges, i)
+% tag = tagFromIndex(tagRange, i)
 %
 % description:
-%   converts tagranges and index i to the corresponding single tag
+%   converts index i to the corresponding tag in the tagRange
 
-si = tagrangesize(tagranges);
+si = tagRangeSize(tagRange);
 ids = imind2sub(si, i);
 
-names = fieldnames(tagranges);
+names = fieldnames(tagRange);
 nnames = length(names);
 
 tvs = cell(1, 2* nnames);
 for i = 1:nnames
    tvs{2*i-1} = names{i};
-   tr = tagranges.(names{i});
+   tr = tagRange.(names{i});
    if iscell(tr)
       tvs{2*i} = tr{ids(i)};
    else

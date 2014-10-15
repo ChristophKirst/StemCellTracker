@@ -11,8 +11,12 @@ function per = imfrmtPermuation(infrmt, outfrmt)
 % output:
 %     the pemutation such that permute(img,per) == imfrmtReformat(img, frmt1, frmt2) up to axis inversions
 
-infrmt = imfrmtFormat(infrmt);
-outfrmt = imfrmtFormat(outfrmt); 
+if ~iscellstr(infmrt)
+   infrmt = imfrmtFormat(infrmt);
+end
+if ~iscellstr(outfrmt)
+   outfrmt = imfrmtFormat(outfrmt); 
+end
 
 [m,per] = ismember(outfrmt, infrmt);
 per = per(m);

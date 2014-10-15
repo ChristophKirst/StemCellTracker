@@ -3,7 +3,7 @@ function rgs = imfrmtReformatRange(inSize, inFrmt, outFrmt, rgs)
 % img = imfrmtReformatRange(inSize, inFrmt, outFrmt, tgr)
 %
 % description: 
-%     takes coordinate range srgs and reformats its entries to outfrmt assuming image of size isize
+%     takes coordinate ranges rgs and reformats its entries to outfrmt assuming image of size isize
 %     extra dimensions in outfrmt are not added
 %     all entries in rgs not specified in outfrmt are removed
 %

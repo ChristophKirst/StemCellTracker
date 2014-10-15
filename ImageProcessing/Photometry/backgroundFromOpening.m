@@ -18,7 +18,7 @@ function bkg = backgroundFromOpening(img, varargin)
 param = parseParameter(varargin);
 
 if isa(img, 'ImageSource')
-   img = img.data;
+   img = img.data(param);
 end
 
 se  = getParameter(param, 'strel', 50);

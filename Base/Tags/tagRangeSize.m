@@ -1,6 +1,6 @@
-function si = tagrangesize(tagrs)        
+function si = tagRangeSize(tagRange)        
 %
-% si = tagrangesize(tagrs)        
+% si = tagRangeSize(tagrs)        
 %
 % description:
 %      calculates sizes of the tag ranges
@@ -14,18 +14,18 @@ function si = tagrangesize(tagrs)
 % See also: tagexpr
 
 
-if isempty(tagrs)
+if isempty(tagRange)
    si = 0;
    return
 end
 
-names = fieldnames(tagrs);
+names = fieldnames(tagRange);
 nnames = length(names);
 
 si= zeros(1,nnames);
 
 for i = 1:nnames
-   si(i) = length(tagrs.(names{i}));
+   si(i) = length(tagRange.(names{i}));
 end
 
 end

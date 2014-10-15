@@ -43,7 +43,7 @@ if ischar(name)
       % initialize reader from file name
       ireader.setId(name);
    catch
-      error('imreadBFReader: cannot open image file %s via bio-formats!', name);
+      error('imreadBFReader: cannot open image file %s via bio-formats, try to run bfinitialize first!', name);
    end
   
 elseif isa(name, 'loci.formats.ChannelSeparator') 

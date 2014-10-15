@@ -1,6 +1,6 @@
-function texpr = taginfo2tagexpr(tsplit, tinfo)
+function texpr = tagInfoToTagExpression(tsplit, tinfo)
 %
-% texpr = taginfo2tagexpr(tsplit, tinfo)
+% texpr = tagInfoToTagExpression(tsplit, tinfo)
 %
 % description:
 %    generates a tagexpr string from the splitting and tifno struc obtained by tagexpr2tagnames
@@ -12,7 +12,7 @@ function texpr = taginfo2tagexpr(tsplit, tinfo)
 % output:
 %    tfrmt       the tag format 
 %
-% See also: tagexpr2tagnames
+% See also: tagExpression
 
 tnames = {tinfo.name};
 

@@ -11,6 +11,8 @@ if length(posInFormatFrom) ~= length(reshapeFrom)
    error('imfrmtReshape: format %s inconsistent with reshape format %s', inFrmt, reshapeFrom);
 end
 
+%data
+%inFrmt
 inSize = imfrmtSize(data, inFrmt);
 fromSize = inSize(posInFormatFrom);
 if prod(fromSize) ~= prod(reshapeSize)  
@@ -18,14 +20,13 @@ if prod(fromSize) ~= prod(reshapeSize)
 end
 
 % reshaped formats in out fromat
-[posOutFormatTo,posReshapeTo] = imfrmtPosition(outFrmt, reshapeTo);
+posOutFormatTo = imfrmtPosition(outFrmt, reshapeTo);
 if length(posOutFormatTo) ~= length(reshapeTo)
    error('imfrmtReshape: output format %s inconsistent with reshape format %s', outFrmt, reshapeTo);
 end
 
 
 %  reformat all from formats to single block
-
 
 reshapeBase = imfrmtRemoveFormat(inFrmt, reshapeFrom);
 reshapeInFrmt = [reshapeBase, reshapeFrom];

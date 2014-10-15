@@ -1,6 +1,6 @@
-function tagranges = tags2tagranges(tags, varargin)
+function tagRange = tagRangeFromTags(tags, varargin)
 %
-% tagranges = tags2tagranges(tags, varargin)
+% tagranges = tagRangeFromTags(tags, varargin)
 %
 % description:
 %      converts tags to tag ranges
@@ -11,23 +11,23 @@ function tagranges = tags2tagranges(tags, varargin)
 %              .check    check for multiplicative tag grid (false)
 %
 % output:
-%      tagranges  struct with .name = {range} entries
+%      tagRange  struct with .name = {range} entries
 %
-% See also: tagformat
+% See also: tagExpression
 
 param = parseParameter(varargin);
 
 names = fieldnames(tags);
 nnames = length(names);
 
-tagranges = struct();
+tagRange = struct();
 for i = 1:nnames
    tgs = {tags.(names{i})};
    
    if iscellstr(tgs)
-      tagranges.(names{i}) = unique(tgs);
+      tagRange.(names{i}) = unique(tgs);
    else
-      tagranges.(names{i}) = num2cell(unique([tags.(names{i})]));
+      tagRange.(names{i}) = num2cell(unique([tags.(names{i})]));
    end
       
 end
@@ -37,10 +37,10 @@ end
 if getParameter(param, 'check', false)
    n = 1;
    for i = 1:nnames
-      n = n * length(tagranges.(names{i}));
+      n = n * length(tagRange.(names{i}));
    end
    
    if length(tags) ~= n
-      error('tags2tagranges: tags are not multiplicative!')
+      error('tagRangeFromTags: tags are not multiplicative!')
    end
 end

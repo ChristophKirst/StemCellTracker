@@ -1,6 +1,6 @@
-function [bkg, flt] = backgroundFromMin(imgs, varargin)
+function [bkg, flt] = backgroundAndFlatfieldFromMinAndMean(imgs, varargin)
 %
-%  bkg = backgroundFromMin(imgs, param)
+% [bkg, flt] = backgroundAndFlatfieldFromMinAndMean(imgs, varargin)
 %
 % description:
 %    take minimum over images imgs to estimate backgournd
@@ -11,13 +11,12 @@ function [bkg, flt] = backgroundFromMin(imgs, varargin)
 %            .filter          filter estimated background with Gaussian (true)
 %            .filtersize      Gaussian filter size after taking the minimum (=100)
 %            .maximages       maximal number of images (=500)
+%            range specs
 %
 % output:
 %    bkg     estimated background image 
-%    flt     (optional) estimated flat field image from mean
 %
 % See also: backgroundFromOpening
-
 
 param = parseParameter(varargin);
 
@@ -45,7 +44,7 @@ elseif isa(imgs, 'ImageSource')
 end
 
 if n == 0
-   error('backgroundFromMin: not images to estimate background from!');
+   error('backgroundAndFlatfieldFromMinAndMean: not images to estimate background from!');
 end
    
 if nargout > 1

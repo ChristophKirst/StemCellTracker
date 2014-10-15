@@ -27,7 +27,6 @@ clear classes
 close all
 clc
 
-
 img = ImageSource(rand(10,20))
 img.setName('test');
 
@@ -106,8 +105,11 @@ dd = img.dataExtract(roi)
 size(dd)
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ImageSourceFile
+
+
+
+
+%% reformatting and ranges
 
 
 clear all
@@ -115,78 +117,118 @@ clear classes
 close all
 clc
 
-initialize
-bfinitialize
+img = ImageSource(rand(10,20));
+img.setName('test');
+img.printInfo
+img.setRange('Y', [1,2,5,6]);
 
-
-%% accessing a single file
-clc
-is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
-is.printInfo
-
-%%
-
-is.setCache(false);
-
-size(is.idata)
-
-img = is.data;
-
-figure(1)
-is.setColor('r');
-is.plot
-
-% no caching 
-size(is.idata)
-
-
-%%
-
-is.setCache(true);
-
-size(is.idata)
-
-img = is.data;
-
-figure(1)
-is.setColor('r');
-is.plot
-
-% now dat is cached
-size(is.idata)
-
-
-%%
-is.clearCache
-
-
-%% raw vs data
-
-clear all
-clear classes
-close all
-clc
-
-initialize
 
 %%
 clc
-is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
-is.setRawDataFormat('Xy');
-is.setCache(false);
-
-is
+img.setReshape('Y', 'UV', [4,5]);
+img.printInfo
 
 %%
 
-figure(1)
-imsubplot(2,1,1)
-is.setColor('r');
-is.setRawDataFormat('XY');
-is.plot
+d = img.data(1);
+size(d)
 
-imsubplot(2,1,2)
-is.setColor('b');
-is.setRawDataFormat('Xy');
-is.plot
+
+%% 
+img.addRange('V', 2);
+
+d = img.data(1);
+size(d)
+
+
+
+
+
+
+
+
+ 
+%% %%%%%%%%%%%%%%%%%%%%%%%%%
+% %% ImageSourceFile -> substitue ImageSourceBF
+% 
+% 
+% clear all
+% clear classes
+% close all
+% clc
+% 
+% initialize
+% bfinitialize
+% 
+% 
+% %% accessing a single file
+% clc
+% is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
+% is.printInfo
+% 
+% %%
+% 
+% is.setCache(false);
+% 
+% size(is.idata)
+% 
+% img = is.data;
+% 
+% figure(1)
+% is.setColor('r');
+% is.plot
+% 
+% % no caching 
+% size(is.idata)
+% 
+% 
+% %%
+% 
+% is.setCache(true);
+% 
+% size(is.idata)
+% 
+% img = is.data;
+% 
+% figure(1)
+% is.setColor('r');
+% is.plot
+% 
+% % now dat is cached
+% size(is.idata)
+% 
+% 
+% %%
+% is.clearCache
+% 
+% 
+% %% raw vs data
+% 
+% clear all
+% clear classes
+% close all
+% clc
+% 
+% initialize
+% 
+% %%
+% clc
+% is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
+% is.setRawDataFormat('Xy');
+% is.setCache(false);
+% 
+% is
+% 
+% %%
+% 
+% figure(1)
+% imsubplot(2,1,1)
+% is.setColor('r');
+% is.setRawDataFormat('XY');
+% is.plot
+% 
+% imsubplot(2,1,2)
+% is.setColor('b');
+% is.setRawDataFormat('Xy');
+% is.plot
 

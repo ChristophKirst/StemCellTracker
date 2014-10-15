@@ -1,8 +1,8 @@
-function [texpr, tnames, tags] = tagexpr(fname, varargin)
+function [texpr, tnames, tags] = tagExpression(fname, varargin)
 %
-% texpr = tagexpr(fname)
-% texpr = tagexpr(fname, param)
-% [texpr, tnames, tags] = tagexpr(...)
+% texpr = tagExpression(fname)
+% texpr = tagExpression(fname, param)
+% [texpr, tnames, tags] = tagExpression(...)
 %
 % description:
 %        tries to infer tagged name format from files specified by fname 
@@ -10,7 +10,7 @@ function [texpr, tnames, tags] = tagexpr(fname, varargin)
 %        example: img_T001_Z01.tif, img_T001_Z02.tif img_T002_Z01.tif, img_T002_Z02.tif -> img_T<tag1, 3>_Z<tag2, 2>.tif
 %
 % input:
-%      fname     directory, variable filename (e.g.  img_T*_Z*.tif)
+%      fname     directory, variable filename or file list (e.g.  img_T*_Z*.tif)
 %      param     (optional) parameter struct with entries:
 %                .tagnames  use these names for the tags in order of appearance ([]= unsorted)
 %                .reduce    reduce tags if they show 100% correlation (true)
@@ -99,8 +99,8 @@ end
 
 % reduce 
 if reduce
-   tags = tagexpr2tags(texpr, fns);
-   [tags, texpr] = tagsreduce(tags, texpr);
+   tags = tagExpressionToTags(texpr, fns);
+   [tags, texpr] = tagsReduce(tags, texpr);
    tagnames = fieldnames(tags);
 end
 
@@ -112,11 +112,11 @@ else
       tnames{i} = ['tag' num2str(i)];
    end
 end
-texpr = tagexprrename(texpr, tagnames, tnames);
+texpr = tagExpressionRename(texpr, tagnames, tnames);
 
 % calculate tags
 if nargout > 2
-   tags = tagexpr2tags(texpr, fns);
+   tags = tagExpressionToTags(texpr, fns);
 end
 
 end

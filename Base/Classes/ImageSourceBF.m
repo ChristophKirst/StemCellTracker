@@ -61,7 +61,7 @@
          obj.ifilename       = filename;
          
          % read form specific series if specified
-         rawRange = obj.reshapeRangeToRawRange(varargin);
+         rawRange = obj.rawRange(varargin);
          if isfield(rawRange, 'S')
             s = {'S', rawRange.S};
          elseif isfield(rawRange, 's')
@@ -82,8 +82,8 @@
          fromImageInfo@ImageInfo(obj, info);
       end
 
-      function obj = initializeRangeFromRaw(obj, varargin)
-         obj.irange = obj.rawRange(varargin{:});
+      function obj = initializeRangeFromFile(obj, varargin)
+         obj.irange = obj.rawRangeFromFile(varargin{:});
       end
 
       function obj = initializeFromTiling(obj, varargin)
@@ -143,7 +143,7 @@
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % ranges
       
-      function tr = rawRange(obj, varargin)
+      function tr = rawRangeFromFile(obj, varargin)
          tr = imreadBFRange(obj.ireader, varargin{:});
       end
 
@@ -151,10 +151,9 @@
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data access
 
-      function d = getRawData(obj, varargin)
-         % range
-         range = imfrmtParseRangeLast(obj.irange, varargin{:});
-         
+      function d = getRawData(obj, range)
+         % get raw data, varargin are range specs in raw format / size coordinates
+    
          % check if all cell dims are singeltons
          cid = obj.rawCellIndex(range);
          if length(cid) > 1
@@ -165,19 +164,15 @@
          d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);  
       end
       
-      function d = getRawCellData(obj, varargin) 
-         % range
-         range = imfrmtParseRangeLast(obj.irange, varargin{:});
-         
+      function d = getRawCellData(obj, range) 
+         % get raw cell data, varargin are range specs in raw format / size coordinates
+
          d = imreadBF(obj.ireader, range, 'squeeze', false, 'metadata', false); 
-         
          if ~iscell(d)
             d = {d};
          end
-         d = imfrmtReformatCellData(d, 'XYZCT','S', obj.rawDataFormat, obj.rawCellFormat);
          
-%          disp BF2
-%          size(d)
+         d = imfrmtReformatCellData(d, 'XYZCT','S', obj.rawDataFormat, obj.rawCellFormat);
       end
       
 

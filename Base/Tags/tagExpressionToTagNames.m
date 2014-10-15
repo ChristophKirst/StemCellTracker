@@ -1,6 +1,6 @@
-function [tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+function [tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 %
-% [tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+% [tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 %
 % description:
 %      return tag information for the tag expression texpr
@@ -54,13 +54,13 @@ end
 % check syntax
 for i = 1:nnames
    if ~any(ismember({'s', 'd'}, ttype{i}))
-      warning('tagexpr2tagnames: syntax error: type %s is neither d(igit) nor s(tring)', ttype{i})
+      warning('tagExpressionToTagNames: syntax error: type %s is neither d(igit) nor s(tring)', ttype{i})
       ttype{i} = 'd';
    end
    
    tw = str2double(twidth{i});
    if isnan(tw)
-      warning('tagexpr2tagnames: syntax error: tag width %s not a integer number', twidth{i})
+      warning('tagExpressionToTagNames: syntax error: tag width %s not a integer number', twidth{i})
       twidth{i} = 0;
    else
       twidth{i} = tw;
@@ -94,7 +94,7 @@ for i = 1:nnames
          taginfo(j).type = ttype{k(1)};
          
          if any(~strcmp(ttype(k), ttype(k(1))))
-            error('tagexpr2tagnames: inconsistent types for tagname %s with multiple appearances',  tnamesall{i})
+            error('tagExpressionToTagNames: inconsistent types for tagname %s with multiple appearances',  tnamesall{i})
          end
          
          % for strings the length must be the same
@@ -102,7 +102,7 @@ for i = 1:nnames
          if ttype{k(1)} == 's' 
             tw = [twidth{k}];
             if any(tw ~= tw(1))
-               error('tagexpr2tagnames: string tag with tagname %s has multiple appearances with different lengths!',  tnamesall{i});
+               error('tagExpressionToTagNames: string tag with tagname %s has multiple appearances with different lengths!',  tnamesall{i});
             end
          end
          

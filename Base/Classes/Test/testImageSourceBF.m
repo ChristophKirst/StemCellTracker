@@ -60,7 +60,7 @@ is.printInfo
 %%
 
 d = is.data;
-size(is.data)
+size(d)
 
 %%
 clc
@@ -88,7 +88,7 @@ size(is.cellDataCache)
 
 
 %%
-is.clearCache;
+is.clearCellDataCache;
 
 %% raw vs data
 
@@ -146,7 +146,7 @@ clc
 is.printInfo
 
 
-%% multi channel data
+%% multi channel / tiled data
 
 
 clear all
@@ -155,9 +155,28 @@ close all
 clc
 
 initialize
+bfinitialize
 
-
+%%
 is = ImageSourceBF('./Test/Images/hESCells_Colony.zvi')
+
+is.printInfo
+
+%% channel keys
+
+is.rangeKey
+is.rangeToIndexRange('C', 'GFP')
+
+
+%%
+
+clc
+d =is.data('C', 'DAPI', 'S', 1);
+
+size(d)
+
+%%
+is.rangeKey
 
 
 %%
@@ -169,6 +188,11 @@ clc
 is.setReshape('S', 'UV', ts);
 is.setCellFormat(tf);
 is.setRange('C', 1)
+
+%%
+
+is.dataSize
+is.cellSize
 
 %%
 clc
@@ -199,6 +223,83 @@ implottiling(cd)
 
 
 %%
+
+is.cellIndexToCoordinate(2,2)
+
+%%
+clc
+is.dataSize('C', 1)
+
+%%
+is.dataSizeFromRaw
+is.cellSizeFromRaw
+
+%%
+clc
+is.cellSize
+is.cellFormat
+is.cellSize('V', 1)
+
+%%
+
+d = is.data(3);
+size(d)
+
+figure(2); clf
+implot(d)
+
+
+%% intensities
+
+clc
+is.initializeDataIntensity('C', 1, 'U', 1);
+is.minDataIntensity
+is.maxDataIntensity
+
+
+%% background correction
+
+clc
+is.dataSize
+
+bkg = zeros(1378, 1024);
+size(bkg)
+flt = 0.5 * ones(1378, 1024);
+
+is.setBackgroundAndFlatFieldCorrection(bkg, flt);
+
+d = is.data(1);
+
+is.setDataCorrect(false);
+
+d2 = is.data(1);
+
+figure(2); clf
+implottiling({d; d2})
+
+
+%% arbitrary backgroudn correction
+
+
+is.setDataCorrectFunction(@(x) x*2);
+
+is.setDataCorrect(true);
+d = is.data(1);
+
+is.setDataCorrect(false);
+d2 = is.data(1);
+
+figure(2); clf
+implottiling({d; d2})
+
+
+
+
+
+
+
+
+
 
 
 

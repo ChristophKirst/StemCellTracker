@@ -37,9 +37,9 @@ posOutFormatTo = posOutFormatTo(posReshapeTo);
 outFrmtNoReshape = outFrmt;
 outFrmtNoReshape(posOutFormatTo) = [];
 
-if ~strcmp(sort(lower(outFrmtNoReshape)), sort(lower(inFrmtNoReshape)))
-   error('imfrmtReshape: output format %s not consistentwith input format %s for reshape from %s to %s',   outFrmtNoReshape, inFrmtNoReshape, reshapeFrom, reshapeTo);
-end
+%if ~strcmp(sort(lower(outFrmtNoReshape)), sort(lower(inFrmtNoReshape)))
+%   error('imfrmtReshape: output format %s not consistent with input format %s for reshape from %s to %s',   outFrmtNoReshape, inFrmtNoReshape, reshapeFrom, reshapeTo);
+%end
 
 % output size
 

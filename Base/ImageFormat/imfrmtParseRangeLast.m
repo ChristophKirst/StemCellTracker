@@ -11,7 +11,6 @@ function rgs = imfrmtParseRangeLast(varargin)
 % output:
 %    rgs   ranges as in input. for equal entries up to upper/lower only lastis kept
 
-
 rgs = parseParameter(varargin);
 
 % remove all but last coordinate specs

@@ -1,6 +1,6 @@
-function texpr = tagexprrename(texpr, oldnames, newnames)
+function texpr = tagExpressionRename(texpr, oldnames, newnames)
 %
-% texpr = tagexprrename(texpr, oldnames, newnames)
+% texpr = tagExpressionRename(texpr, oldnames, newnames)
 %
 % description:
 %   renames tags with oldnames to newnames
@@ -9,8 +9,7 @@ function texpr = tagexprrename(texpr, oldnames, newnames)
 %   texpr    tag expression
 %   oldnames old names of tags in texpr as char or cellstr
 %   newnames new names of tags in texpr as char or cellstr
-%
-% See also: tagexpr2tagnames
+
 
 
 if ischar(oldnames)
@@ -22,7 +21,7 @@ if ischar(newnames)
 end
 
 
-[tnames, tsplit, tinfo] = tagexpr2tagnames(texpr);
+[tnames, tsplit, tinfo] = tagExpressionToTagNames(texpr);
 
 [tids, nids] = ismember(tnames, oldnames);
 tids = find(tids);
@@ -33,6 +32,6 @@ for i = 1:length(tids)
    tinfo(ti).name = newnames{nids(i)};
 end
 
-texpr = taginfo2tagexpr(tsplit, tinfo);
+texpr = tagInfoToTagExpression(tsplit, tinfo);
 
 end

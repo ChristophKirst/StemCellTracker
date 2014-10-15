@@ -1,6 +1,6 @@
-function name = tagexpr2string(texpr, varargin)
+function name = tagExpressionToString(texpr, varargin)
 %
-% name = tagexpr2string(texpr, tags)
+% name = tagExpressionToString(texpr, tags)
 %
 % description:
 %    generates a name from a tagged expression string texpr and tag values tags
@@ -17,14 +17,18 @@ function name = tagexpr2string(texpr, varargin)
 % output:
 %    name        the name with tag replaced by values
 %
-% See also: name2tags, tagexpr, num2str0, tagexpr2tagnames
+% See also: tagExpression, tagExpressionToTagNames, num2str0
 
 if nargin < 2
    name = texpr;
    return 
 end
 
-tags = parseParameter(varargin);
+if nargin == 2 && isstruct(varargin{1})
+   tags = varargin{1};
+else
+   tags = parseParameter(varargin);
+end
 
 if isempty(tags) || isemptystruct(tags)
    name = texpr;
@@ -33,16 +37,15 @@ end
 
 lt = length(tags);
 if lt > 1
-   name = cell(1, lt);
+   name = cell(lt, 1);
    for i = 1:lt
-      name{i} = tagexpr2string(texpr, tags(i));
+      name{i} = tagExpressionToString(texpr, tags(i));
    end
-   name = name';
    return
 end
 
 % process single tag struct
-[tnames, tsplit, tinfo] = tagexpr2tagnames(texpr);
+[tnames, tsplit, tinfo] = tagExpressionToTagNames(texpr);
 
 tagnames = fieldnames(tags);
 
@@ -58,7 +61,7 @@ for i = 1:length(tnames)
       for k = 1:length(tinfo(i).tag)
          tw = tinfo(i).width(k);
          if tw == 0
-            res{tinfo(i).pos(k)} = var2char(tags.(tagnames{p}));
+            res{tinfo(i).pos(k)} = char(tags.(tagnames{p}));
          else
             res{tinfo(i).pos(k)} = num2str0(tags.(tagnames{p}), tw);
          end

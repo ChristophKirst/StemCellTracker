@@ -1,6 +1,6 @@
-function texpr = tagexpr2regexp(texpr)
+function texpr = tagExpressionToRegularExpression(texpr)
 %
-% texpr = tagexpr2regexp(texpr)
+% texpr = tagExpressionToRegularExpression(texpr)
 %
 % description:
 %    returns regular expression for a tag format
@@ -11,7 +11,7 @@ function texpr = tagexpr2regexp(texpr)
 % output:
 %    texpr    regular expression
 
-[tnames, tsplit, tinfo] = tagexpr2tagnames(texpr);
+[tnames, tsplit, tinfo] = tagExpressionToTagNames(texpr);
 
 % replace . with \.
 tsplit = strfun(@(x) strrep(x, '.', '\.'), tsplit);
@@ -21,13 +21,13 @@ for i = 1:length(tnames)
    for k = 1:length(tinfo(i).tag)
       if tinfo(i).type == 'd'
          if tinfo(i).width(k) == 0
-            re = ['(?<' tnames{i} '>\d*?)'];
+            re = ['(?<' tnames{i} '>\d+)'];
          else
             re = ['(?<' tnames{i} '>\d{' num2str(tinfo(i).width(k)) '})'];
          end
       else
          if tinfo(i).width(k) == 0
-            re = ['(?<' tnames{i} '>\w*?)'];
+            re = ['(?<' tnames{i} '>\w+)'];
          else
             re = ['(?<' tnames{i} '>\w{' num2str(tinfo(i).width(k)) '})'];
          end

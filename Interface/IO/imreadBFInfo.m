@@ -100,6 +100,7 @@ if ar
       if isa(iinfo, 'ImageInfo')  
          iinfo(s).initializeCellDataFormatsAndSizesFromRaw;
          iinfo(s).initializeDataAndCellSizeFromRaw;
+         iinfo(s).initializeDataClassFromRaw;
       end
 
       % meta data
@@ -173,6 +174,7 @@ else % read info from first spcified series only
    if isa(iinfo, 'ImageInfo')
       iinfo.initializeCellDataFormatsAndSizesFromRaw;
       iinfo.initializeDataAndCellSizeFromRaw;
+      iinfo.initializeDataClassFromRaw;
    end
 
    

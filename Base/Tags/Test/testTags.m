@@ -12,14 +12,14 @@ initialize
 %% tagformat2tagnames
 
 texpr = 'test_T<tag1>-<tag2, 5>-<tag1,3>.tif';
-[tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+[tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 
 taginfo(1)
 
 
 %% tagexpr2string
-tagexpr2string(texpr, 'tag1', 2, 'tag2',  5)
-tagexpr2string(texpr, 'tag1', 2)
+tagExpressionToString(texpr, 'tag1', 2, 'tag2',  5)
+tagExpressionToString(texpr, 'tag1', 2)
 
 
 %% taginfo2tagexpr
@@ -27,7 +27,7 @@ tagexpr2string(texpr, 'tag1', 2)
 taginfo(1).tag = strrep(taginfo(1).tag, taginfo(1).name, 'test');
 taginfo(1).name = 'test';
 
-taginfo2tagexpr(tagsplit, taginfo)
+tagInfoToTagExpression(tagsplit, taginfo)
 
 
 %% reducing tags
@@ -42,12 +42,12 @@ val = {1,2};
 [tags.tag3] = val{:};
 [tags.tag4] = val{:};
 
-tagsnew = tagsreduce(tags)
+tagsnew = tagsReduce(tags)
 
 
 %%
 clc
-[tagsnew, texprnew] = tagsreduce(tags, texpr)
+[tagsnew, texprnew] = tagsReduce(tags, texpr)
 
 
 %% tagexpr2tags
@@ -55,11 +55,11 @@ clc
 clc
 texpr = 'test_T<tag1>-<tag2, 5>-<tag1,3>_<tag3>.tif';
 name  = 'test_T01-00003-001_19.tif';
-tagexpr2tags(texpr, name)
+tagExpressionToTags(texpr, name)
 
 %%
 name  = {'test_T01-00003-001_19.tif', 'test_T01-00004-001_20.tif'};
-tags = tagexpr2tags(texpr, name)
+tags = tagExpressionToTags(texpr, name)
 
 tags(2)
 
@@ -67,18 +67,18 @@ tags(2)
 %% tagexpr: infer tags from list names or files
 
 clc
-[texpr, tnames, tags] = tagexpr('./Test/Images/hESCells_Tiling/*', 'tagnames', {'field', 'test'})
+[texpr, tnames, tags] = tagExpression('./Test/Images/hESCells_Tiling/*', 'tagnames', {'field', 'test'})
 [tags.field]
 
 %%
 clc
-[texpr, tnames, tags] = tagexpr('./Test/Images/hESCells_Stack/*', 'tagnames', 'z')
+[texpr, tnames, tags] = tagExpression('./Test/Images/hESCells_Stack/*', 'tagnames', 'z')
 
 [tags.z]
 
 %%
 clc
-[texpr, tnames, tags] = tagexpr('./Test/Images/mESCells_Wnt/*', 'tagnames', {'t', 'z'});
+[texpr, tnames, tags] = tagExpression('./Test/Images/mESCells_Wnt/*', 'tagnames', {'t', 'z'});
 
 texpr
 tags
@@ -92,7 +92,7 @@ dirr('./Test/Images/hESCells_Folder/*/*.tif')
 
 
 %%
-[texpr, tnames, tags] = tagexpr('./Test/Images/hESCells_Folder/*/*.tif', 'reduce', false);
+[texpr, tnames, tags] = tagExpression('./Test/Images/hESCells_Folder/*/*.tif', 'reduce', false);
 
 texpr
 tags
@@ -103,28 +103,32 @@ tags
 [tags.tag4]
 
 
-[texpr, tnames, tags] = tagexpr('./Test/Images/hESCells_Folder/*/*.tif', 'reduce', true, 'tagnames', {'t1', 't2'})
+%%
+clc
+[texpr, tnames, tags] = tagExpression('./Test/Images/hESCells_Folder/*/*.tif', 'reduce', true, 'tagnames', {'t1', 't2'})
 
 %%
-
+clc
 texpr = './Test/Images/hESCells_Folder/f<tag1,1>_t<tag2,1>/f<tag1,1>_t<tag2,2>_z<tag3,2>.tif';
 
-tagexpr2files(texpr)
+tagExpressionToFiles(texpr)
 
-tagexpr2filename(texpr)
+tagExpressionToFileExpression(texpr)
 
 %% tagexpr2files - remove no consistent file names if multiple occurences of tags
 clc
 
 texpr = './Test/Images/hESCells_Folder/f<tag1,1>_t<tag2,1>/f<tag1,1>_t<tag2,2>_z<tag3,2>.tif';
 
-dirr(tagexpr2filename(texpr))
-tagexpr2files(texpr)
+dirr(tagExpressionToFileExpression(texpr))
+tagExpressionToFiles(texpr)
+tagExpressionToFiles(texpr, 'check', true)
 
+% note: the latter matches all 
 
 %% tagexpr2tags: automatically find filenames
 
-tags = tagexpr2tags(texpr)
+tags = tagExpressionToTags(texpr)
 
 tags(5)
 
@@ -134,40 +138,39 @@ tags(5)
 %%
 
 texpr = './Test/Images/hESCells_Folder/f<tag1,1>_t<tag2,1>/f<tag1,1>_t<tag2,2>_z<tag3,2>.tif';
-[tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+[tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 
 %% - type mismatch error
 
 clc
 texpr = './Test/Images/hESCells_Folder/f<tag1,d,5>_t<tag2,1>/f<tag1,s,5>_t<tag2,2>_z<tag3,2>.tif';
  
-[tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+[tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 
 
 %% - size mismatch error
 clc
 texpr = './Test/Images/hESCells_Folder/f<tag1,s,5>_t<tag2,1>/f<tag1,s,3>_t<tag2,2>_z<tag3,2>.tif';
  
-[tnames, tagsplit, taginfo] = tagexpr2tagnames(texpr)
+[tnames, tagsplit, taginfo] = tagExpressionToTagNames(texpr)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% tags2tagranges
 
 
-tags = tagexpr2tags('./Test/Images/hESCells_Folder/f<tag1>_t<tag2,1>/f<tag1>_t<tag2,2>_z<tag3,2>.tif')
+tags = tagExpressionToTags('./Test/Images/hESCells_Folder/f<tag1>_t<tag2,1>/f<tag1>_t<tag2,2>_z<tag3,2>.tif')
 
-trs = tags2tagranges(tags)
+trs = tagRangeFromTags(tags)
 
-tgs = tagranges2tags(trs)
+tagRangeSize(trs)
+
+tgs = tagRangeToTags(trs)
 
 
 %% tags not multipicative -> should produce error
 
-tags2tagranges(tags, 'check', true)
-
-
-
+tagRangeFromTags(tags, 'check', true)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -192,7 +195,7 @@ texpr = './Test/Images/hESCells_Folder/f<tag1,1>_t<tag2,1>/f<tag1,1>_t<tag2,2>_z
 
 fname1 = './Test/Images/hESCells_Folder/f1_t1/f1_t01_z01.tif';
  
-re = tagexpr2regexp(texpr)
+re = tagExpressionToRegularExpression(texpr)
 regexp(fname1, re, 'names')
 
 
@@ -200,8 +203,8 @@ fname2 = './Test/Images/hESCells_Folder/f2_t1/f3_t02_z02.tif';
 regexp(fname2, re, 'names')
  
 
-tagexpr2tags(texpr, fname1)
-tagexpr2tags(texpr, fname2)
+tagExpressionToTags(texpr, fname1)
+tagExpressionToTags(texpr, fname2)
 
 
 
@@ -212,12 +215,55 @@ clc
 tr.tag1 = {1,2,3,4,5};
 tr.tag2 = {'a', 'b', 'c'};
 
-tsi = tagrangesize(tr)
+tsi = tagRangeSize(tr)
 
 prod(tsi)
 
-tvs = ind2tagvalues(tr, 6)
+tvs = tagValuesFromIndex(tr, 6)
 
+
+%% Index Ranges 
+
+clc
+tgr.x = {1,2,3};
+tgr.c = {'a', 'b', 'c'};
+
+tgi.x= 1;
+tgi.c =2:3;
+
+tg = tagRangeFromTagIndexRange(tgr, tgi)
+
+tagRangeToTagIndexRange(tgr, tg)
+
+
+%% first and last
+
+tg = tagExpressionToTags('<a>f<b>', {'1f4', '5f8'});
+
+[tg.a]
+[tg.b]
+
+
+%%
+clc
+tagRangeFromFirstAndLastString('<a>f<b>', '1f4', '5f8')
+
+
+
+%%
+
+% note we use greedy matching
+tg = tagExpressionToTags('<a, s>f<b,s>', {'gaffc', 'afab'})
+
+
+{tg.a}
+{tg.b}
+
+
+%% tag range
+
+clc
+tagRangeFromTagExpression('./Test/Images/hESCells_Folder/f<tag1>_t<tag2,1>/f<tag1>_t<tag2,2>_z<tag3,2>.tif', 'tag3', 1)
 
 
 

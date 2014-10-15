@@ -3,8 +3,8 @@ function isize = imfrmtRangeSize(isize, ifrmt, rgs)
 % trg= imfrmtRangeSize(isize, ifrmt, trg)
 %
 % description: 
-%     detemines data size given the full image size isize and the 
-%     ranges rgs
+%     detemines data size given the full image size isize and the ranges rgs
+%
 % input:
 %     isize      image size 
 %     ifrmt      the reference image format used to detect entries to delete w.r.t to outfrmt

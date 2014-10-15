@@ -9,10 +9,10 @@ useful to acces (multiple) folders with numbered images
 Example
 -------
 
-tf = 'this is <word, s> <count, 2>';
+texpr = 'this is <word, s> <count, 2>';
 tags.word = 'example';
 tags.count = 1;
-tagformat2string(tf,  tags)
+tagExpressionToString(texpr,  tags)
 
 
 Version
