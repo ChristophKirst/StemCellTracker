@@ -909,6 +909,23 @@ classdef ImageInfo < matlab.mixin.Copyable
          coords = imfrmtIndexToCoordinate(obj.rawCellSize, obj.rawCellFormat, id);
       end
       
+      
+      function id = dataIndexToSubIndex(obj, id, varargin)
+         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+            id = [id, varargin{:}];
+         else
+            id = imind2sub(obj.dataSize, id);
+         end
+      end
+      
+      function id = cellIndexToSubIndex(obj, id, varargin)
+         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+            id = [id, varargin{:}];
+         else
+            id = imind2sub(obj.cellSize, id);
+         end
+      end
+      
   
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

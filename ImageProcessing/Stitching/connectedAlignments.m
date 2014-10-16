@@ -46,16 +46,16 @@ c = graphAdjacencyMatrixToConnectedComponents(adj);
 
 nodes = a.nodes;
 
-for i = length(c):-1:1
-   if isa(a, 'ImageSourceAligned')
-      as = ImageSourceAligned(a);
-   else
-      as = Alignment(a);
-   end
-   
+for i = length(c):-1:1 
+   as = Alignment(a);
+
    as.anodes = nodes(c{i});
    as.reducePairs();
    as.removeLowQualityPairs(thq);
+   
+   % estimate new origin:
+   onode = as.anodes(1);
+   
 
    comp(i) = as;
 end

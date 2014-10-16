@@ -33,7 +33,7 @@ is.setRangeKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
 % restrict to DAPI first
 is.setRange('C', 'DAPI');
 
-% set the tiling and data formats
+% set the tiling and cell formats
 is.setReshape('S', 'UV', [8, 19]);
 
 is.setCellFormat('Uv');
@@ -41,6 +41,10 @@ is.setCellFormat('Uv');
 %is.setCaching(false);
 
 is.printInfo
+
+%% restric range to some sub set
+
+is.addRange('U', 1:4, 'V', 1:3)
 
 
 %%
@@ -130,7 +134,7 @@ colonies = [];
 for s = 1:nsubalgn
    fprintf('\n\nDetecting colonies in component: %g / %g\n', s, nsubalgn)
    
-   plt = verbose && s < 20 && subalgn(s).nNodes < 5;
+   plt = verbose && s < 20 && subalgn(s).nNodes < 15;
    if plt
       figure(200+s); clf
       implot(subalgn(s).data)

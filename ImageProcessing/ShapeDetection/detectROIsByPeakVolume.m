@@ -26,6 +26,7 @@ function [roi, pks] = detectROIsByPeakVolume(imgs, varargin)
 if isnumeric(imgs)
    shifts = {zeros(1, ndims(imgs))};
    imgs = {imgs};
+   
 elseif iscell(imgs)
    if nargin < 2 || ~iscell(varargin{1})
       error('detectROIsByPeakVolume: expects image shifts as second argument!')
@@ -47,6 +48,8 @@ if isa(imgs, 'Alignment')
    
    pks = stitchPoints(pks, imgs.imagePositions, imgs.imageSizes);
    
+   origin = imgs.origin;
+   
 else
    n = numel(imgs);
    pks = cell(1, n);
@@ -55,6 +58,8 @@ else
    end
    
    pks = stitchPoints(pks, shifts, cellfunc(@size, imgs), param);
+   
+   origin = [0,0];
 end
 
 
@@ -64,19 +69,19 @@ if size(pks,2) < 3
 end
    
 % get the polygons from the points
-roi = points2shapes(pks,param);
+roi = points2shapes(pks, param);
 nr = length(roi);
 
 
 if getParameter(param, 'plot', false)
-   cc=colorcube(nr);
+   cc = colorcube(nr);
    
    hold on;
    for ii=1:nr
       rr = roi{ii};      
-      plot(rr(1,:)', rr(2,:)', 'LineWidth',1, 'Color', cc(ii,:));
+      plot(rr(1,:)' - origin(1), rr(2,:)' - origin(2), 'LineWidth', 1, 'Color', cc(ii,:));
       
-      plot(pks(1,:), pks(2,:), '.', 'Color', 'k');
+      plot(pks(1,:) - origin(1), pks(2,:) -origin(2), '.', 'Color', 'k');
    end
 end
 
