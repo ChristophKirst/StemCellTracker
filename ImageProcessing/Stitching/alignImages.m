@@ -11,6 +11,7 @@ function [shifts, pairs] = alignImages(imgs, varargin)
 %            be prealigned as in the cell outline
 %    param   (optional) parameter struct with entries:
 %            .pairs           (optional) array struct with entries .from .to indicating the pairs (optional entry .orientation)
+%            .nodes           (optional) nodes corresponding to the images should cover the pairs from and to ids 
 %            .method          'full'   = perform full alignment using key point detection and optimization using Hugin
 %                             'global' = perform alignment given the individual pairwise alignments ('global')
 %            .alignment       'Optimization', 'RMS', 'Correlation', 'Hugin' ('RMS')
@@ -179,10 +180,16 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
          si = size(imgs);
          %size(shifts)
          shifts = reshape(shifts, si);
+         
+         %var2char(shifts)
+         pairs = alignPairsFromShifts(pairs, shifts);
+         
+      else
+         
+         %var2char(shifts)
+         pairs = alignPairsFromShifts(pairs, shifts, getParameter(param, 'nodes', 1:length(shifts)));
       end
 
-      %var2char(shifts)
-      pairs = alignPairsFromShifts(pairs, shifts);
       
 end
 

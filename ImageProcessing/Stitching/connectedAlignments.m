@@ -33,13 +33,13 @@ end
 e = [];
 pairs = a.pairs;
 
-for p = 1:a.npairs
+for p = 1:a.nPairs
    if pairs(p).quality > thq
       e = [e; [pairs(p).from, pairs(p).to]]; %#ok<AGROW>
    end
 end
 
-adj = graphEdgesToAdjacencyMatrix(e, a.nnodes);
+adj = graphEdgesToAdjacencyMatrix(e, a.nNodes);
 c = graphAdjacencyMatrixToConnectedComponents(adj);
 
 % construct Alignment / ImageSourceAligned classes
@@ -53,7 +53,7 @@ for i = length(c):-1:1
       as = Alignment(a);
    end
    
-   as.nodes = nodes(c{i});
+   as.anodes = nodes(c{i});
    as.reducePairs();
    as.removeLowQualityPairs(thq);
 

@@ -71,6 +71,7 @@ fullOutFrmt = imfrmtReshapeFormat(inFrmt, reshapeFrom, reshapeTo);
 
 if ~isempty(extrafrmt)
    % size of extra dims
+   
    extrasize = imfrmtReshapeSize(inSize, inFrmt, fullOutFrmt, reshapeFrom, reshapeTo, reshapeSize);
    extrasize = extrasize(extrapos);
    

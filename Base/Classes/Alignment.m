@@ -389,7 +389,7 @@ classdef Alignment < ImageSource
          end
       end
       
-      function obj = overlapQuality(obj, varargin)
+      function obj = calculateOverlapQuality(obj, varargin)
          %
          % obj = overlapQuality(obj) 
          %
@@ -398,7 +398,7 @@ classdef Alignment < ImageSource
          %
          % See also: overlapQuality, overlapStatisticsImagePair
          
-         for p = 1:obj.npairs
+         for p = 1:obj.nPairs
             pp = obj.apairs(p).copy();
             pp.from = obj.asource.data(pp.from);
             pp.to   = obj.asource.data(pp.to); 
@@ -460,7 +460,7 @@ classdef Alignment < ImageSource
          %
          % See also: alignImages
          
-         [~, pairs] = alignImages(obj.asource, 'pairs', obj.apairs, varargin{:});
+         [~, pairs] = alignImages(obj.asource, 'pairs', obj.apairs,'nodes', obj.anodes,  varargin{:});
          obj.apairs = pairs;
       end
 
@@ -493,6 +493,11 @@ classdef Alignment < ImageSource
       end
  
       %%% routines querrying exsiting results
+      
+      function oq = overlapQuality(obj)
+         oq = [obj.apairs.quality];
+      end
+      
       
       function [ashifts, as] = absoluteShiftsAndSize(obj)
          %
@@ -535,9 +540,6 @@ classdef Alignment < ImageSource
          % transform consistent shifts to shifts 
          ipos = num2cell(ic',2);
          %var2char(shifts);
-         
-         %todo reduce optimization to nodes that are really there and not max node number
-         ipos = ipos(obj.anodes);
          
          ipos = cellfunc(@(x) x + obj.aorigin, ipos);
       end
@@ -687,7 +689,7 @@ classdef Alignment < ImageSource
          % copy of all four properties
          cpObj = copyElement@matlab.mixin.Copyable(obj);
          % Make a deep copy of the pairs object
-         cpObj.pairs = copy(obj.pairs);
+         cpObj.apairs = copy(obj.apairs);
       end
    end
    

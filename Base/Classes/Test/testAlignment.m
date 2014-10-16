@@ -29,20 +29,29 @@ implottiling(tl, 'tiling', [4,4])
 
 %% reformat 
 is.setReshape('S', 'UV', [4,4]);
-is.setCellFormat('Uv');
+is.reformatCellFormat('Uv');
 is.printInfo
+
+%%
+
+is.rawCellSize
 
 %%
 % preview
 
+clc
 figure(2); clf;
-is.alignCellPreview
+is.cellPreview
 
 
 %% altenative tile
 
 is.plottiling
 
+
+%%
+
+is.cellIndex
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,7 +66,7 @@ clc
 initialize
 bfinitialize
 
-obj = Alignment
+obj = Alignment;
 
 texpr = tagExpression(dirr('./Test/Images/hESCells_Tiling/*.tif'), 'tagnames', {'S'})
 

@@ -1,6 +1,7 @@
 function pairs = alignPairsFromShifts(pairs, shifts, varargin)
 %
 %  pairs = alignmentPairsFromShifts(pairs, shifts)
+%  pairs = alignmentPairsFromShifts(pairs, shifts, nodes)
 %
 % description:
 %    generate AlignmentPair classes consistent with the shifts arranged on a gird 

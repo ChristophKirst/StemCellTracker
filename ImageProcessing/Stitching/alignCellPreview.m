@@ -23,11 +23,13 @@ if isa(celldata, 'ImageSource')
    % read sequentially 
    
    cdat = cell(celldata.cellSize);
-   for i = 1:length(cdat)
+   for i = 1:numel(cdat)
       cdat{i} = celldata.dataResample(scale, i);
    end
    celldata = cdat;
 end
+
+
 
 celldata = cellfunc(@(x) imresize(x, scale), celldata);
 overlap  = ceil(scale .* overlap);
