@@ -137,6 +137,23 @@ classdef Alignment < ImageSource
          obj.asource = is;
          obj.fromCellSize(is.cellSize);
       end
+      
+      
+      function obj = initializeFromPairs(obj)
+         % intializes the data size and format info using the info in pairs
+         
+         % TODO
+         [~, obj.irawdatasize] = obj.absoluteShiftsAndSize;
+         frmt = 'XYZ';
+         frmt = frmt(1:length(obj.irawdatasize));
+         obj.irawdataformat = frmt;
+         
+         obj.irawcellsize = 1;
+         obj.irawcellformat = 'S';
+         
+         obj.initializeDataAndCellFromRaw;
+      end
+         
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % basics 
@@ -235,12 +252,12 @@ classdef Alignment < ImageSource
          is = obj.asource.dataFormat(varargin{:});
       end
       
-      function d = sourceDataFromNode(obj, varargin)
+      function d = nodeData(obj, varargin)
          ids = obj.cellIndexFromNodeIndex(varargin{:});
          d = obj.asource.data(ids);
       end
          
-      function d = sourceCellFromNode(obj, varargin)
+      function d = nodeCell(obj, varargin)
          ids = obj.cellIndexFromNodeIndex(varargin{:});
          d = obj.asource.cell(ids);
       end
@@ -462,6 +479,8 @@ classdef Alignment < ImageSource
          
          [~, pairs] = alignImages(obj.asource, 'pairs', obj.apairs,'nodes', obj.anodes,  varargin{:});
          obj.apairs = pairs;
+         
+         obj.initializeFromPairs;
       end
 
       function st = stitch(obj, varargin)
@@ -564,10 +583,7 @@ classdef Alignment < ImageSource
          % transform consistent shifts to shifts 
          shifts = num2cell(ic',2);
          %var2char(shifts);
-         
-         shifts = shifts(obj.anodes);
-         %var2char(shifts);
-         
+
          sh = shifts{1};
          for i = 1:numel(shifts)
             shifts{i} = shifts{i} - sh;
@@ -640,6 +656,18 @@ classdef Alignment < ImageSource
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % visualization
       
+      function d = plotAlignedPreview(obj, varargin)
+         d2 = alignCellPreview(obj, varargin);
+
+         if nargout < 1
+            implot(d2)
+         else
+            d = d2;
+            implot(d)
+         end
+      end
+         
+  
       function plotAlignedImages(obj)
          %
          % plotAlignedImages(obj)

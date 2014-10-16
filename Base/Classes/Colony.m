@@ -24,7 +24,7 @@
             if isa(varargin{1}, 'Colony') %% copy constructor
                obj = copy(varargin{1});
             elseif isa(varargin{1}, 'ImageSource')
-               obj.isource = varargin{1};
+               obj.source = varargin{1};
                if nargin > 1 && isa(varargin{2}, 'ROI')
                   obj.fromImageSourceAligendAndROI(varargin{1}, varargin{2});
                end

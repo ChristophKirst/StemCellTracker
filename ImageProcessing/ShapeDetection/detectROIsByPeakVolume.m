@@ -38,14 +38,14 @@ end
 param = parseParameter(varargin);
 
 % find peaks
-if isa(imgs, 'ImageSourceAligned')
-   n = imgs.nnodes;
+if isa(imgs, 'Alignment')
+   n = imgs.nNodes;
    pks = cell(1, n);
    for i = 1:n
-      pks{i} = detectPeaksByHmax(imgs.image(i), param);
+      pks{i} = detectPeaksByHmax(imgs.nodeData(i), param);
    end
    
-   pks = stitchPoints(pks, imgs.absoluteShiftsAndSize, imgs.imageSizes);
+   pks = stitchPoints(pks, imgs.imagePositions, imgs.imageSizes);
    
 else
    n = numel(imgs);

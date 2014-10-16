@@ -38,24 +38,23 @@ is.setReshape('S', 'UV', [8, 19]);
 
 is.setCellFormat('Uv');
 
+%is.setCaching(false);
+
 is.printInfo
 
 
 %%
 
-% check formatting
-cd = is.cell(1:18)
-figure(1); clf
-implottiling(cd, 'tiling', [8,2])
+% % check formatting
+% cd = is.cell(1:18)
+% figure(1); clf
+% implottiling(cd, 'tiling', [8,2])
 
  
 %%
 
 % make preview
-
-preview = is.cellPreview('overlap', 110, 'scale', 0.5);
-
-%%
+preview = is.cellPreview('overlap', 110, 'scale', 0.1, 'lines', true);
 figure(2); clf
 implot(preview)
 
@@ -63,7 +62,8 @@ implot(preview)
 %%
 
 figure(3)
-%is.plottiling
+%is.plottiling % this crashes for large tilings !
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,19 +91,8 @@ end
 
 % parameter: see overlapQuality
 algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
-%%
+
 hist(algn.overlapQuality, 256)
-
-
-%% Connected Components based on overlap quality
-
-clc
-subalgn = isalgn.connectedComponents('threshold.quality', -eps);
-nsubalgn = length(subalgn)
-
-if verbose  
-   var2char({subalgn.nodes})
-end
 
 
 %% Align components
@@ -113,15 +102,20 @@ subalgn = algn.connectedComponents('threshold.quality', -eps);
 nsubalgn = length(subalgn);
 fprintf('Alignment: found %g connected components\n', nsubalgn);
 
+if verbose  
+   var2char({subalgn.anodes})
+end
+
 
 %%
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
    subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
-   if verbose && s < 20 && subalgn(s).nNodes < 5
+   if verbose && s < 20 %%&& subalgn(s).nNodes < 75
       subalgn(s).printInfo 
       figure(100+s)
-      subalgn(s).plot
+      
+      subalgn(s).plotAlignedPreview('scale', 0.05)
    end
 end
 
@@ -134,9 +128,9 @@ clc
 colonies = [];
 
 for s = 1:nsubalgn
-   fprintf('\n\nDetecting colonies in compnent: %g / %g\n', s, nsubalgn)
+   fprintf('\n\nDetecting colonies in component: %g / %g\n', s, nsubalgn)
    
-   plt = verbose && s < 20 && subalgn(s).nnodes < 5;
+   plt = verbose && s < 20 && subalgn(s).nNodes < 5;
    if plt
       figure(200+s); clf
       implot(subalgn(s).data)
@@ -158,7 +152,7 @@ ncolonies = length(colonies)
 
 if verbose
    figure(10); clf
-   for c = 1:ncolonies
+   for c = 1:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
       imsubplot(10,5,c)
