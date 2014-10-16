@@ -1,6 +1,6 @@
-function ids = roi2imageids(shifts, isizes, rect)
+function ids = roiToImageIndex(ipos, isizes, rect)
 %
-% ids = roi2imageids(shifts, isizes, rect)
+% ids = roiToImageIndex(ipos, isizes, rect)
 %
 % description: find ids of the images that overlap with the rect given as [lowerleft, upperight] 
 %
@@ -14,10 +14,10 @@ if isa(rect, 'ROI')
    rect = rect.toPixelArray();
 end
 
-n = numel(shifts);
+n = numel(ipos);
 ids = zeros(1, n) > 0;
 for i = 1:n
-   r = shiftsAndSizeToRect(shifts{i}, isizes{i});
+   r = shiftsAndSizeToRect(ipos{i}, isizes{i});
    if isoverlapping(r, rect)
       ids(i) = 1;
    end

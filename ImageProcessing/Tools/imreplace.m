@@ -1,4 +1,4 @@
-function img = imreplace(img, subimg, coords, chop)
+function img = imreplace(img, subimg, coords, varargin)
 %
 % repl = imreplace(img, subimg, coords)
 %
@@ -16,15 +16,12 @@ function img = imreplace(img, subimg, coords, chop)
 %
 % See also: imextract, imfind
 
-if nargin < 4
-   chop = false;
-else
-   if ischar(chop) && strcmp(chop, 'chop')
-      chop = true;
-   else
-      chop = false;
-   end
+if isempty(subimg)
+   return
 end
+
+param = parseParameter(varargin);
+chop = getParameter(param, 'chop', false);
 
 isize = size(img);
 ssize = size(subimg);
@@ -42,10 +39,35 @@ if any(ssize + coords - 1 > isize)
          si{i} = 1:ssize(i);
       end
       subimg = subimg(si{:});
+      ssize = size(subimg);
+      if isempty(subimg)
+         return
+      end 
    else
       error('imreplace: subimage to large!')
    end
 end
+
+if any(coords < 1)
+   if chop
+      si = cell(1,length(ssize));
+      istart = max(2-coords, 1);
+      for i = 1:dim
+         si{i} = istart(i):ssize(i);
+      end
+      subimg = subimg(si{:});
+      coords = max(1, coords);
+      ssize = size(subimg);
+      
+      if isempty(subimg)
+         return
+      end 
+      
+   else
+      error('imreplace: subimage coordinates out of range!')
+   end
+end
+
 
 if isempty(subimg)
    return

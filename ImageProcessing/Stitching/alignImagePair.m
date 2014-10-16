@@ -21,13 +21,13 @@ if o == 0
    img1 = pair.from;
    img2 = pair.to;
    
-   [shift, quality] = align2Images(img1, img2, varargin{:}); 
+   [shift, aerror] = align2Images(img1, img2, varargin{:}); 
 else
    c = pair.toCell();
-   [shift, quality] = align2ImagesOnGrid(c, varargin{:});
+   [shift, aerror] = align2ImagesOnGrid(c, varargin{:});
 end
 
 pair.shift = shift;
-pair.quality = quality;
+pair.aerror = aerror;
 
 end

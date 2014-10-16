@@ -26,12 +26,14 @@ function imgp = plotImageSource(obj, varargin)
 % else
 
 
-if obj.dataSizeC == 1
+% TODO: make nice
+
+if obj.dataSizeC == 1 && ~isempty(obj.color)
    imcolormap(obj.color{1});
    img = implot(obj.data);
 elseif obj.dataSizeC == 3
    if isequal(obj.color, {'r', 'g', 'b'})
-      img = implot(obj.data);
+      img = implottiling(obj.data);
    else
       % TODO: handle special color settings here
       img = implot(obj.data);

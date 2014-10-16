@@ -47,8 +47,8 @@ img2(ovl2{:}) = min(iovl1,iovl2);
 
 siz = max([size(img1) + shift1; size(img2) + shift2]);
 img = zeros(siz);
-img = imreplace(img, img1, shift1 + 1);
-img = imreplace(img, img2, shift2 + 1);
+img = imreplace(img, img1, shift1 + 1, 'chop', true);
+img = imreplace(img, img2, shift2 + 1, 'chop', true);
 
 end
 

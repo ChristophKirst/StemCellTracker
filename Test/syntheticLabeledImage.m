@@ -19,13 +19,13 @@ if dim == 2
    for i = 1:nlabel
       wh = round(objsize .* rand(1,2) + 2);
       xy = round((isize-1) .* rand(1,2) + 1);
-      label = label + imreplace(zeros(isize), fspecial2('disk', wh, 0) > 0, xy, 'chop');
+      label = label + imreplace(zeros(isize), fspecial2('disk', wh, 0) > 0, xy, 'chop', true);
    end
 else
    for i = 1:nlabel
       wh = round(objsize .* rand(1,3) + 2);
       xy = round((isize-1) .* rand(1,3) + 1);
-      label = label + imreplace(zeros(isize), fspecial3('disk', wh, 0) > 0, xy, 'chop');
+      label = label + imreplace(zeros(isize), fspecial3('disk', wh, 0) > 0, xy, 'chop', true);
    end
 end
 

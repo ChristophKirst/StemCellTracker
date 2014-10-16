@@ -673,7 +673,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       end
       
       function obj = setRange(obj, varargin)
-         obj.irange = imfrmtParseRange(obj.cellDataSize, obj.cellDataFormat, varargin);
+         obj.irange = obj.cellRangeFromVarargin(varargin{:});
          obj.initializeDataAndCellSizeFromRaw;
          obj.clearCellDataCache;
       end

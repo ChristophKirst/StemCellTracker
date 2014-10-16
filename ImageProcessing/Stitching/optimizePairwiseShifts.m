@@ -1,6 +1,6 @@
 function [pwdist, icenters] = optimizePairwiseShifts(pwdist)
 %
-% shifts = optimizePairwiseDistances(pwdist)
+% shifts = optimizePairwiseShifts(pwdist)
 %
 % description:
 %    use least squares optimization to find globally optimal shifts from pairwise distances
@@ -21,12 +21,20 @@ if npairs <= 0
    return
 end
 
-nimages = max(max([pwdist.from]), max([pwdist.to]));
+% construct the mappings between node ids and index 1:nimages
+
+indexToNodes = unique([[pwdist.from], [pwdist.to]]);
+
+nimages = length(indexToNodes);
+
+nodeToIndex = zeros(1, max(indexToNodes));
+nodeToIndex(indexToNodes) = 1:nimages;
+
+
 dim = length(pwdist(1).shift);
 
 n = dim * npairs;
 m = dim * (nimages - 1); % first image is fixed to be at [0,0]
-
 
 % derivative of the error gives constraints y - X b == 0
 % y are the shifts, b the centers of the images, X is derived from the error terms
@@ -48,11 +56,13 @@ X = zeros(n,m);
 k = 1;
 for i = 1:npairs
    for d = 1:dim  
-      if pwdist(i).from > 1
-         X(k, (pwdist(i).from-2) * dim + d) = -1;
+      pwdfromIdx = nodeToIndex(pwdist(i).from);
+      if pwdfromIdx > 1
+         X(k, (pwdfromIdx - 2) * dim + d) = -1;
       end
-      if pwdist(i).to > 1
-         X(k, (pwdist(i).to  -2) * dim + d) = 1;
+      pwdtoIdx = nodeToIndex(pwdist(i).to);
+      if pwdtoIdx > 1
+         X(k, (pwdtoIdx - 2) * dim + d) = 1;
       end
       k = k + 1;
    end
@@ -64,10 +74,16 @@ icenters = pinv(X) * y;
 icenters = [zeros(1,dim), icenters'];
 icenters = reshape(icenters, dim, []);
 
+%icenters
+%size(icenters)
+
+
 % translate back to consistent optimized shifts
 
 for i = 1:npairs
-   pwdist(i).shift = (icenters(:,pwdist(i).to) - icenters(:,pwdist(i).from));
+   fromid = nodeToIndex(pwdist(i).from);
+   toid = nodeToIndex(pwdist(i).to);
+   pwdist(i).shift = (icenters(:,toid) - icenters(:,fromid));
 end
 
 end

@@ -22,7 +22,7 @@ classdef ImageSource < ImageInfo
       irawcelldata = [];     % (cached) raw data
       
       idatacorrect = false;      % (optional) switch on/off image correction
-      idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data 
+      idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data
    end
         
    methods   
@@ -132,7 +132,6 @@ classdef ImageSource < ImageInfo
          end
          d = obj.irawcelldata{cid}; % trivial here
          
-         range = parseParameter(varargin);
          d = imfrmtDataSubset(d, obj.rawDataFormat, range);
       end
  
@@ -340,9 +339,18 @@ classdef ImageSource < ImageInfo
          
          d = roi.extractData(obj.data); 
       end
-      
 
-       
+      function d = dataResample(obj, scalefac, varargin)
+         d = obj.data(varargin{:});
+         d = imresize(d, scalefac);
+      end
+      
+      function d = cellResample(obj, scalefac, varargin)
+         d = obj.cell(varargin{:});
+         d = cellfun(@(x) imresize(x, scalefac), d);
+      end
+
+  
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% reshaping / reformatting data     
       
@@ -429,13 +437,31 @@ classdef ImageSource < ImageInfo
       function obj = initializeBackgroundCorrectionFromBackgroudnAndFlatField(obj, bkg, flt)
          obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
       end
+      
 
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% alignment utils
+ 
+      function d = cellPreview(obj, varargin)
+         
+         d2 = alignCellPreview(obj, varargin);
+
+         if nargout < 1
+            implot(d2)
+         else
+            d = d2;
+         end
+      end
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % information / visulaization 
       
       function plot(obj)
          plotImageSource(obj);
+      end
+      
+      function plottiling(obj, varargin)
+         implottiling(obj.cell(varargin{:}))
       end
       
    end

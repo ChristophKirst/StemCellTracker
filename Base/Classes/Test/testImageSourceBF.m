@@ -10,6 +10,8 @@ clc
 initialize
 bfinitialize
 
+obj = ImageSource
+
 %%
 
 ii = ImageInfo('./Test/Images/hESCells_DAPI.tif')
@@ -220,6 +222,11 @@ is.printInfo
 figure(1); clf
 cd = is.cell;
 implottiling(cd)
+
+%%
+clc
+is.previewCellAlignment('overlap', 140)
+
 
 
 %%

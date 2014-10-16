@@ -1,4 +1,4 @@
-function img = stitchImagesByMin(imgs, shifts, varargin)
+function img = stitchImagesByMin(imgs, ipos, varargin)
 %
 % img = stitchImagesByMin(imgs, shifts)
 %
@@ -8,7 +8,9 @@ function img = stitchImagesByMin(imgs, shifts, varargin)
 %
 % input:
 %     imgs         images as cell array
-%     shifts       relative shifts between imgs{1} and imgs{k} ([0,0(,0)] = no shift)
+%     ipos         positions or relative shifts between imgs{1} and imgs{k} ([0,0(,0)] = no shift)
+%     param        parameter struct with entries
+%                  .size     final image size, ipos are interpreted as shifts if s other wise as abaolute positions in image of this size ([])
 %
 % output:
 %     img          stitched image
@@ -16,13 +18,19 @@ function img = stitchImagesByMin(imgs, shifts, varargin)
 % See also: stitchImages, stitchImagesByMean, stitchImagesByMax, stitchImagesByOverwrite, alignImages
 
 isizes = cellfunc(@size, imgs);
-[ashifts, asize] = absoluteShiftsAndSize(shifts, isizes);
+
+param = parseParameter(varargin);
+
+asize = getParameter(param, 'size', []);
+
+if isempty(asize)
+   [ashifts, asize] = absoluteShiftsAndSize(ipos, isizes);
+else
+   ashifts = ipos;
+end
 
 % find split into non-overlapping rectangles
 [regs, ids] = stitchImagesOverlapRegions(ashifts, isizes);
-
-var2char(regs)
-var2char(ids)
 
 
 % compose image
@@ -40,7 +48,7 @@ for i = 1:length(regs)
       imgr = min(imgr, imextract(imgs{id(k)}, re(1,:)-sh, re(2,:)-sh));
    end
 
-   img = imreplace(img, imgr, re(1,:));
+   img = imreplace(img, imgr, re(1,:), 'chop', true);
    
 end
       

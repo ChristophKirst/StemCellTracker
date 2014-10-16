@@ -13,9 +13,9 @@ function gr = imgrid(si)
 
 dim = length(si);
 
-if dim >= 2
-   si(1:2) = si([2,1]);
-end
+% if dim >= 2
+%    si(1:2) = si([2,1]);
+% end
 
 for d = dim:-1:1
    rngs{d} = 1:si(d);
@@ -25,9 +25,9 @@ gr = cell(1,dim);
 
 [gr{:}] = ndgrid(rngs{:});
 
-if dim >= 2
-   gr(1:2) = gr([2,1]);
-   gr{2} = flip(gr{2}, 1);
-end
+% if dim >= 2
+%    gr(1:2) = gr([2,1]);
+%    gr{2} = flip(gr{2}, 1);
+% end
 
 end

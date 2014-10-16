@@ -16,8 +16,8 @@ function comp = connectedAlignments(a, varargin)
 %
 % See also: Alignment
 
-if ~isa(a, 'Alignment') && ~isa(a,'ImageSourceAligned')
-   error('connectedAlignments: expects Alignment or ImageSourceAligned class as input');
+if ~isa(a, 'Alignment') %%&& ~isa(a,'ImageSourceAligned')
+   error('connectedAlignments: expects Alignment class as input');
 end
 
 param = parseParameter(varargin{:});

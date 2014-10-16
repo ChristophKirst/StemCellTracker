@@ -19,7 +19,7 @@ function idx = imfrmtRangeToIndex(isize, ifrmt, varargin)
 
 
 % generate indices
-rgs= parseParameter(varargin);
+rgs = parseParameter(varargin);
 
 tnames = fieldnames(rgs);
 

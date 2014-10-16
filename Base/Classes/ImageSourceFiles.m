@@ -230,6 +230,9 @@
          end
         
          % get raw file names
+         
+         range = imfrmtRangeToIndexRange(obj.ifiletagrange, imfrmtParseRangeLast(varargin{:}));
+         
          [fn, tag] = obj.rawFileName(range);
          
          tag = imfrmtRemoveRange(tag, obj.rawCellFormat);
@@ -248,7 +251,7 @@
          
          % range         
          indexRange = imfrmtParseRangeLast(varargin{:});
-         range = imfrmtRangeFromIndexRange(obj.irangekey, indexRange);
+         range = imfrmtRangeFromIndexRange(obj.ifiletagrange, indexRange);
 
          % get raw file names
          [fn, tags] = obj.rawFileName(range);
@@ -256,6 +259,8 @@
             fn = {fn};
          end
 
+         range = imfrmtRangeFromIndexRange(obj.irangekey, indexRange);
+         
          % allocate raw data mem
          d = cell(obj.rawCellSize(range));
          

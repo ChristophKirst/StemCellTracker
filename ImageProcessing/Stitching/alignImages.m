@@ -8,7 +8,7 @@ function [shifts, pairs] = alignImages(imgs, varargin)
 % 
 % input:
 %    imgs    images or ImageSource class, if pairs parameter is not given the images are taken to 
-%            be prealigned as in the cell outline, the cell coordinates are imgs{x,y,z}
+%            be prealigned as in the cell outline
 %    param   (optional) parameter struct with entries:
 %            .pairs           (optional) array struct with entries .from .to indicating the pairs (optional entry .orientation)
 %            .method          'full'   = perform full alignment using key point detection and optimization using Hugin
@@ -18,7 +18,7 @@ function [shifts, pairs] = alignImages(imgs, varargin)
 %            parameters used by align2ImagesOnGridByXXX
 %
 % output: 
-%    shifts  absolute shifts of images assuming [lower,left(,bottom)] of image in cell array starts a [0,0(,0)] 
+%    shifts  absolute shifts of images assuming [lower,left(,bottom)] image in cell array starts a [0,0(,0)] 
 %            in pixel units and pixel coordinates
 %    pairs   the aligned pairs
 %
@@ -27,12 +27,12 @@ function [shifts, pairs] = alignImages(imgs, varargin)
 
 param = parseParameter(varargin{:});
 
-istiling = false;
+issource = false;
 if iscell(imgs)
    adim = ndims1(imgs);
 elseif isa(imgs, 'ImageSource')
-   istiling = true;
-   adim = length(imgs.cellsize);   
+   issource = true;
+   adim = length(imgs.cellSize);   
 else
    error('alignImages: expecting cell array or ImageSource as input imgs');
 end
@@ -46,8 +46,8 @@ methd = getParameter(param, 'method', 'global');
 
 if strcmp(methd, 'full')
    
-   if istiling
-      imgs = imgs.tiles();
+   if issource
+      imgs = imgs.cell;
    end
    shifts = alignImagesByHugin(imgs, param);
    
@@ -60,8 +60,8 @@ else
    pairs = getParameter(param, 'pairs', {});
 
    if isempty(pairs) && ~isa(pairs, 'AlignmentPair')
-      if istiling
-         imgs = imgs.tiles();
+      if issource
+         imgs = imgs.cell;
       end
       shifts = alignImagesOnGrid(imgs, param);
       
@@ -75,7 +75,7 @@ else
          warning('alignImages: method %s not applicable with specified pairs: using global instead!', methd);
       end
        
-      [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param);
+      [shifts, pairs] = alignByGlobal(imgs, pairs, issource, param);
    end
  
 end
@@ -118,23 +118,23 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
             for p = 1:np
                switch pairs(p).orientation
                   case 1
-                     aimgs = {imgs.tile(pairs(p).from); imgs.tile(pairs(p).to)};
+                     aimgs = {imgs.data(pairs(p).from); imgs.data(pairs(p).to)};
                   case 2
-                     aimgs = {imgs.tile(pairs(p).from), imgs.tile(pairs(p).to)};
+                     aimgs = {imgs.data(pairs(p).from), imgs.data(pairs(p).to)};
                   case 3
-                     c{1,1,1} = imgs.tile(pairs(p).from); c{1,1,2} = imgs.tile(pairs(p).to);
+                     c{1,1,1} = imgs.data(pairs(p).from); c{1,1,2} = imgs.data(pairs(p).to);
                      aimgs = c;
                   otherwise
                      error('alignImages: image pair %g does not have valid orientation!', p);
                end
 
-               pairs(p).shift = fun(aimgs, param);
+               [pairs(p).shift, pairs(p).aerror] = fun(aimgs, param);
             end
             
          else
          
             for p = 1:np
-               pairs(p).shift =  fun(imgs.tile(pairs(p).from), imgs.tile(pairs(p).to), param);
+               [pairs(p).shift, pairs(p).aerror] = fun(imgs.data(pairs(p).from), imgs.data(pairs(p).to), param);
             end
          end
          
@@ -154,12 +154,12 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
                      error('alignImages: image pair %g does not have valid orientaiton!', p);
                end
 
-               pairs(p).shift =  fun(aimgs, param);
+               [pairs(p).shift, pairs(p).aerror] = fun(aimgs, param);
             end
          else
 
             for p = 1:np
-               pairs(p).shift =  fun(imgs{pairs(p).from}, imgs{pairs(p).to}, param);
+               [pairs(p).shift, pairs(p).aerror] = fun(imgs{pairs(p).from}, imgs{pairs(p).to}, param);
             end
          end
       end

@@ -18,58 +18,54 @@ verbose = true;
 %% Setup Image Source
 
 % infer the tag expression o he files from the file folder automatically
-texp = tagexpr('./Test/Images/140902_RUES2_BMP4_DAPI_GFP_R_Cy5__9.tif_Files/*.tif', 'tagnames', {'tile', 'ch'})
+texp = tagExpression('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames', {'S', 'C'})
 %texp='140902_RUES2_BMP4_DAPI_GFP_R_Cy5__9_p<pos,6>t00000001z001c<ch,2>.tif'
 
-is = ImageSourceTagged(texp);
-is.setDataFormat('py');
-is.print
+is = ImageSourceFiles(texp);
 
-%
-% (optional) restrict tiles to a certain subset
-% - usefull to restrict alignment to a fixed z plane and channel etc
-% - usefull to test on smaller subset
-% is.setTagRange('tile', {9,10,17,18});
-is.setTagRange('ch', {1}, 'tile', num2cell(1:(8*3)));
-is.print
-
-% 
-% if verbose
-%     figure(1); clf
-%     a=[9,10,17,18]
-%     is.plot('tile', a, 'tiling', [2,2])
-% end
+% set the data format
+is.setDataFormat('XY');
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Setup Tiling
+% set some keys for the colors
+is.setRangeKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
 
-% parameter:
-% tileshape   specifiess the shape of the tiles
-% tileformat  specifies the ordering of the tiles, 
-% in total the tiles are obtained via imuvwpermute(reshape(tiles,tileshape), tileformat)
-% if the celldata in is returns the correct tiling already tileshape and tileformat are inferred from there
+% restrict to DAPI first
+is.setRange('C', 'DAPI');
 
-ist = ImageSourceTiled(is, 'tileshape', [8,3], 'tileformat', 'uv');
-ist.print
+% set the tiling and data formats
+is.setReshape('S', 'UV', [8, 19]);
 
-% dont cache images if the number is large 
-% ist.icache = ist.ntiles < 100; 
-ist.setCache(false);
+is.setCellFormat('Uv')
 
-if verbose && ist.ntiles < 25 
-   tiles = ist.tiles;
-   figure(2); clf;
-   implottiling(tiles)
-end
+is.printInfo
+
+
+%%
+
+% check formatting
+cd = is.cell(1:18)
+figure(1); clf
+implottiling(cd, 'tiling', [8,2])
+
+
+%%
+
+% make preview
+
+preview = is.alignCellPreview('overlap', 110, 'scale' 0.5);
+figure(2); clf
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Alignment
 
 % create 
 clc
-isalgn = ImageSourceAligned(ist)
-isalgn.setCache(false)
+algn = Alignmentd(ist)
+algn.setCache(false)
 %var2char({[algn.pairs.from], [algn.pairs.to]})
 
 

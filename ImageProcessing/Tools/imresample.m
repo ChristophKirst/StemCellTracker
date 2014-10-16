@@ -7,7 +7,7 @@ function imgr = imresample(img, fac)
 %
 % input:
 %    img        input image
-%    fac        resampling factor  number of [faxp, facq (, facl)]
+%    fac        resampling factor  number of [facX, facY (, facZ)]
 %
 % output:
 %    imgr       resmaples image

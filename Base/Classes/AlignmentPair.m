@@ -9,6 +9,7 @@ classdef AlignmentPair < matlab.mixin.Copyable
       orientation = '';  % orientation of images to be aligned: 'lr'=1=left-right, 'du'=2=down-up 'bt'=3=bottom-top, ''=0=no primary direction
       shift = [0,0];     % shift between the images
       quality = 1;       % quality of overlap used to detect empty image overlaps
+      aerror  = Inf;     % error detected when aligninng the image pair
    end
   
    methods
@@ -56,7 +57,7 @@ classdef AlignmentPair < matlab.mixin.Copyable
          end
       end
       
-      function obj = fromParamete(obj, varargin)
+      function obj = fromParameter(obj, varargin)
          obj = classFromParameter(obj, [], varargin);
          obj.initialize();
       end
