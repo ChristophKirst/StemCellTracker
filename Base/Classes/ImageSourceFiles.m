@@ -2,6 +2,8 @@
    %
    % ImageSourceFiles class represents images accessed with the tag expression framework, individual files are read with imreadBF
    %
+   % note: ranges are assumed to be index ranges / range keys
+   %       to access via file tags use XXXFromTagRange routines
    
    properties       
       ifileexpression  = '';      % tagged file / directory
@@ -62,7 +64,7 @@
          obj.ifileexpression      = fileExpr;
          obj.ifiletagrange        = tagRangeFromTagExpression(fileExpr, varargin{:});
          %obj.irange               = imfrmtRangeToIndexRange(obj.ifiletagrange, obj.ifiletagrange);
-         obj.initializeRangeKeyFromFileTagRange;
+         obj.initializeKeyFromFileTagRange;
          
          obj.irawcellformat       = cell2mat(tagnames);
          obj.irawcellsize         = tagRangeSize(obj.ifiletagrange);
@@ -86,37 +88,37 @@
          obj.ifileexpression      = fileExpr;
          obj.ifiletagrange        = tagRangeFromTags(tags);
          %obj.irange               = imfrmtRangeToIndexRange(obj.ifiletagrange, obj.ifiletagrange);
-         obj.initializeRangeKeyFromFileTagRange;
+         obj.initializeKeyFromFileTagRange;
          
          obj.irawcellformat       = cell2mat(tagnames);
          obj.irawcellsize         = tagRangeSize(obj.ifiletagrange);
 
       end
                
-      function obj = initializeRangeKeyFromFileTagRange(obj)
+      function obj = initializeKeyFromFileTagRange(obj)
          
-         obj.irangekey = obj.ifiletagrange;
-         
-         if ~isempty(obj.irangekey)          
-            fnames = fieldnames(obj.irangekey);
-            rmnames = {};
+         obj.ikey = struct;
+     
+         ftr = obj.ifiletagrange;
+         if ~isempty(ftr)          
+            fnames = fieldnames(ftr);
+%           rmnames = {};
             for i = 1:length(fnames)
-               v = obj.irangekey.(fnames{i});
+               v = ftr.(fnames{i});
                if ischar(v)
                   v = {v};
                   obj.irangekey.(fnames{i}) = v;
-               end
-               if ~iscellstr(v)
-                  if iscell(v)
-                     v = cell2mat(v);
-                     if isequal(sort(v), 1:length(v))
-                        rmnames = [rmnames, fnames{i}]; %#ok<AGROW>
-                     end
+               elseif iscellstr(v)
+                  obj.irangekey.(fnames{i}) = v;
+               else
+                  if ~iscell(v)
+                     v = num2cell(v);
+                  end
+                  if ~isequal(sort(cell2mat(v)), 1:length(v)) % in this way accessing file fields via 'xxx' is possible
+                     obj.ikey.(fnames{i}) = cellfunc(@num2str, v);
                   end
                end
             end
-            
-            obj.irangekey = rmfield(obj.ifiletagrange, rmnames);
          end
       end
       
@@ -124,18 +126,18 @@
 
       function obj = fromFileExpression(obj, fileExpr, varargin)
          obj.initializeRawCellFromFileExpression(fileExpr, varargin);
-         firstfile = obj.rawFileName(1);
+         firstfile = obj.fileNameFromRawRange(1);
          obj.initializeRawDataFromFile(firstfile);
          
-         obj.initializeDataAndCellFromRaw;
+         obj.setCellDataSizeAndFormatFromRaw;
       end
 
       function obj = fromFileList(obj, fileList, varargin)
          obj.initializeRawCellFromFileList(fileList, varargin);
-         firstfile = obj.rawFileName(1);
+         firstfile = obj.fileNameFromRawRange(1);
          obj.initializeRawDataFromFile(firstfile);
 
-         obj.initializeDataAndCellFromRaw;
+         obj.setCellDataSizeAndFormatFromRaw;
       end
 
 
@@ -144,46 +146,49 @@
       %%% files
       
       function range = fileTagRange(obj, varargin)
-         if nargin == 1
-            range = obj.ifiletagrange; 
-         else
-            range = obj.rawRange(varargin{:}); % returns index range
-            range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
-            range = imfrmtReformatRange(obj.rawCellDataSize, obj.rawCellDataFormat, obj.rawCellDataFormat, range);
-            range = imfrmtParseRangeLast(obj.ifiletagrange, range); % complement all missing ranges
-          end
+         % returns file tags using index range in varargin
+         
+         range = obj.rawRange(varargin{:});
+         range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
+         range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
+      end
+      
+      function range = fileTagRangeFromRawRange(obj, varargin)
+         % varargin is raw range
+         range = obj.rawRangeFromRawVarargin(varargin{:});
+         range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
+         range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
+      end
+      
+      function range = fileTagRangeFromTagRange(obj, varargin)
+         % varargin is file rag range 
+         range = imfrmtRangeFromVarargin(obj.ifiletagrange, varargin); % complement all missing ranges
       end
 
-      function tagRange = rawFileTagRangeFromVarargin(obj, varargin)
-         % parses raw tag range
-         
-         if nargin > 1 && isnumeric(varargin{1})
-            if nargin > 2
-               id = sub2ind(obj.rawCellSize, varargin{:});
-            else
-               id = varargin{1};
-            end
-            tagRange = tagFromIndex(obj.ifiletagrange, id);
-         else
-            tagRange = imfrmtParseRangeLast(obj.ifiletagrange, varargin);
-         end
-         
-         %tagRange = imfrmtRangeFromIndexRange(obj.ifiletagrange, tagRange);
+      
+      function range = rangeFromFileTagRange(obj, varargin)
+         range = obj.rawRangeFromFileTagRange(varargin{:});
+         range = obj.rangeFromRawRange(range);
+      end
+
+      function range = rawRangeFromFileTagRange(obj, varargin)
+         range = obj.fileTagRangeFromTagRange(varargin{:});
+         range = imfrmtRangeToIndexRange(obj.ifiletagrange, range);
       end
 
       
       function fsi = fileTagSize(obj, varargin)
          range = obj.fileTagRange(varargin{:});
-         fsi = tagRangeSize(range);
+         fsi = imfrmtRangeSize(obj.rawCellSize, obj.rawCellFormat, range);
       end
 
       function n = nFiles(obj, varargin)
            n = prod(obj.fileTagSize(varargin{:}));
       end
 
-
-      function fe = fileExpression(obj)
+      function fe = fileExpression(obj, varargin)
          fe = obj.ifileexpression;
+         fe = tagExpressionToString(fe, varargin);
       end
 
       function fn = fileName(obj, varargin)
@@ -197,80 +202,149 @@
          %fn = reshape(fn, imfrmtRangeSize(obj.rawCellSize, obj.rawCellFormat, rawRange);
       end
       
-      function [fn, tags] = rawFileName(obj, varargin)
-         % file expression for the specified raw tag ranges
-             
+      function [fn, tags] = fileNameFromRawRange(obj, varargin)  
          % determine range
-         range = obj.rawFileTagRangeFromVarargin(varargin{:});
+         range = obj.fileTagRangeFromRawRange(varargin{:});
          tags = tagRangeToTags(range);
          
          fn = tagExpressionToString(obj.ifileexpression, tags);
       end
       
-  
+      function [fn, tags] = fileNameFromTagRange(obj, varargin)  
+         % determine range
+         range = obj.fileTagRangeFromTagRange(varargin{:});
+         tags = tagRangeToTags(range);
+         
+         fn = tagExpressionToString(obj.ifileexpression, tags);
+      end
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
       %%% data 
 
-      function d = getRawData(obj, varargin)
+      function d = getRawData(obj, range)
          %
-         % d = getRawData(obj, varargin)
+         % d = getRawData(obj, range)
          %
          % description:
          %     obtain raw image data in the format given by obj.rawformat
-         %     data specs use raw formats and sizes
-
-         % range
-         range = imfrmtRangeToIndexRange(obj.irangekey, imfrmtParseRangeLast(varargin{:}));
-         
+         %     range is index range in raw formats and sizes  
+       
          % check if all cell dims are singeltons
          cid = obj.rawCellIndex(range);
          if length(cid) > 1
             error('%s: getRawData: cell dimensions are not specified to be singeltons!', class(obj));
          end
-        
-         % get raw file names
          
-         range = imfrmtRangeToIndexRange(obj.ifiletagrange, imfrmtParseRangeLast(varargin{:}));
-         
-         [fn, tag] = obj.rawFileName(range);
-         
-         tag = imfrmtRemoveRange(tag, obj.rawCellFormat);
+         if obj.irawcache
+            if isempty(obj.irawcelldata)
+               obj.irawceldata = cell(obj.rawCellSize);
+            end
+            
+            if isempty(obj.irawcelldata{cid}) 
+               % read full data from file
 
-         d = imreadBF(fn, tag, 'squeeze', false, 'metadata', false);
-         d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);   
+               % raw file name
+               fn = obj.fileNameFromRawRange(range);
+
+               d = imreadBF(fn, 'S', 1, 'squeeze', false, 'metadata', false); % there should be no series structure -> read first series
+               d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);   
+               
+               % cach it
+               obj.irawcelldata{cid} = d;
+            else
+               d = obj.irawcelldata{cid};
+            end
+               
+            % reduce to range
+            if ~isemptystruct(range)
+               d = imfrmtDataSubset(d, obj.rawDataFormat, range);
+            end
+         else
+            % read directly
+
+            % raw file name
+            [fn, tag] = obj.fileNameFromRawRange(range);
+            
+            tag = imfrmtRemoveRange(tag, obj.rawCellFormat);
+            
+            d = imreadBF(fn, 'S', 1, tag, 'squeeze', false, 'metadata', false); % S = 1 no series structure 1
+            d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);
+         end
       end
  
-      function d = getRawCellData(obj, varargin)
+      function d = getRawCellData(obj, range)
          %
          % d = getRawData(obj, varargin)
          %
          % description:
          %     obtain raw cell data in the format given by obj.rawformat
          %     data specs use raw formats and sizes
-         
-         % range         
-         indexRange = imfrmtParseRangeLast(varargin{:});
-         range = imfrmtRangeFromIndexRange(obj.ifiletagrange, indexRange);
+              
+         if obj.irawcache            
+            if isempty(obj.irawcelldata)
+               obj.irawcelldata = cell(obj.rawCellSize);
+            end
 
-         % get raw file names
-         [fn, tags] = obj.rawFileName(range);
-         if ischar(fn)
-            fn = {fn};
-         end
+            cid = obj.rawCellIndex(range);
 
-         range = imfrmtRangeFromIndexRange(obj.irangekey, indexRange);
-         
-         % allocate raw data mem
-         d = cell(obj.rawCellSize(range));
-         
-         tags = imfrmtRemoveRange(tags, obj.rawCellFormat);
-         for i = 1:length(fn)
-            d{i} = imreadBF(fn{i}, tags(i), 'squeeze', false, 'metadata', false);
-            %size(d{i})
-            d{i} = imfrmtReformat(d{i}, 'XYZCT', obj.rawDataFormat);
-            %size(d{i})
+            cidload = cellfun(@isempty, obj.irawcelldata(cid));
+            cidload = cid(cidload);
+
+            if ~isempty(cidload)
+               
+               % get raw file names
+               [fn, tags] = obj.fileNameFromRawRange(cidload);
+               if ischar(fn)
+                  fn = {fn};
+               end
+               tags = imfrmtRemoveRange(tags, obj.rawCellFormat);
+
+               % read missing data from file
+               d = cell(1, length(cidload));
+               for i = 1:length(fn)
+                  d{i} = imreadBF(fn{i}, tags(i), 'squeeze', false, 'metadata', false);
+                  d{i} = imfrmtReformat(d{i}, 'XYZCT', obj.rawDataFormat);
+               end
+ 
+               % cache
+               obj.irawcelldata(cidload) = d;
+            end
+            
+            % return requested cells
+            d = obj.irawcelldata(cid);
+            
+         else
+            
+            % get raw file names
+            [fn, tags] = obj.fileNameFromRawRange(range);
+            if ischar(fn)
+               fn = {fn};
+            end
+            tags = imfrmtRemoveRange(tags, obj.rawCellFormat);
+
+            % allocate raw cell data
+            d = cell(obj.rawCellSize(range));
+            
+            % load
+            for i = 1:length(fn)
+               d{i} = imreadBF(fn{i}, tags(i), 'squeeze', false, 'metadata', false);
+               %size(d{i})
+               d{i} = imfrmtReformat(d{i}, 'XYZCT', obj.rawDataFormat);
+               %size(d{i})
+            end
          end
+      end
+      
+      
+      function d = dataFromTagRange(obj, varargin)
+         range = obj.fileTagRangeToIndexRange(varargin);
+         d = obj.data(range);
+      end
+      
+      
+      function c = cellFromTagRange(obj, varargin)
+         range = obj.fileTagRangeToIndexRange(varargin);
+         c = obj.cell(range);
       end
       
       

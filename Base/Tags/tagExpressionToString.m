@@ -51,17 +51,16 @@ tagnames = fieldnames(tags);
 
 res = repmat({''}, length(tsplit)-1, 1);
 for i = 1:length(tnames)
-   p = find(ismember(tagnames, tnames{i}));
+   p = find(ismember(tagnames, tnames{i}), 1);
    if isempty(p)
       for k = 1:length(tinfo(i).tag)
          res{tinfo(i).pos(k)} = tinfo(i).tag{k};
       end
    else
-      p = p(1);
       for k = 1:length(tinfo(i).tag)
          tw = tinfo(i).width(k);
          if tw == 0
-            res{tinfo(i).pos(k)} = char(tags.(tagnames{p}));
+            res{tinfo(i).pos(k)} = num2str(tags.(tagnames{p}));
          else
             res{tinfo(i).pos(k)} = num2str0(tags.(tagnames{p}), tw);
          end

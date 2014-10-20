@@ -1,4 +1,4 @@
-function isize = imfrmtRangeSize(isize, ifrmt, rgs)
+function isize = imfrmtRangeSize(isize, ifrmt, varargin)
 %
 % trg= imfrmtRangeSize(isize, ifrmt, trg)
 %
@@ -14,6 +14,8 @@ function isize = imfrmtRangeSize(isize, ifrmt, rgs)
 %     isize      image size given the rgs
 % 
 % See also: imfrmtReformatRange
+
+rgs = parseParameter(varargin);
 
 fnames = fieldnames(rgs);
 fnamesl = lower(fnames);

@@ -151,7 +151,7 @@ classdef Alignment < ImageSource
          obj.irawcellsize = 1;
          obj.irawcellformat = 'S';
          
-         obj.initializeDataAndCellFromRaw;
+         obj.initializeCellDataSizeAndFormatFromRaw;
       end
          
 

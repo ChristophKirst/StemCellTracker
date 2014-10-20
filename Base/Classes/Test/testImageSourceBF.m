@@ -24,7 +24,10 @@ is.printInfo
 %%
 md = is.metaData
 
+is.metaDataNames
+
 is.metaData('XResolution')
+
 
 %%
 clc
@@ -38,7 +41,8 @@ is.rawRange
 
 %%
 
-is.setRange('S', 1)
+is.setRange('S', 1);
+is.printInfo
 
 
 %%
@@ -72,25 +76,45 @@ is.plot
 %% no caching 
 
 is.cellDataCache
+is.rawCellDataCache
 
 
 %%
 clc
-is.setCaching(true);
+is.setRawCaching(true);
+is.clearCache
 
-size(is.cellDataCache)
-
-img = is.data;
+var2char({size(is.cellDataCache), size(is.rawCellDataCache)})
 
 figure(1)
 is.plot
 
-% now dat is cached
-size(is.cellDataCache)
+% should notgive asecond read
+is.data(1);
+
+% now dat is cached on raw files
+var2char({size(is.cellDataCache), size(is.rawCellDataCache)})
 
 
 %%
-is.clearCellDataCache;
+clc
+is.setRawCaching(false);
+is.clearCache
+
+var2char({size(is.cellDataCache), size(is.rawCellDataCache)})
+
+figure(1)
+is.plot
+
+%should give a second read
+is.data(1);
+
+% dat is not cached on raw files
+var2char({size(is.cellDataCache), size(is.rawCellDataCache)})
+
+
+%%
+is.clearCache;
 
 %% raw vs data
 
@@ -104,13 +128,10 @@ initialize
 %%
 clc
 is = ImageSourceBF('./Test/Images/hESCells_DAPI.tif');
-is.setCaching(false);
-
-is
 
 %%
 clc
-is.setCaching(false);
+
 
 figure(1); clf
 imsubplot(2,1,1)
@@ -122,8 +143,6 @@ imsubplot(2,1,2)
 is.setDataFormat('yX')
 d=is.data;
 implot(d)
-
-
 
 is.rawDataFormat
 is.dataFormat
@@ -139,7 +158,6 @@ is.plot
 imsubplot(2,1,2)
 is.setDataFormat('Xy');
 is.plot
-
 
 
 %%
@@ -166,8 +184,8 @@ is.printInfo
 
 %% channel keys
 
-is.rangeKey
-is.rangeToIndexRange('C', 'GFP')
+is.key
+is.range('C', 'GFP')
 
 
 %%
@@ -176,9 +194,6 @@ clc
 d =is.data('C', 'DAPI', 'S', 1);
 
 size(d)
-
-%%
-is.rangeKey
 
 
 %%
@@ -189,7 +204,9 @@ clc
 %% reshape
 is.setReshape('S', 'UV', ts);
 is.setCellFormat(tf);
-is.setRange('C', 1)
+is.setRange('C', 1);
+
+is.printInfo
 
 %%
 
@@ -214,6 +231,8 @@ initialize
 
 %%
 is = ImageSourceBF('./Test/Images/hESCells_Colony.zvi');
+is.setCaching(false);
+
 is.initializeFromTiling;
 is.setRange('C', 1);
 is.printInfo
@@ -225,27 +244,31 @@ implottiling(cd)
 
 %%
 clc
-is.previewCellAlignment('overlap', 140)
-
+clf
+is.cellPreview('overlap', 140)
 
 
 %%
 
-is.cellIndexToCoordinate(2,2)
+is.cellFormat
+
+
+%%
+is.rangeFromCellIndex(1,2)
 
 %%
 clc
 is.dataSize('C', 1)
-
-%%
-is.dataSizeFromRaw
-is.cellSizeFromRaw
+is.dataSize
+is.dataSizeFromRawSize
+is.fullDataSize
 
 %%
 clc
+is.cellSize('U', 1)
 is.cellSize
-is.cellFormat
-is.cellSize('V', 1)
+is.cellSizeFromRawSize
+is.fullCellSize
 
 %%
 
@@ -269,20 +292,42 @@ is.maxDataIntensity
 clc
 is.dataSize
 
-bkg = zeros(1378, 1024);
+bkg = zeros(is.dataSize);
 size(bkg)
-flt = 0.5 * ones(1378, 1024);
+flt = 0.5 *  ones(is.dataSize);
 
 is.setBackgroundAndFlatFieldCorrection(bkg, flt);
 
+is.dataCorrect
+
+
+%%
+
+is.setDataCorrect(true);
+ds = is.correctData(ones(is.dataSize));
+size(ds)
+max(ds(:))
+
+is.setDataCorrect(false);
+ds = is.correctData(ones(is.dataSize));
+size(ds)
+max(ds(:))
+
+
+%%
+is.clearCache
+is.setCaching(false)
+
+is.setDataCorrect(true);
 d = is.data(1);
 
 is.setDataCorrect(false);
-
 d2 = is.data(1);
 
 figure(2); clf
 implottiling({d; d2})
+
+d(1) - d2(1)
 
 
 %% arbitrary backgroudn correction
@@ -301,11 +346,45 @@ implottiling({d; d2})
 
 
 
+%% keys
+
+clear all
+clear classes
+close all
+clc
+
+initialize
+
+obj = ImageSourceBF;
+
+%%
+is = ImageSourceBF('./Test/Images/hESCells_Colony.zvi');
+is.setCaching(true);
+
+is.initializeFromTiling;
+is.setRange('C', 1);
+is.printInfo
+
+is.key
+
+%%
+is.dataFormat
+
+is.addKey('X', cellfunc(@num2str, num2cell(0:1377)));
+is.key
+
+%%
+is.range('C', 'GFP', 'X', '0')
+
+%%
 
 
+is.rawRange('C', 'GFP', 'X', '0')
 
 
-
+%%
+clc
+is.rawRangeFromRawRange('c', 1)
 
 
 

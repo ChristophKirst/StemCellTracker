@@ -160,19 +160,69 @@
             error('%s: getRawData: cell dimensions are not specified to be singeltons!', class(obj));
          end
         
-         d = imreadBF(obj.ireader, range, 'squeeze', false, 'metadata', false);
-         d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);  
+         if obj.irawcache
+            if isempty(obj.irawcelldata)
+               obj.irawceldata = cell(obj.rawCellSize);
+            end
+            
+            if isempty(obj.irawcelldata{cid}) 
+               % read full data from file
+               d = imreadBF(obj.ireader, obj.rawCellFormat, cid, 'squeeze', false, 'metadata', false);
+               d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat); 
+               
+               % cach it
+               obj.irawcelldata{cid} = d;
+            else
+               d = obj.irawcelldata{cid};
+            end
+               
+            % reduce to range
+            if ~isemptystruct(range)
+               d = imfrmtDataSubset(d, obj.rawDataFormat, range);
+            end
+         else
+            % read directly
+            d = imreadBF(obj.ireader, range, 'squeeze', false, 'metadata', false);
+            d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);  
+         end
       end
+      
       
       function d = getRawCellData(obj, range) 
          % get raw cell data, varargin are range specs in raw format / size coordinates
 
-         d = imreadBF(obj.ireader, range, 'squeeze', false, 'metadata', false); 
-         if ~iscell(d)
-            d = {d};
+         if obj.irawcache            
+            if isempty(obj.irawcelldata)
+               obj.irawcelldata = cell(obj.rawCellSize);
+            end
+
+            cid = obj.rawCellIndex(range);
+
+            cidload = cellfun(@isempty, obj.irawcelldata(cid));
+            cidload = cid(cidload);
+
+            if ~isempty(cidload)
+               % read missing data from file
+               d = imreadBF(obj.ireader, obj.rawCellFormat, cidload , 'squeeze', false, 'metadata', false);
+               if ~iscell(d)
+                  d = {d};
+               end
+               d = imfrmtReformatCellData(d, 'XYZCT', obj.rawCellFormat, obj.rawDataFormat, obj.rawCellFormat);
+               
+               % cache
+               obj.irawcelldata(cidload) = d;
+            end
+            
+            % return requested cells
+            d = obj.irawcelldata(cid);
+            
+         else
+            d = imreadBF(obj.ireader, range, 'squeeze', false, 'metadata', false); 
+            if ~iscell(d)
+               d = {d};
+            end
+            d = imfrmtReformatCellData(d, 'XYZCT','S', obj.rawDataFormat, obj.rawCellFormat);
          end
-         
-         d = imfrmtReformatCellData(d, 'XYZCT','S', obj.rawDataFormat, obj.rawCellFormat);
       end
       
 

@@ -16,7 +16,7 @@ i.irawdatasize   = size(d);
 i.irawdataformat = imfrmtFormatFromSize(i.irawdatasize);
 i.irawdataclass  = class(d);
 
-i.initializeDataAndCellFromRaw();
+i.initializeCellDataSizeAndFormatFromRaw();
 
 cl = 1;
 id = find(lower(i.dataFormat) == 'c', 1, 'first');

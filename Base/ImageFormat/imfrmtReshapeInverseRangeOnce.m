@@ -39,11 +39,17 @@ nonReshapeDataFrmt(posDataReshapeTo) = [];
 nonReshapeRawFrmt = rawFrmt;
 nonReshapeRawFrmt(posRawReshapeFrom) = [];
 
-if sum(ismember(nonReshapeDataFrmt, nonReshapeRawFrmt)) ~= length(nonReshapeDataFrmt)
+
+if sum(ismember(lower(nonReshapeDataFrmt), lower(nonReshapeRawFrmt))) ~= length(nonReshapeDataFrmt)
    error('imfrmtReshapeInverseRange: inconsistent inputs!');
 end
 
 % non reshaped coords transform directly
+% dataFrmt
+% nonReshapeRawFrmt
+% dataSize
+% range
+
 rawRange = imfrmtReformatRange(dataSize, dataFrmt, nonReshapeRawFrmt, range);
 
 % if no reshape ranges specifed we are done 

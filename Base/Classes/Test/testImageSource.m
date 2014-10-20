@@ -27,6 +27,9 @@ clear classes
 close all
 clc
 
+obj = ImageSource
+
+
 img = ImageSource(rand(10,20))
 img.setName('test');
 
@@ -118,15 +121,44 @@ close all
 clc
 
 img = ImageSource(rand(10,20));
-img.setName('test');
 img.printInfo
+
+img.setName('test');
 img.setRange('Y', [1,2,5,6]);
 
+img.printInfo
 
 %%
 clc
 img.setReshape('Y', 'UV', [4,5]);
 img.printInfo
+
+%%
+
+img.dataSize
+img.cellSize
+
+img.cellDataSize
+img.cellDataFormat
+
+%%
+
+img.rangeFromVarargin(1)
+
+img.rawRangeFromRawVarargin(1)
+
+%%
+
+img.rawCellDataSize
+
+
+
+
+%%
+img.range
+img.rawRange
+
+
 
 %%
 
@@ -141,94 +173,6 @@ d = img.data(1);
 size(d)
 
 
+img.rawRange
 
-
-
-
-
-
- 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%
-% %% ImageSourceFile -> substitue ImageSourceBF
-% 
-% 
-% clear all
-% clear classes
-% close all
-% clc
-% 
-% initialize
-% bfinitialize
-% 
-% 
-% %% accessing a single file
-% clc
-% is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
-% is.printInfo
-% 
-% %%
-% 
-% is.setCache(false);
-% 
-% size(is.idata)
-% 
-% img = is.data;
-% 
-% figure(1)
-% is.setColor('r');
-% is.plot
-% 
-% % no caching 
-% size(is.idata)
-% 
-% 
-% %%
-% 
-% is.setCache(true);
-% 
-% size(is.idata)
-% 
-% img = is.data;
-% 
-% figure(1)
-% is.setColor('r');
-% is.plot
-% 
-% % now dat is cached
-% size(is.idata)
-% 
-% 
-% %%
-% is.clearCache
-% 
-% 
-% %% raw vs data
-% 
-% clear all
-% clear classes
-% close all
-% clc
-% 
-% initialize
-% 
-% %%
-% clc
-% is = ImageSourceFile('./Test/Images/hESCells_DAPI.tif');
-% is.setRawDataFormat('Xy');
-% is.setCache(false);
-% 
-% is
-% 
-% %%
-% 
-% figure(1)
-% imsubplot(2,1,1)
-% is.setColor('r');
-% is.setRawDataFormat('XY');
-% is.plot
-% 
-% imsubplot(2,1,2)
-% is.setColor('b');
-% is.setRawDataFormat('Xy');
-% is.plot
 

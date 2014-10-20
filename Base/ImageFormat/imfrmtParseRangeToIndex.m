@@ -4,7 +4,8 @@ function [ids, nids] = imfrmtParseRangeToIndex(si, frmt, varargin)
 %
 % description: 
 %    parses parameter in varargin keeps and reformat paramter as in format frmt / size si
-%    uses last format specification if multiple 
+%    uses last format specification if multiple
+%    works on a single size and fmrt only !
 %
 % input:
 %    si    size
@@ -14,6 +15,9 @@ function [ids, nids] = imfrmtParseRangeToIndex(si, frmt, varargin)
 % output:
 %    ids   indices 
 %    nids  number of indices
+%
+% note:
+%    used for the bio formats interace to parse range specs
 
 
 param = parseParameter(varargin);

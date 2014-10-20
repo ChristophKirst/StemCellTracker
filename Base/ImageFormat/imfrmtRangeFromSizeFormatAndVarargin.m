@@ -1,15 +1,15 @@
-function rgs = imfrmtParseRange(si, frmt, varargin)
+function rgs = imfrmtRangeFromSizeFormatAndVarargin(si, frmt, varargin)
 %
-% rgs = imfrmtParseRange(si, frmt, param)
+% rgs = imfrmtRangeFromSizeFormatAndVarargin(si, frmt, param)
 %
 % description: 
-%    parses parameter in varargin keeps and reformat paramter as in format frmt / size si
-%    uses last format specification if multiple 
+%    parses parameter in varargin keeps and reformats paramter as in format frmt / size si
+%    uses last format specification if multiple
 %
 % input:
-%    si    size
-%    frmt  format
-%    param parameter
+%    si      size
+%    frmt    format
+%    param   parameter
 
 rgs = parseParameter(varargin);
 

@@ -12,7 +12,8 @@
 #include <numpy/arrayobject.h>
 
 #include <iostream>
-#define DEBUG(msg) std::cout << msg << std::endl; std::cout.flush();
+//#define DEBUG(msg) std::cout << msg << std::endl; std::cout.flush();
+#define DEBUG(msg)
 
 //#pragma GCC diagnostic ignored "-fpermissive"
 

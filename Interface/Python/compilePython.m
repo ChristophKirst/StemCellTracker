@@ -20,5 +20,9 @@ if isunix() && ~ismac
 else
    
   % under mac / windows try if this works -> not tested yet
+  
+  cd ./Interface/Python
   mex py.cpp -lpyhton2.7
+  cd ../..
+  
 end

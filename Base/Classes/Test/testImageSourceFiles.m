@@ -14,7 +14,7 @@ obj = ImageSource;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% ImageSourceFiles - base class
+%% ImageSourceFiles - init
 
 clc
 is = ImageSourceFiles
@@ -26,22 +26,15 @@ is.printInfo
 is.initializeRawCellFromFileExpression('./Test/Images/hESCells_Stack/W<W,1>F<F,3>T0001Z<Z,2>C1.tif')
 is.printInfo
 
-%%
-clc
-is.rawFileName('W', 1)
-
-%%
-clc
-is.rawFileName('Z', 10)
 
 %%
 
-is.initializeRawDataFromFile(is.rawFileName(1))
+is.initializeRawDataFromFile(is.fileNameFromRawRange(1))
 is.printInfo
 
 
-
-%% Test
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ImageSourceFiles
 
 clear all
 clear classes
@@ -51,7 +44,7 @@ clc
 initialize
 bfinitialize
 
-obj = ImageSource;
+obj = ImageSourceFiles;
 
 
 %%
@@ -59,6 +52,27 @@ obj = ImageSource;
 clc
 is = ImageSourceFiles('./Test/Images/hESCells_Stack/W<W,1>F<F,3>T0001Z<Z,2>C<C,1>.tif');
 is.printInfo
+
+%%
+
+is.fileTagRange
+
+%%
+
+is.rawCellDataFormat
+is.rawCellDataSize
+
+%%
+clc
+is.fileName('W', 1)
+
+%%
+clc
+is.fileName('Z', 10)
+
+%%
+clc
+is.fileName('z', 10)
 
 %%
 
@@ -70,13 +84,13 @@ is.fileName
 
 %%
 
-is.fileName(1,1,2,1)
+is.fileName(1,1,6,1)
 
 
 %% 
 
-is.setRangeKey('Z', num2cell('abcdefghiklmnop'))
-is.rangeKey
+is.setKey('Z', num2cell('abcdefghiklmnop'))
+is.key
 is.fileName('Z', 'f', 'W', 1)
 
 
@@ -95,24 +109,73 @@ obj = ImageSource;
 
 is = ImageSourceFiles('./Test/Images/hESCells_Tiling/W<W,1>F<F,3>T0001Z<Z,2>C<C,1>.tif');
 is.printInfo
+is.fileTagRange
+
+is.rangeFromFileTagRange
+
+%%
+
+is.setRange('F', 2:5)
+
+is.fileTagRange
+
+
+%%
+clc
+is.rawRangeFromFileTagRange
+
+
+%%
+clc
+is.rangeFromFileTagRange('F', 34)
+
+%%
+
+clc
+is.fileName(1:3)
+
+%%
+
+is.range
+
+is.cellDataFormat
+is.cellDataSize
+
+%%
+
+is.fileName('F', 1:5, 'W', 1)
+is.fileNameFromRawRange
 
 %%
 
 d = is.data(1);
+size(d)
+is.dataSize
+
+%%
 figure(1); clf;
 implot(d)
 
 %%
 clc
-is.cell
+cdat = is.cell;
+
+size(cdat)
+is.cellSize
 
 
 %%
 
-cdat = is.cell(1:4)
+is.setRawCellDataCaching(true);
+
+cdat = is.cell
 
 figure(1); clf
 implottiling(cdat')
+
+%%
+
+is.setRawCellDataCaching(false);
 
 %%
 
@@ -123,6 +186,7 @@ is.minDataIntensity
 
 %%
 clc
+is.resetRange
 is.setReshape('F', 'UV', [4,4]);
 is.reformatCellFormat('Uv');
 is.printInfo

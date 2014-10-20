@@ -20,8 +20,10 @@ ii.dataSizeC
 
 
 %% from image file
- 
+clc
 ii = imreadBFInfo('./Test/Images/hESCells_DAPI.tif')
+ii.printInfo
+
 
 ii.dataSize
 ii.dataDims                                             
@@ -29,15 +31,11 @@ ii.dataDims
 
 %% Test reformatting
 
-ii.renameFormat('Y','Z')
-
-
+ii.renameRawCellDataFormat('Y', 'Z')
 
 %% test some reshape functionality
 clc
 ii.setReshape('X', 'XY', [16,32])
-
-
 
 %% test with some data
 
@@ -66,6 +64,4 @@ ii = imreadBFInfo('./Test/Images/hESCells_DAPI.tif')
 clc
 ii.setRange('X', 1:10);
 ii.printInfo
-
-
 

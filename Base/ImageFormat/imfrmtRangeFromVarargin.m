@@ -1,6 +1,6 @@
-function rgs = imfrmtParseRangeLast(varargin)
+function rgs = imfrmtRangeFromVarargin(varargin)
 %
-% rgs = imfrmtParseRangeLast(param)
+% rgs = imfrmtRangeFromVarargin(param)
 %
 % description: 
 %    parses parameter and uses last format specification if multiple
@@ -9,7 +9,7 @@ function rgs = imfrmtParseRangeLast(varargin)
 %    param parameter
 %
 % output:
-%    rgs   ranges as in input. for equal entries up to upper/lower only lastis kept
+%    rgs   ranges as in input. for equal entries up to upper/lower only last is kept
 
 rgs = parseParameter(varargin);
 
@@ -26,7 +26,7 @@ for i = 1:length(fnames)
 end
 if ~isempty(rmids)
    rgs = rmfield(rgs, fnames(unique(rmids)));
-   fnames = fieldnames(rgs);
+   %fnames = fieldnames(rgs);
 end
 
 end

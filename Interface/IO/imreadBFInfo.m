@@ -172,9 +172,7 @@ else % read info from first spcified series only
  
    % set raw specs if ImageInfo class
    if isa(iinfo, 'ImageInfo')
-      iinfo.initializeCellDataFormatsAndSizesFromRaw;
-      iinfo.initializeDataAndCellSizeFromRaw;
-      iinfo.initializeDataClassFromRaw;
+      iinfo.initializeCellDataSizeAndFormatFromRaw;
    end
 
    

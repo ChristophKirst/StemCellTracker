@@ -51,7 +51,7 @@ si = size(gr{1});
 
 gr = cellfunc(@(x) x(:), gr);
 gr = cell2mat(gr);
-
+% 
 % isize
 % ifrmt
 % gr

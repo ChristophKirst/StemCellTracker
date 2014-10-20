@@ -1,12 +1,14 @@
-function range = imfrmtRangeToIndexRange(refRange, range)
+function range = imfrmtRangeToIndexRange(refRange, varargin)
 %
-% tgir = imfrmtRangeToIndexRange(refRange, range)
+% range = imfrmtRangeToIndexRange(refRange, range)
 % 
 % description:
 %    converts a coordinate range to a range compatible with the imfrmt range
 %    cells of numeric indices are converted to arrays
-%    entries present in refRange are converted to arrays indices
-%    changes due to flips in the format are taken care of
+%    entries present in refRange are converted to array indices
+%    changes due to flips in the format produce error 
+
+range = parseParameter(varargin);
 
 tnames = fieldnames(range);
 
@@ -31,16 +33,27 @@ for i = 1:length(tnames)
          vref = {vref};
       end
 
+%       v
+%       vref
       if iscellstr(v)
          if iscellstr(vref)
-            v = find(ismember(vref, v));            
+            vi = ismember(vref, v);            
          else
             error('imfrmtRangeToIndexRange: type mismatch in field %s in reference and range!', f);
          end
+         if sum(vi) ~= length(v)
+            error('imfrmtRangeToIndexRange: %s keys %s do not exists in range %s!', rf, var2char(v(~vi)), var2char(vref));
+         else
+            v = find(vi);
+         end
+         
       else
          if iscell(v)
             v = cell2mat(v);
-         end         
+         end
+         if iscell(vref)
+            vref = cell2mat(vref);
+         end
          if isnumeric(vref) && isnumeric(v)
             if iscell(vref)
                vref = cell2mat(vref);
@@ -51,14 +64,19 @@ for i = 1:length(tnames)
                error('imfrmtRangeToIndexRange: values in field %s out of reference range!', f);
             end
          elseif ~(iscellstr(vref) && isnumeric(v))
-            % if vref is cellstr but v is numeric then just take v
-            error('imfrmtRangeToIndexRange: type mismatch in field %s in reference and range!', f);
+            % if vref is cellstr but v is numeric -> check if in range
+            if any(v < 1) || any(v > length(vref))
+               error('imfrmtRangeToIndexRange: index out of bounds in field %s!', f);
+            end
          end
       end
   
 
       if rf ~= f
-         range.(f) = length(vref) - v + 1;
+         %range = rmfield(range, f);
+         %length(vref)
+         %range.(rf) = length(vref) - v + 1;
+         error('imfrmtRangeToIndexRange: inversion axis not recommended for non index ranges!');
       else
          range.(f) = v;
       end

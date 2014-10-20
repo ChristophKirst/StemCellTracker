@@ -48,6 +48,9 @@ if any(posRangeFrom)
    idx = imfrmtRangeToIndex(sizeFrom, reshapeFrom, range);
    
    % to reshapeTo range
+   %reshapeSize
+   %reshapeTo
+   %idx
    range = imfrmtRangeFromIndex(reshapeSize, reshapeTo, idx);
    
    
@@ -60,8 +63,8 @@ if any(posRangeFrom)
    range = imfrmtReformatRange(reshapeSize, reshapeTo, outFrmt(posToRange), range);
 
    % remove reshapeFrom and add reshapeTo ranges
-   outRange = imfrmtRemoveRange(outRange, imfrmtRemoveFormat(reshapeFrom, reshapeTo));
-   outRange = parseParameter(outRange, range);
+   outRange = imfrmtRemoveRange(outRange, reshapeFrom);
+   outRange = imfrmtRangeFromVarargin(outRange, range);
 end
 
 % check if dimensions are lost and if so set range to first 

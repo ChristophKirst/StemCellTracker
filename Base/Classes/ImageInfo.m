@@ -13,6 +13,7 @@ classdef ImageInfo < matlab.mixin.Copyable
    %                           the cell organizaton for reading is in the raw cell format
    %                           the cell data is then reshaped and reformatted into the output data and cells
    %                           with possible conversions between cell and data dimensions
+   %                indexing / ranges:  ranges are index ranges or range keys
    
    properties
       % output data/cell sizes and formats when returned by the data and cell commands 
@@ -27,7 +28,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       
       % coordinate ranges
       irange = struct();             % specify a subset of coordinate ranges
-      irangekey = struct();          % keys for certain coordinate ranges (e.g.  .C = {'GFP, 'DAPI'} corresponds to C = [1,2] etc)
+      ikey   = struct();             % keys for certain coordinate ranges (e.g.  .C = {'GFP, 'DAPI'} corresponds to C = [1,2] etc)
       
  
       % input  data/cell sizes and formats when load from disk / stream etc
@@ -93,18 +94,18 @@ classdef ImageInfo < matlab.mixin.Copyable
       
       function obj = fromParameter(obj, varargin)
          obj = classFromParameter(obj, 'i', varargin);
-         obj.initializeRawFormatsAndSizes();
+         obj.setCellDataSizeAndFormatToRaw();
       end
       
       function obj = fromData(obj, data)
          obj = imfrmtInfoFromData(data, obj);
-         obj.initializeRawCellDataFormatsAndSizesFromData();
+         obj.setCellDataSizeAndFormatToRaw();
       end
 
       function obj = fromFile(obj, filename)
          info = imreadBFInfo(filename);
          obj.fromImageInfo(info);
-         obj.initializeRawCellDataFormatsAndSizesFromData();
+         obj.setCellDataSizeAndFormatToRaw();
       end
       
       function obj = fromImageInfo(obj, info)
@@ -117,10 +118,10 @@ classdef ImageInfo < matlab.mixin.Copyable
       function obj = fromImfInfo(obj, info)
          info = imfinfo2info(info);
          obj.fromImageInfo(info);
-         obj.initializeRawCellDataFormatsAndSizesFromData();
+         obj.setCellDataSizeAndFormatToRaw();
       end
 
-      function obj = initializeRawCellDataFormatsAndSizesFromData(obj)
+      function obj = setCellDataSizeAndFormatToRaw(obj)
          if isempty(obj.irawdataformat)
             obj.irawdataformat = obj.idataformat;
             obj.irawdatasize   = obj.idatasize;
@@ -132,7 +133,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          end
       end
       
-      function obj = initializeCellDataFormatsAndSizesFromRaw(obj)
+      function obj = setCellDataSizeAndFormatFromRaw(obj)
          if isempty(obj.idataformat)
             obj.idataformat = obj.irawdataformat;
             obj.idatasize   = obj.irawdatasize;
@@ -148,9 +149,9 @@ classdef ImageInfo < matlab.mixin.Copyable
          obj.idataclass = obj.irawdataclass;
       end
        
-      function obj = initializeDataAndCellSizeFromRaw(obj)
+      function obj = initializeCellDataSizeFromRaw(obj)
          %
-         % obj = initializeDataAndCellSizeFromRaw(obj)
+         % obj = initializeCellDataSizeFromRaw(obj)
          %
          % decription:
          %   sets data and cell size using raw data and cell size and format info 
@@ -170,14 +171,14 @@ classdef ImageInfo < matlab.mixin.Copyable
          end
       end
       
-      function obj = initializeDataAndCellFormatFromRaw(obj)
+      function obj = initializeCellDataFormatFromRaw(obj)
          obj.idataformat = obj.irawdataformat;
          obj.icellformat = obj.irawcellformat;
       end
       
-      function obj = initializeDataAndCellFromRaw(obj)
-         obj.initializeDataAndCellFormatFromRaw();
-         obj.initializeDataAndCellSizeFromRaw();
+      function obj = initializeCellDataSizeAndFormatFromRaw(obj)
+         obj.initializeCellDataFormatFromRaw();
+         obj.initializeCellDataSizeFromRaw();
          obj.initializeDataClassFromRaw();
       end
 
@@ -201,20 +202,261 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          [obj.idataformat, obj.icellformat] = imfrmtReshapeCellDataFormat(obj.irawdataformat, obj.irawcellformat, obj.ireshapefrom, obj.ireshapeto);
 
-         obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
       end
       
       
       function obj = initializeRangeKeyFromChannelName(obj)
          if ~isempty(obj.ichannelname)
-            obj.irangekey.C = obj.ichannelname;
+            obj.ikey.C = obj.ichannelname;
          end
       end
       
+      
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% keys
+      
+      
+      function r = key(obj, varargin)
+         if nargin == 1
+            r = obj.ikey;
+         else
+            r = imfrmtRangeFromFormatAndVarargin(varargin{1}, obj.ikey);
+         end
+      end
+      
+      function obj = setKey(obj, varargin)
+         obj.ikey = parseParameter(varargin);
+      end
+      
+      function obj = addKey(obj, varargin)
+         obj.ikey = parseParameter(obj.ikey, varargin);
+      end
+      
+      function obj = resetKey(obj, varargin)
+         obj.ikey = struct;
+      end      
+      
+
+      function r = indexRangeFromKey(obj, varargin)
+         % replaces keys with indices in any range (ouput and raw ranges)
+         r = imfrmtRangeToIndexRange(obj.ikey, varargin);
+      end
+      
+      function r = keyFromIndexRange(obj, varargin)
+         % replaces indices with keys in any range (ouput and raw ranges)
+         r = imfrmtRangeFromIndexRange(obj.ikey, varargin);
+      end
+
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% ranges 
+      
+      % note: irange and ikey are w.r.t. the full data format and size
+      %       ranges restric data and cell size 
+
+      
+      function rn = rangeNames(obj)
+         rn = fieldnames(obj.irange);
+      end
+      
+      function obj = setRange(obj, varargin)
+         obj.irange = struct;
+         obj.irange = obj.rangeFromVarargin(varargin{:});
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
+      end
+      
+      function obj = addRange(obj, varargin)
+         obj.irange = obj.rangeFromVarargin(varargin{:});
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
+      end
+      
+      function obj = resetRange(obj)
+         obj.irange = struct;
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
+      end
+      
+      function obj = removeRange(obj, frmt)
+         obj.irange = imfrmtRemoveRange(obj.irange, frmt);
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
+      end
+      
+      
+      
+      function range = range(obj, varargin)
+         range = obj.rangeFromVarargin(varargin{:});
+      end
+      
+      
+      function [rRange, rReshape] = rawRange(obj, varargin)
+         % determine raw range and optional reshaping sizes
+         % inputs are converted via range keys
+         % numerical indices are asusmed to be w.r.t. the output cell format / size
+         
+         range = obj.rangeFromVarargin(varargin{:});
+          
+         % inverse reshaping
+         [rRange, rReshape] = imfrmtReshapeInverseCellDataRange(obj.fullDataSize, obj.fullDataFormat, obj.rawDataFormat, ...
+                                                                obj.fullCellSize, obj.fullCellFormat, obj.rawCellFormat, ...
+                                                                obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, range);                                               
+      end
+
+      
+      function range = rangeFromRawRange(obj, varargin)
+         range = obj.rawRangeFromRawVarargin(varargin);
+         range = imfrmtReshapeRange(obj.rawCellDataSize, obj.rawCellDataFormat, obj.cellDataFormat, ...
+                                    obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, range);     
+      end
+
+      
+      function range = rawRangeFromRawRange(obj, varargin)
+         range = obj.rawRangeFromRawVarargin(varargin);
+      end
+      
+      
+      % parsing routines
+      
+      function range = rangeFromCellIndex(obj, varargin)
+         %
+         % range = rangeFromCellIndex(obj)
+         % range = rangeFromCellIndex(obj, idx)
+         % range = rangeFromCellIndex(obj, sub1, sub2, ...)
+         %
+         % description:
+         %     converts cell indices w.r.t. to the restricted cell size / format to a range
+         %
+         % input:
+         %     idx    array of indices w.r.t to the restricted cell size and form
+         %     sub*   sub array indices w.r.t. the restircted cell size and form 
+         %
+         % output:
+         %     index range w.r.t. the full data cell  size / format
+         
+         % parse indices to restricted range
+         range = imfrmtRangeFromIndex(obj.cellSize, obj.cellFormat, varargin{:});
+         % convert restricted range to full index range
+         range = imfrmtIndexRangeFromIndexRange(obj.irange, range);
+         % complement to full range specs
+         range = imfrmtRangeFromVarargin(obj.irange, range);
+      end
+      
+      function range = rangeFromDataIndex(obj, varargin)
+         %
+         % range = rangeFromDataIndex(obj)
+         % range = rangeFromDataIndex(obj, idx)
+         % range = rangeFromDataIndex(obj, sub1, sub2, ...)
+         %
+         % description:
+         %     converts data indices w.r.t. to the restricted data size / format to a range
+         %
+         % input:
+         %     idx    array of indices w.r.t to the restricted data size and form
+         %     sub*   sub array indices w.r.t. the restircted data size and form 
+         %
+         % output:
+         %     index range w.r.t. the full data cell  size / format
+         
+         % parse indices to restricted range
+         range = imfrmtRangeFromIndex(obj.dataSize, obj.dataFormat, varargin{:});
+         % convert restricted range to full index range
+         range = imfrmtIndexRangeFromIndexRange(obj.irange, range);
+         % complement to full range specs
+         range = imfrmtRangeFromVarargin(obj.irange, range);
+      end
+      
+      
+      function range = rangeFromVarargin(obj, varargin)
+         %
+         % range = rangeFromVarargin(obj, varargin)
+         %
+         % description:
+         %     parses the range from inputs 
+         %     numerical indices are w.r.t to the restricted cell format and size
+         %     range specs are w.r.t. the full data / cell size / format
+         %
+         % output:
+         %     index range w.r.t. the full data cell  size / format
+         
+         if nargin == 1 % nothing spcified return full specified range
+            range = obj.irange;
+ 
+         elseif nargin > 1 && isnumeric(varargin{1})  % form index 
+            range = obj.rangeFromCellIndex(varargin{:});
+            
+         else
+            range = imfrmtRangeFromVarargin(varargin); % from range specs
+            range = imfrmtRangeToIndexRange(obj.key, range); 
+            range = imfrmtRangeFromVarargin(obj.irange, range);
+         end
+      end
+      
+      
+      function range = rawRangeFromRawCellIndex(obj, varargin)
+         %
+         % range = rawRangeFromRawCellIndex(obj)
+         % range = rawRangeFromRawCellIndex(obj, idx)
+         % range = rawRangeFromRawCellIndex(obj, sub1, sub2, ...)
+         %
+         % description:
+         %     converts cell indices w.r.t. to the raw cell size / format to a raw range
+         %
+         % input:
+         %     idx    array of indices w.r.t to the restricted raw cell size and form
+         %     sub*   sub array indices w.r.t. the restircted raw cell size and form 
+         %
+         % output:
+         %     range  raw index range w.r.t. the full data cell  size / format
+         
+         % parse indices to restricted range
+         range = imfrmtRangeFromIndex(obj.rawCellSize, obj.rawCellFormat, varargin{:});
+
+         % complement to full range specs
+         range = imfrmtRangeFromVarargin(obj.rawRange, range);
+      end
+      
+      
+      function range = rawRangeFromRawVarargin(obj, varargin)
+         % parses the raw range from inputs 
+         % indices are w.r.t to raw cell format and size
+         % all inputs are transformed via range keys
+         
+         if nargin == 1 % nothing spcified return full specified range
+            range = obj.rawRange;
+
+         elseif nargin > 1 && isnumeric(varargin{1})
+            range = obj.rawRangeFromRawCellIndex(varargin{:});
+         else
+            range = imfrmtRangeFromVarargin(varargin); % from range specs 
+            range = imfrmtRangeFromVarargin(obj.rawRange, range);
+         end 
+      end
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data
-      
+
       function d = dataDims(obj)
          d = length(obj.idataformat);
       end 
@@ -222,35 +464,28 @@ classdef ImageInfo < matlab.mixin.Copyable
       function s = dataSize(obj, varargin) 
          if nargin == 1
             s = obj.idatasize;
-         %elseif nargin == 2 && ischar(varargin{1})
-         %   s = imfrmtReformatSize(obj.idatasize, obj.idataformat, varargin{1});
+         elseif nargin == 2 && ischar(varargin{1})
+            s = imfrmtReformatSize(obj.idatasize, obj.idataformat, varargin{1});
          else
-            range = obj.dataRangeFromVarargin(varargin{:});
-            s = imfrmtRangeSize(obj.dataSizeFromRaw, obj.idataformat, range);
+            s = imfrmtRangeSize(obj.dataSizeFromRawSize, obj.idataformat, obj.range(varargin{:}));
          end
       end
 
-      function s = dataSizeFromRaw(obj) 
-         % return full data size not constrained by ranges ubut using current data format
+      function s = dataSizeFromRawSize(obj) 
+         % returns full data size not constrained by ranges but using current data format
          s = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
                                        obj.dataFormat,  obj.cellFormat,...
                                        obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
       
-      function [s, frmt] = dataSizeFromRawFormat(obj) 
+      function [s, frmt] = fullDataSize(obj) 
          % return full data size not constrained by ranges using full data format obtained from raw format
-         frmt = obj.dataFormatFromRawFormat;
+         frmt = obj.fullDataFormat;
          s = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
-                                       frmt,            obj.cellFormatFromRawFormat,...
+                                       frmt,            obj.fullCellFormat,...
                                        obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
-      
-      function df = dataFormatFromRawFormat(obj)
-         % uses reshaping and raw format to get full version of the data frmt
-         df = imfrmtReshapeFormat(obj.rawDataFormat, obj.reshapeFrom. obj.reshapeTo); 
-      end
-
-      
+        
       function ds = dataSizeXYZCT(obj)
          ds = imfrmtReformatSize(obj.idatasize, obj.idataformat, 'XYZCT');
       end
@@ -275,14 +510,19 @@ classdef ImageInfo < matlab.mixin.Copyable
          df = obj.idataformat;
       end
       
+      function df = fullDataFormat(obj)
+         % uses reshaping and raw format to get full version of the data frmt
+         df = imfrmtReshapeFormat(obj.rawDataFormat, obj.reshapeFrom, obj.reshapeTo); 
+      end
+
+      
       function dc = dataClass(obj)
          dc = obj.idataclass;
       end
-      
-      
-      function obj = setDataSize(obj, newsize)
-         obj.idatasize = newsize;
-      end
+
+%       function obj = setDataSize(obj, newsize)
+%          obj.idatasize = newsize;
+%       end
       
       function obj = setDataFormat(obj, newfrmt)
          %obj.idataformat = newfrmt;  
@@ -296,11 +536,14 @@ classdef ImageInfo < matlab.mixin.Copyable
 
       function obj = reformatDataFormat(obj, newfrmt)
          %obj.reformatColor(obj.idataformat, newfrmt);
-         obj.idatasize   = imfrmtReformatSize(obj.dataSizeFromRaw, obj.idataformat, newfrmt);
+         obj.idatasize   = imfrmtReformatSize(obj.fullDataSize, obj.fullDataFormat, newfrmt);
          obj.idataformat = newfrmt;
          
-         obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
+         obj.initializeCellDataSizeFromRaw;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
       end
 
       function obj = renameDataFormat(obj, oldlab, newlab) 
@@ -323,7 +566,7 @@ classdef ImageInfo < matlab.mixin.Copyable
           obj.idataformat(ids) = newlab;
           
           obj.irange = renamestruct(obj.irange, num2cell(oldlab), num2cell(newlab));
-          obj.irangename = renamestruct(obj.irangename, num2cell(oldlab), num2cell(newlab)); 
+          obj.ikey = renamestruct(obj.ikey, num2cell(oldlab), num2cell(newlab)); 
       end
        
       
@@ -341,50 +584,52 @@ classdef ImageInfo < matlab.mixin.Copyable
       function s = cellSize(obj, varargin) 
          if nargin == 1
             s = obj.icellsize;
-         %elseif nargin == 2 && ischar(varargin{1})
-         %   s = imfrmtReformatSize(obj.icellsize, obj.icellformat, varargin{1});
+         elseif nargin == 2 && ischar(varargin{1})
+            s = imfrmtReformatSize(obj.icellsize, obj.icellformat, varargin{1});
          else
-            range = obj.cellRangeFromVarargin(varargin{:});
-            s = imfrmtRangeSize(obj.cellSizeFromRaw, obj.icellformat, range);
+            range = obj.rangeFromVarargin(varargin{:});
+            s = imfrmtRangeSize(obj.cellSizeFromRawSize, obj.icellformat, range);
          end  
       end
 
-      function s = cellSizeFromRaw(obj) 
+      function s = cellSizeFromRawSize(obj) 
          % return full data size not constrained by ranges or curent data format
          [~, s] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
                                        obj.dataFormat, obj.cellFormat,...
                                        obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
 
-      function [s, frmt] = cellSizeFromRawFormat(obj) 
+      function [s, frmt] = fullCellSize(obj) 
          % return full data size not constrained by ranges but using current data format
-         frmt = obj.cellFormatFromRawFormat;
+         frmt = obj.fullCellFormat;
          [~, s] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
-                                       obj.dataFormatFromRawFormat, frmt,...
+                                       obj.fullDataFormat, frmt,...
                                        obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
-      
-      function df = cellFormatFromRawFormat(obj)
-         % uses reshaping and raw format info to get a version of the full data frmt
-         df = imfrmtReshapeFormat(obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo); 
-      end
-      
-      
-      function obj = setCellSize(obj, newsize)
-         obj.isize = newsize;
-      end
+
+%       function obj = setCellSize(obj, newsize)
+%          obj.isize = newsize;
+%       end
          
+      function df = fullCellFormat(obj)
+         % uses reshaping and raw format info to get a version of the full data frmt
+         df = imfrmtReshapeFormat(obj.rawCellFormat, obj.reshapeFrom, obj.reshapeTo); 
+      end
+      
       function obj = setCellFormat(obj, newfrmt)
          %obj.icellformat = newfrmt;
+         
          obj = obj.reformatCellFormat(newfrmt); %its inconsistent but more intuitive
       end
 
       function obj = reformatCellFormat(obj, newfrmt)
-         obj.icellsize  = imfrmtReformatSize(obj.cellSize, obj.cellFormat, newfrmt);
+         obj.icellsize  = imfrmtReformatSize(obj.fullCellSize, obj.fullCellFormat, newfrmt);
          obj.icellformat = newfrmt;
          
-         %obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
+         %obj.initializeCellDataSizeFromRaw;
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
       end 
       
       function obj = renameCellFormat(obj, oldlab, newlab)            
@@ -397,6 +642,7 @@ classdef ImageInfo < matlab.mixin.Copyable
           obj.icellformat(ids) = newlab;
           
           obj.irange = renamestruct(obj.irange, num2cell(oldlab), num2cell(newlab));
+          obj.ikey = renamestruct(obj.ikey, num2cell(oldlab), num2cell(newlab)); 
       end
 
       
@@ -412,7 +658,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          if nargin == 1
             rs = obj.irawdatasize;
          else
-            rs = obj.rawDataRangeFromVarargin(varargin{:});
+            rs = obj.rawRangeFromRawVarargin(varargin{:});
             rs = imfrmtRangeSize(obj.irawdatasize, obj.irawdataformat, rs);
          end
       end
@@ -425,19 +671,28 @@ classdef ImageInfo < matlab.mixin.Copyable
          rc = obj.irawdataclass;
       end
  
-      function obj = setRawDataSize(obj, newsize)
-         obj.irawdatasize = newsize;
-      end
+%       function obj = setRawDataSize(obj, newsize)
+%          obj.irawdatasize = newsize;
+%       end
       
       function obj = setRawDataFormat(obj, newfrmt)
-         obj.irawdataformat = newfrmt;
+         %obj.irawdataformat = newfrmt;
+         obj.reformatRawDataFormat(newfrmt);
+         
+         
+         if isa(obj, 'ImageSource')
+            obj.clearRawCellDataCache;
+         end
       end
       
       function obj = reformatRawDataFormat(obj, newfrmt)
          obj.irawdatasize   = imfrmtReformatSize(obj.rawDataSize, obj.rawDataFormat, newfrmt);
          obj.irawdataformat = newfrmt;
          
-         obj.clearRawCellDataCache;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearRawCellDataCache;
+         end
       end
       
       function obj = renameRawDataFormat(obj, oldlab, newlab)            
@@ -462,7 +717,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          if nargin == 1
             rs = obj.irawcellsize;
          else
-            rs = obj.rawCellRangeFromVarargin(varargin{:});
+            rs = obj.rawRangeFromRawVarargin(varargin{:});
             rs = imfrmtRangeSize(obj.irawcellsize, obj.irawcellformat, rs);
          end
       end
@@ -471,19 +726,29 @@ classdef ImageInfo < matlab.mixin.Copyable
          rf = obj.irawcellformat;
       end
       
-      function obj = setRawCellSize(obj, newsize)
-         obj.irawcellsize = newsize;
-      end
+%       function obj = setRawCellSize(obj, newsize)
+%          obj.irawcellsize = newsize;
+%       end
       
       function obj = setRawCellFormat(obj, newfrmt)
-         obj.irawcellformat = newfrmt;
+         %obj.irawcellformat = newfrmt;
+         obj.reformatRawCellFormat(newfrmt); % consistent with intuitive setCellFormat
+       
+         
+         if isa(obj, 'ImageSource')
+            obj.clearRawCellDataCache;
+         end
       end
+      
       
       function obj = reformatRawCellFormat(obj, newfrmt)
          obj.irawcellsize  = imfrmtReformatSize(obj.rawCellSize, obj.rawCellFormat, newfrmt);
          obj.irawcellformat = newfrmt;
          
-         obj.clearRawCellDataCache;
+         
+         if isa(obj, 'ImageSource')
+            obj.clearRawCellDataCache;
+         end
       end
       
       function obj = renameRawCellFormat(obj, oldlab, newlab)            
@@ -496,18 +761,17 @@ classdef ImageInfo < matlab.mixin.Copyable
           obj.irawcellformat(ids) = newlab;
       end
       
-      
-        
+
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% cell data / full format 
+      %%% cell data 
       
       function f = cellDataFormat(obj)
          f = [obj.dataFormat, obj.cellFormat];
       end
 
       function f = cellDataSize(obj, varargin)
-         f = [obj.dataSize(varargin{:}), obj.dataFormat(varargin{:})];
+         f = [obj.dataSize(varargin{:}), obj.cellSize(varargin{:})];
       end
           
       function f =rawCellDataFormat(obj)
@@ -519,14 +783,14 @@ classdef ImageInfo < matlab.mixin.Copyable
       end
 
 
-      function [s, cs] = cellDataSizeFromRaw(obj) 
+      function [ds, cs] = cellDataSizeFromRaw(obj) 
          % return full cell / data size not constrained by ranges but using current data format
-         [s, cs] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
+         [ds, cs] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
                                              obj.dataFormat, obj.cellFormat,...
                                              obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
 
-      function [ds, cs, df, cf] = cellDataSizeFromRawFormat(obj) 
+      function [ds, cs, df, cf] = fullCellDataSize(obj) 
          % return full cell / data size not constrained by ranges or curent data format
          [df, cf] = imfrmtReshapeCellDataFormat(obj.rawDataFormat, obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo);  
          [ds, cs] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
@@ -534,57 +798,229 @@ classdef ImageInfo < matlab.mixin.Copyable
                                        obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
       
-      function [df, cf] = cellDataFormatFromRawFormat(obj)
+      function [df, cf] = fullCellDataFormat(obj)
          % uses reshaping and raw format info to get a version of the full data frmt
          [df, cf] = imfrmtReshapeCellDataFormat(obj.rawDataFormat, obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo); 
       end
       
 
-      function obj = setCellDataFormat(obj, newdatafrmt, newcellfrmt)
-         %obj.idataformat = newdatafrmt;
-         %obj.icellformat = newcellfrmt;
-         %obj.initializeDataAndCellSizeFromRaw();
-         
-         obj.icellsize  = imfrmtReformatSize(obj.cellSize, obj.cellFormat, newcellfrmt);
-         obj.icellformat = newcellfrmt;
-         
-         obj.irawdatasize   = imfrmtReformatSize(obj.rawDataSize, obj.rawDataFormat, newdatafrmt);
-         obj.irawdataformat = newdatafrmt;
-         
-         obj.clearRawCellDataCache;
+      function obj = setCellDataFormat(obj, newdatafrmt, newcellfrmt)    
+         obj.setDataFormat(newdatafrmt);
+         obj.setCellFormat(newcellfrmt);
       end
-      
-       
+ 
       function obj = renameCellDataFormat(obj, oldlab, newlab)
          obj.renameDataFormat(oldlab, newlab);
-         %obj.renameRawDataFormat(oldlab, newlab);
-        
          obj.renameCellFormat(oldlab, newlab);
-         %obj.renameRawCellFormat(oldlab, newlab);
-         
-         %obj.irange = renamestruct(obj.irange, num2cell(oldlab), num2cell(newlab));
       end
       
       function obj = renameRawCellDataFormat(obj, oldlab, newlab)
-         %obj.renameDataFormat(oldlab, newlab);
          obj.renameRawDataFormat(oldlab, newlab);
-        
-         %obj.renameCellFormat(oldlab, newlab);
          obj.renameRawCellFormat(oldlab, newlab);
-         
-         %obj.irange = renamestruct(obj.irange, num2cell(oldlab), num2cell(newlab));
       end
       
-      function obj = renameFormat(obj, oldlab, newlab)
-         obj.renameDataFormat(oldlab, newlab);
-         obj.renameRawDataFormat(oldlab, newlab);
-        
-         obj.renameCellFormat(oldlab, newlab);
-         obj.renameRawCellFormat(oldlab, newlab);
-         
-         %obj.irange = renamestruct(obj.irange, num2cell(oldlab), num2cell(newlab));
+      
+%       function obj = renameFormat(obj, oldlab, newlab)
+%          obj.renameDataFormat(oldlab, newlab);
+%          obj.renameCellFormat(oldlab, newlab);
+%          
+%          obj.renameRawDataFormat(oldlab, newlab);
+%          obj.renameRawCellFormat(oldlab, newlab);
+%          
+%          % note: no renamming of reshape formats done here
+%       end
+      
+
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      %%% indices
+      
+      % note: three sorts of indices: 
+      %          - out format indices w.r.t to the restricted range
+      %          - full out format indices not restricted by range
+      %          - raw indices
+      %
+      %          - keys and internal ranges are alsways w.r.t the full range
+
+      
+      % data 
+            
+      function n = nDataIndices(obj, varargin)
+         n = prod(obj.dataSize(obj, varargin));
+      end
+      
+      function n = nFullDataIndices(obj, varargin)
+         n = prod(obj.fullDataSize(varargin{:}));
+      end
+      
+            
+      function n = nCellIndices(obj, varargin)
+         n = prod(obj.cellSize(varargin{:}));
       end
 
+      function n = nFullCellIndices(obj, varargin)
+         n = prod(obj.fullCellSize(varargin{:}));
+      end
+      
+      function n = nCells(obj, varargin)
+         n = prod(obj.cellSize(varargin{:}));
+      end
+      
+      
+      function id = dataIndex(obj, varargin)
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromSizeAndVarargin(obj.dataSize, varargin{:});
+         else
+            range = obj.rangeFromVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.fullDataSize, obj.fullDataFormat, range);
+            id = imfrmtFullIndexToIndex(obj.fullDataSize, obj.fullDataFormat, obj.irange, id); 
+         end
+      end
+
+      function id = fullDataIndex(obj, varargin)
+         % converts index w.r.t. to restricted range to index w.r.t. to full range 
+         range = obj.rangeFromVarargin(varargin{:});
+         id = imfrmtRangeToIndex(obj.fullDataSize, obj.fullDataFormat, range);
+      end
+      
+
+      
+      function id = cellIndex(obj, varargin)
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromSizeAndVarargin(obj.cellSize, varargin{:});
+         else
+            range = obj.rangeFromVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.fullCellSize, obj.fullCellFormat, range);
+            id = imfrmtFullIndexToIndex(obj.fullCellSize, obj.fullCellFormat, obj.irange, id);
+         end
+      end
+
+      function id = fullCellIndex(obj, varargin)
+         % converts index w.r.t. to restricted range to index w.r.t. to full range 
+         range = obj.rangeFromVarargin(varargin{:});
+         id = imfrmtRangeToIndex(obj.fullCellSize, obj.fullCellFormat, range);
+      end
+      
+      
+      
+      function id = fullDataIndexToDataIndex(obj, id)
+         id = imfrmtFullIndexToIndex(obj.fullDataSize, obj.fullDataFormat, obj.irange, id);
+      end
+      
+      function id = fullCellIndexToCllIndex(obj, id)
+         id = imfrmtFullIndexToIndex(obj.fullCellSize, obj.fullCellFormat, obj.irange, id);
+      end
+      
+      
+      
+      function id = dataIndexToSubIndex(obj, id, varargin)
+         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+            id = [id, varargin{:}];
+         else
+            id = imind2sub(obj.dataSize, id);
+         end
+      end
+
+      function id = cellIndexToSubIndex(obj, id, varargin)
+         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+            id = [id, varargin{:}];
+         else
+            id = imind2sub(obj.cellSize, id);
+         end
+      end
+      
+                
+%       function range = dataIndexToRange(obj, varargin)
+%          % returns ranges restricted by interal range settings and data specs in varargin
+%          range = imfrmtRangeFromIndex(obj.dataSize, obj.dataFormat, varargin{:});
+%          range = imfrmtRangeFromVarargin(obj.irange, range);
+%       end
+
+
+
+      function n = nRawDataIndices(obj, varargin)
+         n = prod(obj.rawDataSize(varargin{:}));
+      end
+      
+      function n = nRawCellIndices(obj, varargin)
+         n = prod(obj.rawCellSize(varargin{:}));
+      end
+
+      function n = nRawCells(obj, varargin)
+         n = prod(obj.rawCellSize(varargin{:}));
+      end
+      
+  
+      function id = rawDataIndexFromRawVarargin(obj, varargin)
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromVarargin(obj.rawDataSize, varargin{:});
+         else
+            range = obj.rawRangeFromRawVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.rawDataSize, obj.rawDataFormat, range);
+         end
+      end
+
+      function id = rawCellIndexFromRawVarargin(obj, varargin)
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromVarargin(obj.rawCellSize, varargin{:});
+         else
+            range = obj.rawRangeFromRawVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.rawCellSize, obj.rawCellFormat, range);
+         end
+      end
+      
+      
+      function id = rawDataIndex(obj, varargin)
+         range = obj.rawRange(varargin{:});
+         id = imfrmtRangeToIndex(obj.rawDataSize, obj.rawDataFormat, range);
+      end
+
+      function id = rawCellIndex(obj, varargin)
+         range = obj.rawRange(varargin{:});
+         id = imfrmtRangeToIndex(obj.rawCellSize, obj.rawCellFormat, range);
+      end
+      
+      function range = rawDataIndexToRange(obj, varargin)
+         range = imfrmtRangeFromIndex(obj.rawDataSize, obj.rawDataFormat, varargin{:});
+         range = imfrmtRangeFromVarargin(obj.rawRange, range);
+      end
+      
+      function range = rawCellIndexToRange(obj, varargin)
+         range = imfrmtRangeFromIndex(obj.rawCellSize, obj.rawCellFormat, varargin{:});
+         range = imfrmtRangeFromVarargin(obj.rawRange, range);
+      end
+     
+      
+  
+%       function coords = dataIndexToCoordinate(obj, id, varargin)
+%          if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+%             id = imsub2ind(obj.dataSize, [id, varargin{:}]);
+%          end 
+%          coords = imfrmtIndexToCoordinate(obj.dataSize, obj.dataFormat, id);
+%       end
+%       
+%       function coords = cellIndexToCoordinate(obj, id, varargin)
+%          if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+%             id = imsub2ind(obj.cellSize, [id, varargin{:}]);
+%          end 
+%          coords = imfrmtIndexToCoordinate(obj.cellSize, obj.cellFormat, id);
+%       end
+%       
+%       
+%       function coords = rawDataIndexToCoordinate(obj, id, varargin)
+%          if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+%             id = imsub2ind(obj.rawDataSize, [id, varargin{:}]);
+%          end 
+%          coords = imfrmtIndexToCoordinate(obj.rawDataSize, obj.rawDataFormat, id);
+%       end
+%       
+%       function coords = rawCellIndexToCoordinate(obj, id, varargin)
+%          if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
+%             id = imsub2ind(obj.rawCellSize, [id, varargin{:}]);
+%          end 
+%          coords = imfrmtIndexToCoordinate(obj.rawCellSize, obj.rawCellFormat, id);
+%       end
+       
+      
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% reshaping 
@@ -631,130 +1067,6 @@ classdef ImageInfo < matlab.mixin.Copyable
       end
     
       
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% ranges
-          
-      function r = range(obj, varargin)
-         
-         range = obj.cellRangeFromVarargin(varargin{:});    
-         r = imfrmtParseRangeLast(obj.irange, range);
-      end
- 
-      function [rRange, rReshape] = rawRange(obj, varargin)
-         % determine raw range and optional reshaping sizes
-         % inputs are converted via range keys
-         % numerical indices are asusmed to be w.r.t. the cell format  / size
-         
-         range = obj.cellRangeFromVarargin(varargin{:});
-         
-         % inverse reshaping
-         [rRange, rReshape] = imfrmtReshapeInverseCellDataRange(obj.dataSizeFromRaw, obj.dataFormat, obj.rawDataFormat, ...
-                                                                obj.cellSizeFromRaw, obj.cellFormat, obj.rawCellFormat, obj.reshapeFrom, ...
-                                                                obj.reshapeTo, obj.reshapeSize, range);                                               
-      end
-      
-      function r = rangeKey(obj)
-         r = obj.irangekey;
-      end
-      
-      function r = rangeToIndexRange(obj, varargin)
-         r = imfrmtRangeToIndexRange(obj.irangekey, parseParameter(varargin));
-      end
-      
-      function r = rangeFromIndexRange(obj, varargin)
-         r = imfrmtRangeToIndexRange(obj.irangekey, parseParameter(varargin));
-      end
-      
-      function obj = setRangeKey(obj, varargin)
-         obj.irangekey = parseParameter(varargin);
-      end
-      
-      function obj = addRangeKey(obj, varargin)
-         obj.irangekey = parseParameter(obj.irangekey, varargin);
-      end
-      
-      function obj = resetRangeKey(obj, varargin)
-         obj.irangekey = struct;
-      end
-      
- 
-      function rn = rangeNames(obj)
-         rn = fieldnames(obj.irange);
-      end
-      
-      function obj = setRange(obj, varargin)
-         obj.irange = obj.cellRangeFromVarargin(varargin{:});
-         obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
-      end
-      
-      function obj = addRange(obj, varargin)
-         obj.irange = parseParameter(obj.irange, varargin);
-         obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
-      end
-      
-      function obj = resetRange(obj)
-         obj.irange = struct();
-         obj.initializeDataAndCellSizeFromRaw;
-         obj.clearCellDataCache;
-      end
-          
-       
-      function range = dataRangeFromVarargin(obj, varargin)
-         % parses the raw range from inputs 
-         % indices are w.r.t to the data format and size
-         % all inputs are transformed via range keys
-         
-         if nargin > 1 && isnumeric(varargin{1})
-            range = obj.dataIndexToCoordinate(varargin{:});
-         else
-            range = imfrmtParseRangeLast(obj.irange, obj.rangeToIndexRange(varargin));
-         end 
-      end
-      
-      function range = cellRangeFromVarargin(obj, varargin)
-         % parses the raw range from inputs 
-         % indices are w.r.t to the cell format and size
-         % all inputs are transformed via range keys
-         
-         if nargin > 1 && isnumeric(varargin{1})
-            range = obj.cellIndexToCoordinate(varargin{:});
-            range = imfrmtParseRangeLast(obj.irange, range);
-         else
-            range = imfrmtParseRangeLast(obj.irange, obj.rangeToIndexRange(varargin));
-         end 
-      end
-      
-      function range = rawDataRangeFromVarargin(obj, varargin)
-         % parses the raw range from inputs 
-         % indices are w.r.t to the data format and size
-         % all inputs are assumed to be index ranges (no transform via keys!)
-         
-         if nargin > 1 && isnumeric(varargin{1})
-            range = obj.rawDataIndexToCoordinate(varargin{:});
-         else
-            %range = obj.rangeToIndexRange(varargin);
-            %range = imfrmtParseRangeLast(obj.rawRange, range);
-            range = imfrmtParseRangeLast(obj.rawRange, varargin{:});
-         end 
-      end
-      
-      function range = rawCellRangeFromVarargin(obj, varargin)
-         % parses the raw range from inputs 
-         % indices are w.r.t to the cell format and size
-         % all inputs are assumed to be index ranges (no transform via keys!)
-
-         if nargin > 1 && isnumeric(varargin{1})
-            range = obj.rawCellIndexToCoordinate(varargin{:});
-         else
-            %range = obj.rangeToIndexRange(varargin);
-            %range = imfrmtParseRangeLast(obj.rawRange, range);
-            range = imfrmtParseRangeLast(obj.rawRange, varargin{:});
-         end 
-      end
-      
-      
 
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -799,133 +1111,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          [~, i] = ismember(frmt, obj.rawCellFormat);
       end
   
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% indices
-      
-            
-      function n = nDataIndices(obj, varargin)
-         n = prod(obj.dataSize(varargin{:}));
-      end
-      
-      function n = nCellIndices(obj, varargin)
-         n = prod(obj.cellSize(varargin{:}));
-      end
-      
-      function n = nCells(obj, varargin)
-         n = prod(obj.cellSize(varargin{:}));
-      end
-      
-      function n = nRawDataIndices(obj, varargin)
-         n = prod(obj.rawDataSize(varargin{:}));
-      end
-      
-      function n = nRawCellIndices(obj, varargin)
-         n = prod(obj.rawCellSize(varargin{:}));
-      end
-
-      function i = dataIndex(obj, varargin)
-         % returns indices of the data corresponding to the input specs
-         % ranges are converted via keys
-         % index is wrt to the data size
-         
-         if nargin >= 2 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            if nargin > 2
-               i = imsub2ind(obj.dataSize, [varargin{:}]);
-            else
-               i = varargin{1};  % index list or array
-            end
-         else
-            range = obj.dataRangeFromVarargin(varargin{:});
-            i = imfrmtRangeToIndex(obj.dataSize, obj.dataFormat, range);
-         end
-      end
-      
-      function i = cellIndex(obj, varargin)
-         if nargin >= 2 && isnumeric(varargin{1})
-            if nargin > 2
-               i = imsub2ind(obj.cellSize, [varargin{:}]);
-            else
-               i = varargin{1};
-            end
-         else
-            range = obj.cellRangeFromVarargin(varargin{:});
-            i = imfrmtRangeToIndex(obj.cellSize, obj.cellFormat, range);
-         end
-      end
-      
-      function i = rawDataIndex(obj, varargin)
-         if nargin >= 2 && isnumeric(varargin{1})
-            if nargin > 2
-               i = imsub2ind(obj.rawDataSize, [varargin{:}]);
-            else
-               i = varargin{1};
-            end
-         else
-            range = obj.rawDataRangeFromVarargin(varargin{:});
-            i = imfrmtRangeToIndex(obj.rawDataSize, obj.rawDataFormat, range);
-         end
-      end
-      
-      function i = rawCellIndex(obj, varargin)
-         if nargin >= 2 && isnumeric(varargin{1})
-            if nargin > 2
-               i = imsub2ind(obj.rawCellSize, [varargin{:}]);
-            else
-               i = varargin{1};
-            end
-         else
-            range = obj.rawCellRangeFromVarargin(varargin{:});
-            i = imfrmtRangeToIndex(obj.rawCellSize, obj.rawCellFormat, range);
-         end
-      end
-      
-      
-      function coords = dataIndexToCoordinate(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = imsub2ind(obj.dataSize, [id, varargin{:}]);
-         end 
-         coords = imfrmtIndexToCoordinate(obj.dataSize, obj.dataFormat, id);
-      end
-      
-      function coords = cellIndexToCoordinate(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = imsub2ind(obj.cellSize, [id, varargin{:}]);
-         end 
-         coords = imfrmtIndexToCoordinate(obj.cellSize, obj.cellFormat, id);
-      end
-      
-      
-      function coords = rawDataIndexToCoordinate(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = imsub2ind(obj.rawDataSize, [id, varargin{:}]);
-         end 
-         coords = imfrmtIndexToCoordinate(obj.rawDataSize, obj.rawDataFormat, id);
-      end
-      
-      function coords = rawCellIndexToCoordinate(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = imsub2ind(obj.rawCellSize, [id, varargin{:}]);
-         end 
-         coords = imfrmtIndexToCoordinate(obj.rawCellSize, obj.rawCellFormat, id);
-      end
-      
-      
-      function id = dataIndexToSubIndex(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = [id, varargin{:}];
-         else
-            id = imind2sub(obj.dataSize, id);
-         end
-      end
-      
-      function id = cellIndexToSubIndex(obj, id, varargin)
-         if nargin >= 3 && isnumeric(varargin{1}) && isscalar(varargin{1})
-            id = [id, varargin{:}];
-         else
-            id = imind2sub(obj.cellSize, id);
-         end
-      end
-      
+   
   
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1088,6 +1274,12 @@ classdef ImageInfo < matlab.mixin.Copyable
             md = obj.imetadata;
          end
       end 
+      
+      
+      function mdn = metaDataNames(obj)
+         mdn = obj.imetadata;
+         mdn = mdn.Parameter;
+      end
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% colors

@@ -1,4 +1,4 @@
-function range = imfrmtRangeFromIndex(iSize, iFrmt, idx)
+function range = imfrmtRangeFromIndex(iSize, iFrmt, varargin)
 %
 % range = imfrmtRangeFromIndex(iSize, iFrmt, idx)
 %
@@ -14,17 +14,22 @@ function range = imfrmtRangeFromIndex(iSize, iFrmt, idx)
 %
 % output:
 %      range   struct with .name = range entries
-%
-% See also: tagExpression
+
 
 range = struct();
-sub = imind2sub(iSize, idx);
+if nargin == 3
+   sub = imind2sub(iSize, varargin{1});
+else
+   sub = ndgridc(varargin{:});
+   sub = cellfunc(@(x)x(:), sub);
+   sub = [sub{:}];
+end
 
 n = 1;
 for i = 1:length(iFrmt)
    r = unique(sub(:,i))';
    if max(r) > iSize(i) || length(r) > iSize(i)
-      error('imfrmtRangeFromIndex: inconsistent ranges !')
+      error('imfrmtRangeFromIndex: range for %s out of bounds %s not in [%g,%g] !', iFrmt(i), var2char(r), 1, iSize(i))
    elseif length(r) == iSize(i)
       n = n * length(r);
    else   
@@ -34,6 +39,6 @@ for i = 1:length(iFrmt)
 
 end   
 
-if n ~= length(idx)
+if n ~= size(sub,1)
    error('imfrmtRangeFromIndex: ranges not multiplicative !')
 end

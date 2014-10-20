@@ -1,11 +1,11 @@
-function range = imfrmtRangeFromIndexRange(refRange, range)
+function range = imfrmtIndexRangeFromIndexRange(refRange, range)
 %
-% tgir = imfrmtRangeFromIndexRange(refTagRange, tagRange)
+% tgir = imfrmtIndexRangeFromIndexRange(refTagRange, tagRange)
 % 
 % description:
 %    converts a index range to a tag range
-%    numeric arrays are converted to cells
-%    numeric arrays that have a cellstr reference in refTagRange are converted to a cellstr
+%    numeric arrays / cells are converted to arrays
+%    no cellstrs are allowed
 
 tnames = fieldnames(range);
 
@@ -20,9 +20,9 @@ for i = 1:length(tnames)
    if ~isempty(id)
       rf = refnames{id};
       vref = refRange.(rf);
-      if ischar(vref)
-         vref = {vref};
-      end
+%       if ischar(vref)
+%          vref = {vref};
+%       end
       v = range.(f);
 
       if f ~= rf
@@ -35,9 +35,7 @@ for i = 1:length(tnames)
    else
       v = range.(f); 
       if iscell(v)
-         range.(f) = v;
-%       else
-%          range.(f) = num2cell(v);
+         range.(f) = cell2mat(v);
       end
    end
 end

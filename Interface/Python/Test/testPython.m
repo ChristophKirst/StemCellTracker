@@ -185,6 +185,8 @@ compilePython
 
 %% Structs
 
+% dont work yet
+
 st.x = 100;
 st.y = 200;
 st.z = 'hello world'
