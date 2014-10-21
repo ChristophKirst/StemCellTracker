@@ -269,6 +269,8 @@ classdef ImageInfo < matlab.mixin.Copyable
       function obj = setRange(obj, varargin)
          obj.irange = struct;
          obj.irange = obj.rangeFromVarargin(varargin{:});
+         obj.irange = imfrmtSortRange(obj.irange);
+         
          obj.initializeCellDataSizeFromRaw;
          
          if isa(obj, 'ImageSource')
@@ -405,11 +407,12 @@ classdef ImageInfo < matlab.mixin.Copyable
  
          elseif nargin > 1 && isnumeric(varargin{1})  % form index 
             range = obj.rangeFromCellIndex(varargin{:});
-            
+            range = imfrmtSortRange(range);
          else
             range = imfrmtRangeFromVarargin(varargin); % from range specs
             range = imfrmtRangeToIndexRange(obj.key, range); 
             range = imfrmtRangeFromVarargin(obj.irange, range);
+            range = imfrmtSortRange(range);
          end
       end
    
@@ -448,9 +451,11 @@ classdef ImageInfo < matlab.mixin.Copyable
 
          elseif nargin > 1 && isnumeric(varargin{1})
             range = obj.rawRangeFromRawCellIndex(varargin{:});
+            range = imfrmtSortRange(range);
          else
             range = imfrmtRangeFromVarargin(varargin); % from range specs 
             range = imfrmtRangeFromVarargin(obj.rawRange, range);
+            range = imfrmtSortRange(range);
          end 
       end
       

@@ -61,7 +61,7 @@ implot(preview)
 %% restric range to some sub set
 
 is.addRange('U', 11:14, 'V', 33:37)
-is.setRawCellDataCaching(false);
+is.setRawCellDataCaching(true);
 figure(1); clf
 is.plottiling
 
