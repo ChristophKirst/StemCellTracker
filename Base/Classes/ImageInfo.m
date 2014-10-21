@@ -162,7 +162,7 @@ classdef ImageInfo < matlab.mixin.Copyable
                                                                      obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);    
                                                                   
          obj.irange = imfrmtReshapeRange(obj.rawCellDataSize, obj.rawCellDataFormat, obj.cellDataFormat, ...
-                                         obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, obj.irange);
+                                         obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, obj.irange);                                 
               
          % correct data sizes for ranges                                                             
          if ~isempty(obj.irange)
@@ -514,7 +514,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullDataFormat(obj)
          % uses reshaping and raw format to get full version of the data frmt
          df = imfrmtReshapeFormat(obj.rawDataFormat, obj.reshapeFrom, obj.reshapeTo); 
-         df = imfrmtFlip(obj.dataFormat, df);
+         %df = imfrmtFlip(obj.dataFormat, df);
       end
 
       
@@ -616,7 +616,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullCellFormat(obj)
          % uses reshaping and raw format info to get a version of the full data frmt
          df = imfrmtReshapeFormat(obj.rawCellFormat, obj.reshapeFrom, obj.reshapeTo); 
-         df = imfrmtFlip(obj.cellFormat, df);
+         %df = imfrmtFlip(obj.cellFormat, df);
       end
       
       function obj = setCellFormat(obj, newfrmt)

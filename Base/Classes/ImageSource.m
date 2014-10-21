@@ -194,6 +194,9 @@ classdef ImageSource < ImageInfo
          
          % ranges necessary to load the raw data
          [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
+              
+%          rawRange    
+         
          
          % load raw data as cell data
          cd = obj.getRawCellData(rawRange);
@@ -228,9 +231,13 @@ classdef ImageSource < ImageInfo
 
          % ranges necessary to load the raw data
          [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
-         
+ 
          % load raw data as cell data
          cd = obj.getRawCellData(rawRange);
+         
+%          size(cd)
+%          figure(499); clf
+%          implottiling(cd);  
          
          % transform to output cell data 
          fullDataFrmt = obj.fullDataFormat;
@@ -238,8 +245,25 @@ classdef ImageSource < ImageInfo
          
          cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, fullDataFrmt, fullCellFrmt, ...
                                         obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
+                                    
+                                    
+% 
+%          size(cd)
+%          var2char(rawReshapeSize)
+%          var2char({obj.reshapeFrom, obj.reshapeTo})
+                           
+%          var2char({obj.rawDataFormat, obj.rawCellFormat, fullDataFrmt, fullCellFrmt})
+%          figure(500); clf
+%          implottiling(cd);
+         
+                                    
                                      
          cd = imfrmtReformatCellData(cd, fullDataFrmt, fullCellFrmt, obj.dataFormat,  obj.cellFormat);
+% 
+%          size(cd)
+%          var2char({obj.dataFormat, obj.cellFormat, fullDataFrmt, fullCellFrmt})
+%          figure(501); clf
+%          implottiling(cd);
          
       end
   

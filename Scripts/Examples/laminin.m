@@ -61,10 +61,9 @@ implot(preview)
 %% restric range to some sub set
 
 is.addRange('U', 11:14, 'V', 33:37)
-is.setRawCellDataCaching(true);
+is.setRawCellDataCaching(false);
 figure(1); clf
 is.plottiling
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -113,12 +112,13 @@ end
 %%
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
-   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
+   subalgn(s).align('alignment', 'RMS', 'overlap.max', 170, 'overlap.min', 80, 'shift.max', 100);
    if verbose && s < 20 %%&& subalgn(s).nNodes < 75
       subalgn(s).printInfo 
       figure(100+s)
       
-      subalgn(s).plotAlignedPreview('scale', 0.05)
+      %subalgn(s).plotAlignedPreview('scale', 0.5)
+      subalgn(s).plotAlignedImages
    end
 end
 
@@ -143,7 +143,7 @@ for s = 1:nsubalgn
    end
    
    %rois = detectROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
-   rois = detectROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', th, 'plot', plt);
+   rois = detectROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', 0.25 * th, 'plot', plt);
    
    fprintf('Found %g regoins of interest\n', length(rois))
    
@@ -153,29 +153,18 @@ for s = 1:nsubalgn
 end
 
 ncolonies = length(colonies)
- 
 
-%%
 
-imgs = is.cell([5,10,15]);
-for i = 1:3
-    imgs2{i} = is.data(i*5);
-end
-
-figure(3); clf
-implottiling(imgs(:))
-figure(4); clf
-implottiling(imgs2(:))
 
 
 %% Visualize
 
 if verbose
    figure(10); clf
-   for c = 1:min(ncolonies, 10)
+   for c = 1:min(ncolonies, 15)
       figure(10);
       img = colonies(c).data;
-      imsubplot(10,5,c)
+      imsubplot(5,3,c)
       implot(img)
    end
 end

@@ -43,14 +43,14 @@ if ~iscell(imgs)
    if isempty(clim)
       clim = [min(imgs(:)), max(imgs(:))];
    end
-   switch imformat(imgs)
-      case 'pql'
+   switch imfrmtFormat(imgs)
+      case 'XYZ'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), ones(size(imgs,3),1));
          imgs = imgs(:);
-      case 'pqlc'
+      case 'XYZC'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), ones(size(imgs,3),1), size(imgs,4));
          imgs = imgs(:);
-      case 'pqcl'
+      case 'XYCZ'
          imgs = mat2cell(imgs, size(imgs,1), size(imgs,2), size(imgs,3), ones(size(imgs,4),1));  
          imgs = imgs(:);
       otherwise

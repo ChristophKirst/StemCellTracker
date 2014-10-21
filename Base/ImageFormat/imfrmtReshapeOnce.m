@@ -27,7 +27,6 @@ end
 
 
 %  reformat all from formats to single block
-
 reshapeBase = imfrmtRemoveFormat(inFrmt, reshapeFrom);
 reshapeInFrmt = [reshapeBase, reshapeFrom];
 reshapeOutFrmt =  [reshapeBase, reshapeTo];
@@ -39,7 +38,15 @@ rSize = [rSize, reshapeSize];
 
 data = reshape(data, rSize);
 
-data =imfrmtReformat(data, reshapeOutFrmt, outFrmt);
+% figure(300);
+% implottiling(imfrmtReformatCellData({data}, 'XYS', 'Q', 'XY', 'S'));
+
+data = imfrmtReformat(data, reshapeOutFrmt, outFrmt);
+
+% figure(301);
+% implottiling(imfrmtReformatCellData({data}, 'XYS', 'Q', 'XY', 'S'))
+% reshapeOutFrmt
+% outFrmt
 
 
 end
