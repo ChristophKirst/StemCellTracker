@@ -18,11 +18,12 @@ verbose = true;
 %% Setup Image Source
 
 % infer the tag expression o he files from the file folder automatically
-texp = tagexpr('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames', {'tile', 'ch'})
+texp = tagExpression('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames', {'tile', 'ch'})
 %texp='140902_RUES2_BMP4_DAPI_GFP_R_Cy5__9_p<pos,6>t00000001z001c<ch,2>.tif'
 
 is = ImageSourceTagged(texp);
-is.setDataFormat('py');
+is.setDataForma
+t('py');
 is.print
 
 %

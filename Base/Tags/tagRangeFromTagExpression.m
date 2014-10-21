@@ -10,7 +10,7 @@ function tagRange = tagRangeFromTagExpression(tagExpr, varargin)
 %      tags    struct array of tags
 %      param   (optional) parameter struct with entries
 %              .fast     use first and last name only to infer tag range
-%              other ranges spcifed by user
+%              other ranges specifed by user
 %
 % output:
 %      tagRange  struct with .name = {range} entries
@@ -38,14 +38,14 @@ end
 if isempty(names)
    fileExpr = tagExpressionToFileExpression(tagExpr, tagRange);
    names = dirr(fileExpr);
+   %length(names)
 end
  
 if fast
    tagRange = parseParameter(tagRangeFromFirstAndLastString(tagExpr, names{1}, names{end}), tagRange);
 else
-   tags = tagExpressionToTags(fileExpr, names);
+   tags = tagExpressionToTags(tagExpr, names);
    tagRange = parseParameter(tagRangeFromTags(tags), tagRange);
-
 
    % simple but fast test for multiplicative data -> might miss certain very special cases
    if check

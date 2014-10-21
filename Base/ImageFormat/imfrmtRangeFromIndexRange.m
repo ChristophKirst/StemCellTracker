@@ -4,7 +4,6 @@ function range = imfrmtRangeFromIndexRange(refRange, range)
 % 
 % description:
 %    converts a index range to a tag range
-%    numeric arrays are converted to cells
 %    numeric arrays that have a cellstr reference in refTagRange are converted to a cellstr
 
 tnames = fieldnames(range);
@@ -33,12 +32,12 @@ for i = 1:length(tnames)
       end
 
    else
-      v = range.(f); 
-      if iscell(v)
-         range.(f) = v;
+%       v = range.(f); 
+%       if iscell(v)
+%          range.(f) = v;
 %       else
 %          range.(f) = num2cell(v);
-      end
+%       end
    end
 end
 

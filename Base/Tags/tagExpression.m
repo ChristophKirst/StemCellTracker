@@ -20,24 +20,24 @@ function [texpr, tnames, tags] = tagExpression(fname, varargin)
 %      tnames    (optional) tag names
 %      tags      (optional) tag struct array with entries .name = index
 %
-% See also: tags2name, tagexpr2tagnames, name2tags
+% See also: tagExpressionToRegularExpression
 
 if ischar(fname)
    fns = dirr(fname);
    if isempty(fns)
-      error('tagexpr: no files found for %s!', fname);
+      error('tagExpression: no files found for %s!', fname);
    end
 else
    fns = fname;
 end
 
 if ~iscellstr(fns) || isempty(fns)
-   error('tagexpr: first argument not valid or empty!');
+   error('tagExpression: first argument not valid or empty!');
 end
 
 %filenames need to be of same size for this code to work
 if any(diff(cellfun(@length, fns)))
-   error('tagexpr: filenames not of same length');
+   error('tagExpression: filenames not of same length');
 end
 
 
@@ -48,7 +48,7 @@ if ischar(tnames)
    tnames = {tnames};
 end
 if ~iscellstr(tnames) 
-      error('tagexpr: expect cell of tag names for tagnames parameter');
+      error('tagExpression: expect cell of tag names for tagnames parameter');
 end
 
 reduce = getParameter(param, 'reduce', true);

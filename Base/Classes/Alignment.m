@@ -279,7 +279,7 @@ classdef Alignment < ImageSource
          %     obtain raw image data in the format given by obj.rawformat
          %     data specs use raw formats and sizes
 
-         cid = obj.rawCellIndex(range);
+         cid = obj.rawCellIndexFromRawVarargin(range);
          if length(cid) > 1
             error('%s: getRawData: cell dimensinos are not specified to be singeltons!', class(obj));
          end
@@ -336,7 +336,7 @@ classdef Alignment < ImageSource
             r.shift(as{1}-ash{1});
 
             % extract
-            [d, sh] = r.extractdata(st);
+            [d, sh] = r.extractData(st);
             
             sh = sh + ash{1}-as{1};
          end
@@ -477,7 +477,7 @@ classdef Alignment < ImageSource
          %
          % See also: alignImages
          
-         [~, pairs] = alignImages(obj.asource, 'pairs', obj.apairs,'nodes', obj.anodes,  varargin{:});
+         [~, pairs] = alignImages(obj.asource, 'pairs', obj.apairs, 'nodes', obj.anodes,  varargin{:});
          obj.apairs = pairs;
          
          obj.initializeFromPairs;
@@ -639,7 +639,7 @@ classdef Alignment < ImageSource
          %   ids     node ids
          %   shids   id of the nodes
          
-         if isempty(obj.asize)
+         if isempty(obj.dataSize)
             error('%s: images not aligned !', class(obj));
          end
          
@@ -649,7 +649,11 @@ classdef Alignment < ImageSource
       end
 
       function aerror = alignmentError(obj)
-         aerror = sum([obj.apairs.aerror]) / obj.nPairs;
+          if obj.nPairs == 0
+              aerror = 0;
+          else
+            aerror = sum([obj.apairs.aerror]) / obj.nPairs;
+          end
       end
 
 

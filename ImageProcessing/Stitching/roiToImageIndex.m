@@ -10,7 +10,7 @@ function ids = roiToImageIndex(ipos, isizes, rect)
 %      rect       the rectangle to check overlap with, ofthe from [p1, p2]  where p1 < p2 are row vectors of the corner coordinates
 
 if isa(rect, 'ROI')
-   rect = rect.boundingbox;
+   rect = rect.boundingBox;
    rect = rect.toPixelArray();
 end
 

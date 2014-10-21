@@ -314,6 +314,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          % determine raw range and optional reshaping sizes
          % inputs are converted via range keys
          % numerical indices are asusmed to be w.r.t. the output cell format / size
+         % reshaping is w.r.t. to the full data format consistent with range specs
          
          range = obj.rangeFromVarargin(varargin{:});
           

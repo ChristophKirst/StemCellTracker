@@ -107,9 +107,9 @@
                v = ftr.(fnames{i});
                if ischar(v)
                   v = {v};
-                  obj.irangekey.(fnames{i}) = v;
+                  obj.ikey.(fnames{i}) = v;
                elseif iscellstr(v)
-                  obj.irangekey.(fnames{i}) = v;
+                  obj.ikey.(fnames{i}) = v;
                else
                   if ~iscell(v)
                      v = num2cell(v);
@@ -125,7 +125,7 @@
 
 
       function obj = fromFileExpression(obj, fileExpr, varargin)
-         obj.initializeRawCellFromFileExpression(fileExpr, varargin);
+         obj.initializeRawCellFromFileExpression(fileExpr, varargin{:});
          firstfile = obj.fileNameFromRawRange(1);
          obj.initializeRawDataFromFile(firstfile);
          
@@ -150,6 +150,7 @@
          
          range = obj.rawRange(varargin{:});
          range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
+         range = imfrmtRangeToCellRange(range);
          range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
       end
       
@@ -157,6 +158,7 @@
          % varargin is raw range
          range = obj.rawRangeFromRawVarargin(varargin{:});
          range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
+         range = imfrmtRangeToCellRange(range);
          range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
       end
       
@@ -221,7 +223,7 @@
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
       %%% data 
 
-      function d = getRawData(obj, range)
+      function d = getRawData(obj, rawRange)
          %
          % d = getRawData(obj, range)
          %
@@ -230,7 +232,7 @@
          %     range is index range in raw formats and sizes  
        
          % check if all cell dims are singeltons
-         cid = obj.rawCellIndex(range);
+         cid = obj.rawCellIndexFromRawVarargin(rawRange);
          if length(cid) > 1
             error('%s: getRawData: cell dimensions are not specified to be singeltons!', class(obj));
          end
@@ -244,7 +246,7 @@
                % read full data from file
 
                % raw file name
-               fn = obj.fileNameFromRawRange(range);
+               fn = obj.fileNameFromRawRange(rawRange);
 
                d = imreadBF(fn, 'S', 1, 'squeeze', false, 'metadata', false); % there should be no series structure -> read first series
                d = imfrmtReformat(d, 'XYZCT', obj.rawDataFormat);   
@@ -256,14 +258,14 @@
             end
                
             % reduce to range
-            if ~isemptystruct(range)
-               d = imfrmtDataSubset(d, obj.rawDataFormat, range);
+            if ~isemptystruct(rawRange)
+               d = imfrmtDataSubset(d, obj.rawDataFormat, rawRange);
             end
          else
             % read directly
 
             % raw file name
-            [fn, tag] = obj.fileNameFromRawRange(range);
+            [fn, tag] = obj.fileNameFromRawRange(rawRange);
             
             tag = imfrmtRemoveRange(tag, obj.rawCellFormat);
             
@@ -272,7 +274,7 @@
          end
       end
  
-      function d = getRawCellData(obj, range)
+      function d = getRawCellData(obj, rawRange)
          %
          % d = getRawData(obj, varargin)
          %
@@ -285,7 +287,7 @@
                obj.irawcelldata = cell(obj.rawCellSize);
             end
 
-            cid = obj.rawCellIndex(range);
+            cid = obj.rawCellIndexFromRawVarargin(rawRange);
 
             cidload = cellfun(@isempty, obj.irawcelldata(cid));
             cidload = cid(cidload);
@@ -316,14 +318,15 @@
          else
             
             % get raw file names
-            [fn, tags] = obj.fileNameFromRawRange(range);
+            %range
+            [fn, tags] = obj.fileNameFromRawRange(rawRange);
             if ischar(fn)
                fn = {fn};
             end
             tags = imfrmtRemoveRange(tags, obj.rawCellFormat);
 
             % allocate raw cell data
-            d = cell(obj.rawCellSize(range));
+            d = cell(obj.rawCellSize(rawRange));
             
             % load
             for i = 1:length(fn)

@@ -19,9 +19,9 @@ param = parseParameter(varargin);
 
 names = fieldnames(tags);
 nnames = length(names);
-
-tags(1)
-tags(2)
+% 
+% tags(1)
+% tags(2)
 
 tagRange = struct();
 for i = 1:nnames
