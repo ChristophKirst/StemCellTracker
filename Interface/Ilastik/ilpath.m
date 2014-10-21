@@ -62,6 +62,21 @@ if ~found && isunix() && ~ismac()
    end
 end
 
+
+%ckirst specific guessing 
+if ~found && isunix() && ~ismac()
+   hintpath = dir('~/Programs/ilasti*');
+  
+   if ~isempty(hintpath)
+      [ipath, ilrun] = findil(['~/Programs/' hintpath(1).name]);
+      if ~isempty(ipath)
+         found = 1;
+      end
+   end
+end
+
+
+
 if ~found
     error('ilpath: cannot find Ilastik installation, try passing a valid path')
 end
