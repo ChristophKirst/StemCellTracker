@@ -14,7 +14,7 @@ classdef ImageSource < ImageInfo
    %     for a data request the coordinate ranges are taken over written by specific user cell data specs
    %     the ranges are then inversly reshaed to the raw ranges neccessary to laod the data
     
-     properties   
+   properties   
       icache = false;         % (optional) cache the data or not
       icelldata    = [];     % (cached) image data as cell array
       

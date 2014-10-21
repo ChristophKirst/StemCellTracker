@@ -412,7 +412,7 @@ classdef ImageInfo < matlab.mixin.Copyable
             range = imfrmtRangeFromVarargin(obj.irange, range);
          end
       end
-      
+   
       
       function range = rawRangeFromRawCellIndex(obj, varargin)
          %
@@ -514,6 +514,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullDataFormat(obj)
          % uses reshaping and raw format to get full version of the data frmt
          df = imfrmtReshapeFormat(obj.rawDataFormat, obj.reshapeFrom, obj.reshapeTo); 
+         df = imfrmtFlip(obj.dataFormat, df);
       end
 
       
@@ -615,6 +616,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullCellFormat(obj)
          % uses reshaping and raw format info to get a version of the full data frmt
          df = imfrmtReshapeFormat(obj.rawCellFormat, obj.reshapeFrom, obj.reshapeTo); 
+         df = imfrmtFlip(obj.cellFormat, df);
       end
       
       function obj = setCellFormat(obj, newfrmt)
@@ -802,6 +804,8 @@ classdef ImageInfo < matlab.mixin.Copyable
       function [df, cf] = fullCellDataFormat(obj)
          % uses reshaping and raw format info to get a version of the full data frmt
          [df, cf] = imfrmtReshapeCellDataFormat(obj.rawDataFormat, obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo); 
+         df = imfrmtFlip(obj.dataFormat, df);
+         cf = imfrmtFlip(obj.cellFormat, cf);
       end
       
 
@@ -879,8 +883,12 @@ classdef ImageInfo < matlab.mixin.Copyable
 
       function id = fullDataIndex(obj, varargin)
          % converts index w.r.t. to restricted range to index w.r.t. to full range 
-         range = obj.rangeFromVarargin(varargin{:});
-         id = imfrmtRangeToIndex(obj.fullDataSize, obj.fullDataFormat, range);
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromSizeAndVarargin(obj.fullDataSize, varargin{:});
+         else
+            range = obj.rangeFromVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.fullDataSize, obj.fullDataFormat, range);
+         end
       end
       
 
@@ -897,8 +905,12 @@ classdef ImageInfo < matlab.mixin.Copyable
 
       function id = fullCellIndex(obj, varargin)
          % converts index w.r.t. to restricted range to index w.r.t. to full range 
-         range = obj.rangeFromVarargin(varargin{:});
-         id = imfrmtRangeToIndex(obj.fullCellSize, obj.fullCellFormat, range);
+         if nargin >= 2 && isnumeric(varargin{1})
+            id = imfrmtIndexFromSizeAndVarargin(obj.fullCellSize, varargin{:});
+         else
+            range = obj.rangeFromVarargin(varargin{:});
+            id = imfrmtRangeToIndex(obj.fullCellSize, obj.fullCellFormat, range);
+         end
       end
       
       
@@ -971,7 +983,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       
       
       function id = rawDataIndex(obj, varargin)
-         range = obj.rawRange(varargin{:});
+         range = obj.rawRange(varargin{:})
          id = imfrmtRangeToIndex(obj.rawDataSize, obj.rawDataFormat, range);
       end
 
