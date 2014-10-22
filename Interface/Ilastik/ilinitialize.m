@@ -8,32 +8,21 @@ function ilinitialize(varargin)
 % input:
 %    hintpath  (optional) path to ilastik
 
-%ldpath = getenv('LD_LIBRARY_PATH');
-%setenv('LD_LIBRARY_PATH', ''); 
-
 cpath = fileparts(mfilename('fullpath'));
 ipath = ilpath(varargin{:});
 
-% set ilastik path
-fid = fopen(fullfile(cpath, 'IlastikConfigTemplate.py'),'r');
-f = fread(fid,'*char')';
-fclose(fid);
 
-f = strrep(f, 'ILASTIK_PATH', ipath);
+if count(py.sys.path, ipath) == 0
+    insert(py.sys.path,int32(0), ipath);
+end
 
-fid  = fopen(fullfile(cpath, 'IlastikConfig.py'),'w');
-fprintf(fid,'%s',f);
-fclose(fid);
-
-% set current path in python 
-py('set', 'currentpath', cpath);
-py('eval', 'import os,sys')
-py('eval', 'sys.path.append(currentpath)')
-
+if count(py.sys.path, cpath) == 0
+    insert(py.sys.path,int32(0), cpath);
+end
 
 % initialize the Ilastik classifer
-py('eval', 'from IlastikInterface import *')
-py('eval', 'ilc = IlastikClassifier()')
+
+py.IlastikClassifier();
 
 
 

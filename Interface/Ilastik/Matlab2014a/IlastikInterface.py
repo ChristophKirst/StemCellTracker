@@ -3,11 +3,9 @@
 import numpy as np
 import sys, os
 
-from IlastikConfig import ilastikpath
-
-print "ilastik path: " + ilastikpath
-
-sys.path.insert(1, ilastikpath)
+#from IlastikConfig import ilastikpath
+#print "ilastik path: " + ilastikpath
+#sys.path.insert(1, ilastikpath)
 #sys.path.insert(1, ilastikpath + '/lib')
 #sys.path.insert(1, ilastikpath + '/lib/python2.7/site-packages')
 
