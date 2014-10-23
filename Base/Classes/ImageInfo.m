@@ -51,11 +51,11 @@ classdef ImageInfo < matlab.mixin.Copyable
       icoloralpha = [];              % (optional) alpha values for the color channel C/c (=1 if no specified) 
   
       % intensity scale
-      imaxintensity = [];            % minimal intensity of data
-      iminintensity = [];            % maximal intensity of data
+      imaxintensity = [];            % maximal intensity of data
+      iminintensity = [];            % minimal intensity of data
       
-      imaxrawintensity = [];         % minimal intensity of raw data
-      iminrawintensity = [];         % maximal intensity of raw data
+      imaxrawintensity = [];         % maximal intensity of raw data
+      iminrawintensity = [];         % minimal intensity of raw data
       
       % spatial scales
       iscale = containers.Map;       % (optional) spatial scale of image in distance/time per pixel (coords: X, Y, Z, T)

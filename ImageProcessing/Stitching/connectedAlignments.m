@@ -10,6 +10,7 @@ function comp = connectedAlignments(a, varargin)
 %    a         Alignment class
 %    param     parameter struct with entries
 %              .threshold.quality     quality threshold (-Inf)
+%              .overlap               assumed overlap for images to calculate origin of
 %
 % output:
 %    comp      connected components as array of Alignment classes
@@ -28,6 +29,10 @@ if thq == -Inf
    return
 end
 
+dataSize = a.dataSize;
+overlap = getParameter(param, 'overlap', 0);
+overlap = padright(overlap, length(dataSize), overlap);
+
 % construct adjacency matrix and find connected components
 
 e = [];
@@ -44,6 +49,7 @@ c = graphAdjacencyMatrixToConnectedComponents(adj);
 
 % construct Alignment / ImageSourceAligned classes
 
+o = a.origin;
 nodes = a.nodes;
 
 for i = length(c):-1:1 
@@ -55,8 +61,9 @@ for i = length(c):-1:1
    
    % estimate new origin:
    onode = as.anodes(1);
+   sub = a.source.cellIndexToSubIndex(onode);
+   %as.aorigin  = (dataSize - overlap) .* (sub -1) + o;
    
-
    comp(i) = as;
 end
 

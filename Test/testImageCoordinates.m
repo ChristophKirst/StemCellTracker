@@ -11,7 +11,7 @@
 % and img(p,q,l) is at (x,y,z) = (p,q,l)
 %
 % ImTools uses pixel coordinates (p,q,l) consistently in all its functions
-% In particular implot will be consisten with adding lines in p,q,l coordinates
+% In particular implot will be consistetn with adding lines in p,q,l coordinates
 % A 2d matrix img will be plotted effectively as img', ad 3d matrix as permute(img, [2,1,3])
 % to make this work.
 %

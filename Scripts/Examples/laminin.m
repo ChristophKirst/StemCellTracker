@@ -14,6 +14,8 @@ bfinitialize
 
 verbose = true;
 
+initializeParallelProcessing(10)
+
 
 %% Overview Image
 
@@ -32,7 +34,6 @@ texp = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_
 fns = tagExpressionToFiles(texp);
 length(fns)
 
-
 %%
 clc
 is = ImageSourceFiles();
@@ -50,20 +51,19 @@ figure(2); clf
 implottiling(cd)
 
 
-
 %% full preview
-is.addRange('U', 1:10, 'V', 1:10)
-preview = is.cellPreview('overlap', 110, 'scale', 0.1, 'lines', true);
-figure(2); clf
-implot(preview)
+% is.addRange('U', 1:10, 'V', 1:10)
+% preview = is.cellPreview('overlap', 110, 'scale', 0.1, 'lines', true);
+% figure(2); clf
+% implot(preview)
 
 
 %% restric range to some sub set
 
-is.addRange('U', 11:14, 'V', 33:37)
-is.setRawCellDataCaching(true);
-figure(1); clf
-is.plottiling
+%is.addRange('U', 11:14, 'V', 33:37)
+%is.setRawCellDataCaching(true);
+%figure(1); clf
+%is.plottiling
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -79,21 +79,27 @@ algn.printInfo
 %% Background Intensity for Overlap Quality of Tiles
 
 clc
-img1 = algn.sourceData(1);
-nbins = 250;
+img1 = algn.sourceData(8);
+nbins = 100;
 th = thresholdFirstMin(img1, 'nbins', nbins, 'delta', 1/1000 * numel(img1))
+
+%th = 240;
 
 if verbose
    figure(3); clf
+   imsubplot(2,1,1)
+   implot(img1)
+   imsubplot(2,1,2)
    hist(img1(:), nbins)
 end
 
+
+th = 240;
 
 %% Quality of Overlap between Neighbouring Tiles 
 
 % parameter: see overlapQuality
 algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
-
 hist(algn.overlapQuality, 256)
 
 
@@ -104,8 +110,17 @@ subalgn = algn.connectedComponents('threshold.quality', -eps);
 nsubalgn = length(subalgn);
 fprintf('Alignment: found %g connected components\n', nsubalgn);
 
+
+%%
 if verbose  
    var2char({subalgn.anodes})
+   
+   as = cellfun(@length, {subalgn.anodes});
+   
+   figure(5); clf
+   hist(as, 256)
+   {max(as), min(as)}
+   
 end
 
 
@@ -113,8 +128,9 @@ end
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
    subalgn(s).align('alignment', 'RMS', 'overlap.max', 170, 'overlap.min', 80, 'shift.max', 100);
-   if verbose && s < 20 %%&& subalgn(s).nNodes < 75
-      subalgn(s).printInfo 
+   
+   if verbose && s < 20 && subalgn(s).nNodes < 35
+      subalgn(s).printInfo
       figure(100+s)
       
       %subalgn(s).plotAlignedPreview('scale', 0.5)
@@ -123,6 +139,7 @@ for s = 1:nsubalgn
 end
 
 
+%%
 
 
 
@@ -145,7 +162,7 @@ for s = 1:nsubalgn
    
    %rois = detectROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
    rois = detectROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', 0.25 * th, 'plot', plt);
-   
+
    fprintf('Found %g regoins of interest\n', length(rois))
    
    for r = 1:length(rois)
@@ -173,7 +190,7 @@ end
 
 %%
 
-save('./Test/Data/Colonies/colonies.mat', colonies)
+% save('./Test/Data/colonies.mat', 'colonies')
 
 
 %%

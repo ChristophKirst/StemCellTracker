@@ -116,20 +116,24 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
       if istiling
          
          if isorient
-            for p = 1:np
+            parfor p = 1:np
                switch pairs(p).orientation
                   case 1
-                     aimgs = {imgs.data(pairs(p).from); imgs.data(pairs(p).to)};
+                     aimgs = {imgs.data(pairs(p).from); imgs.data(pairs(p).to)}; %#ok<PFBNS>
                   case 2
                      aimgs = {imgs.data(pairs(p).from), imgs.data(pairs(p).to)};
                   case 3
+                     c = cell(1,1,2);
                      c{1,1,1} = imgs.data(pairs(p).from); c{1,1,2} = imgs.data(pairs(p).to);
                      aimgs = c;
                   otherwise
                      error('alignImages: image pair %g does not have valid orientation!', p);
                end
 
-               [pairs(p).shift, pairs(p).aerror] = fun(aimgs, param);
+               if mod(p, 25) == 0 
+                  fprintf('alignImages: pair %g / %g\n' , p, np);
+               end
+               [pairs(p).shift, pairs(p).aerror] = fun(aimgs, param); %#ok<PFBNS>
             end
             
          else
