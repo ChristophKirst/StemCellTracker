@@ -194,6 +194,9 @@ classdef ImageSource < ImageInfo
          
          % ranges necessary to load the raw data
          [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
+              
+%          rawRange    
+         
          
          % load raw data as cell data
          cd = obj.getRawCellData(rawRange);
@@ -254,8 +257,7 @@ classdef ImageSource < ImageInfo
                  cd{i} = obj.getDataFromRaw(ids(i));
              end    
              cd = reshape(cd, size(ids));
-         end
-         
+         end   
       end
   
       function obj = setData(obj, d, varargin)

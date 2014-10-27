@@ -414,13 +414,17 @@ classdef Alignment < ImageSource
          %    calculates operlap quality of the images
          %
          % See also: overlapQuality, overlapStatisticsImagePair
+         pairs = obj.apairs;
+         source = obj.asource;
          
-         for p = 1:obj.nPairs
-            pp = obj.apairs(p).copy();
-            pp.from = obj.asource.data(pp.from);
-            pp.to   = obj.asource.data(pp.to); 
-            obj.apairs(p).quality = overlapQuality(pp, varargin{:});
+         parfor p = 1:obj.nPairs
+            pp = pairs(p).copy();
+            pp.from = source.data(pp.from); %#ok<PFBNS>
+            pp.to   = source.data(pp.to); 
+            pairs(p).quality = overlapQuality(pp, varargin{:}); %#ok<PFBNS>
          end
+         
+         obj.apairs = pairs;
       end
 
       function obj = alignPairs(obj, varargin)
@@ -439,18 +443,23 @@ classdef Alignment < ImageSource
             error('alignment: alignParis: no image data to align images, set property asource');
          end
          
-         for i = 1:obj.npairs
-            p = AlignmentPair(obj.apairs(i)); % deep copy
-            p.from = obj.asource.data(p.from);
-            p.to   = obj.asource.data(p.to);
+         pairs = obj.apairs;
+         source = obj.asource;
+
+         parfor i = 1:obj.npairs
+            p = AlignmentPair(pairs(i)); % deep copy
+            p.from = source.data(p.from); %#ok<PFBNS>
+            p.to   = source.data(p.to);
             
-            p = alignImagePair(p, varargin{:});
+            p = alignImagePair(p, varargin{:}); %#ok<PFBNS>
            
             % we dont want to copy the data but keep the indices
-            obj.apairs(i).shift   = p.shift;
-            obj.apairs(i).quality = p.quality;
-            obj.apairs(i).aerror  = p.aerror;
+            pairs(i).shift   = p.shift;
+            pairs(i).quality = p.quality;
+            pairs(i).aerror  = p.aerror;
          end
+         
+         obj.apairs = pairs;
       end
      
       function obj = optimizePairwiseShifts(obj)
@@ -485,7 +494,7 @@ classdef Alignment < ImageSource
 
       function st = stitch(obj, varargin)
          %
-         % st = stitch(obj, source, param)
+         % st = stitch(obj, source nsubalgnnsubalgn , param)
          %
          % description
          %     stitches images using the alignment information and source
@@ -656,9 +665,33 @@ classdef Alignment < ImageSource
           end
       end
 
+      
+      function r = roi(obj, varargin)
+         %
+         % r = roi(obj)
+         %
+         % description:
+         %    generate outline of the component
+         %    if images are not aligned assume grid structure and max
+         %    alignment
+         
+         
+         
+         
+      end
+      
 
+      function ov = overlaps(obj, varargin)
+         
+         
+         
+      end
+      
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % visualization
+   
       
       function d = plotAlignedPreview(obj, varargin)
          d2 = alignCellPreview(obj, varargin);
@@ -670,7 +703,6 @@ classdef Alignment < ImageSource
             implot(d)
          end
       end
-         
   
       function plotAlignedImages(obj)
          %

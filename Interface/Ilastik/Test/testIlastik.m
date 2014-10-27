@@ -8,7 +8,7 @@ ilinitialize()
 
 %% Initialize the Classifier
 
-illoadclassifier('./Interface/Ilastik/Test/classifier.h5')
+illoadclassifier('./Interface/Ilastik/Test/spydimport classifier.h5')
 
 
 %% Run Classifier

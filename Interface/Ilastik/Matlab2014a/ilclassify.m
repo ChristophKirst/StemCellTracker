@@ -10,8 +10,6 @@ function imgseg = ilclassify(img)
 %
 % See also: illoadclassifier
 
-ilc = illoa
-
 
 if ischar(img)
    if ~isfile(img)
@@ -19,8 +17,6 @@ if ischar(img)
    end  
    [~, bi, ei] = fileparts(img);
    img = fullfile(absolutepath(img), [bi, ei]); 
-   
-   
    
    py('eval', ['ilc.load_image(' img ')'])
 else

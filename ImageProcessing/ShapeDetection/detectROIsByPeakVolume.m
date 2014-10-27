@@ -42,8 +42,8 @@ param = parseParameter(varargin);
 if isa(imgs, 'Alignment')
    n = imgs.nNodes;
    pks = cell(1, n);
-   for i = 1:n
-      pks{i} = detectPeaksByHmax(imgs.nodeData(i), param);
+   parfor i = 1:n
+      pks{i} = detectPeaksByHmax(imgs.nodeData(i), param); %#ok<PFBNS>
    end
    
    pks = stitchPoints(pks, imgs.imagePositions, imgs.imageSizes);
@@ -53,7 +53,7 @@ if isa(imgs, 'Alignment')
 else
    n = numel(imgs);
    pks = cell(1, n);
-   for i = 1:n
+   parfor i = 1:n
       pks{i} = detectPeaksByHmax(imgs{i}, param);
    end
    

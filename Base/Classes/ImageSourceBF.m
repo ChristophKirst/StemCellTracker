@@ -162,7 +162,8 @@
         
          if obj.irawcache
             if isempty(obj.irawcelldata)
-               obj.irawceldata = cell(obj.rawCellSize);
+               cs = imfrmtAllocateSize(obj.rawCellSize);
+               obj.irawceldata = cell(cs);
             end
             
             if isempty(obj.irawcelldata{cid}) 
@@ -193,7 +194,8 @@
 
          if obj.irawcache            
             if isempty(obj.irawcelldata)
-               obj.irawcelldata = cell(obj.rawCellSize);
+               cs = imfrmtAllocateSize(obj.rawCellSize);
+               obj.irawcelldata = cell(cs);
             end
 
             cid = obj.rawCellIndex(range);

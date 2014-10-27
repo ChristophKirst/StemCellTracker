@@ -149,6 +149,7 @@
          % returns file tags using index range in varargin
          
          range = obj.rawRange(varargin{:});
+         range = imfrmtSortRange(range); % sort
          range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
          range = imfrmtRangeToCellRange(range);
          range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
@@ -157,6 +158,7 @@
       function range = fileTagRangeFromRawRange(obj, varargin)
          % varargin is raw range
          range = obj.rawRangeFromRawVarargin(varargin{:});
+         range = imfrmtSortRange(range);
          range = imfrmtRangeFromIndexRange(obj.ifiletagrange, range); % convert to filetag range
          range = imfrmtRangeToCellRange(range);
          range = imfrmtRangeFromVarargin(obj.ifiletagrange, range); % complement all missing ranges
@@ -239,7 +241,8 @@
          
          if obj.irawcache
             if isempty(obj.irawcelldata)
-               obj.irawceldata = cell(obj.rawCellSize);
+               cs = imfrmtAllocateSize(obj.rawCellSize);
+               obj.irawceldata = cell(cs);
             end
             
             if isempty(obj.irawcelldata{cid}) 
@@ -284,7 +287,8 @@
               
          if obj.irawcache            
             if isempty(obj.irawcelldata)
-               obj.irawcelldata = cell(obj.rawCellSize);
+               cs = imfrmtAllocateSize(obj.rawCellSize);
+               obj.irawcelldata = cell(cs);
             end
 
             cid = obj.rawCellIndexFromRawVarargin(rawRange);
@@ -326,7 +330,8 @@
             tags = imfrmtRemoveRange(tags, obj.rawCellFormat);
 
             % allocate raw cell data
-            d = cell(obj.rawCellSize(rawRange));
+            cs = imfrmtAllocateSize(obj.rawCellSize(rawRange));
+            d = cell(cs);
             
             % load
             for i = 1:length(fn)

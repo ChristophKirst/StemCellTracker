@@ -51,11 +51,11 @@ classdef ImageInfo < matlab.mixin.Copyable
       icoloralpha = [];              % (optional) alpha values for the color channel C/c (=1 if no specified) 
   
       % intensity scale
-      imaxintensity = [];            % minimal intensity of data
-      iminintensity = [];            % maximal intensity of data
+      imaxintensity = [];            % maximal intensity of data
+      iminintensity = [];            % minimal intensity of data
       
-      imaxrawintensity = [];         % minimal intensity of raw data
-      iminrawintensity = [];         % maximal intensity of raw data
+      imaxrawintensity = [];         % maximal intensity of raw data
+      iminrawintensity = [];         % minimal intensity of raw data
       
       % spatial scales
       iscale = containers.Map;       % (optional) spatial scale of image in distance/time per pixel (coords: X, Y, Z, T)
@@ -161,7 +161,7 @@ classdef ImageInfo < matlab.mixin.Copyable
                                                                      obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);    
                                                                   
          obj.irange = imfrmtReshapeRange(obj.rawCellDataSize, obj.rawCellDataFormat, obj.cellDataFormat, ...
-                                         obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, obj.irange);
+                                         obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize, obj.irange);                                 
               
          % correct data sizes for ranges                                                             
          if ~isempty(obj.irange)
@@ -268,6 +268,8 @@ classdef ImageInfo < matlab.mixin.Copyable
       function obj = setRange(obj, varargin)
          obj.irange = struct;
          obj.irange = obj.rangeFromVarargin(varargin{:});
+         obj.irange = imfrmtSortRange(obj.irange);
+         
          obj.initializeCellDataSizeFromRaw;
          
          if isa(obj, 'ImageSource')
@@ -404,11 +406,12 @@ classdef ImageInfo < matlab.mixin.Copyable
  
          elseif nargin > 1 && isnumeric(varargin{1})  % form index 
             range = obj.rangeFromCellIndex(varargin{:});
-            
+            range = imfrmtSortRange(range);
          else
             range = imfrmtRangeFromVarargin(varargin); % from range specs
             range = imfrmtRangeToIndexRange(obj.key, range); 
             range = imfrmtRangeFromVarargin(obj.irange, range);
+            range = imfrmtSortRange(range);
          end
       end
    
@@ -447,9 +450,11 @@ classdef ImageInfo < matlab.mixin.Copyable
 
          elseif nargin > 1 && isnumeric(varargin{1})
             range = obj.rawRangeFromRawCellIndex(varargin{:});
+            range = imfrmtSortRange(range);
          else
             range = imfrmtRangeFromVarargin(varargin); % from range specs 
             range = imfrmtRangeFromVarargin(obj.rawRange, range);
+            range = imfrmtSortRange(range);
          end 
       end
       
@@ -513,7 +518,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullDataFormat(obj)
          % uses reshaping and raw format to get full version of the data frmt
          df = imfrmtReshapeFormat(obj.rawDataFormat, obj.reshapeFrom, obj.reshapeTo); 
-         df = imfrmtFlip(obj.dataFormat, df);
+         %df = imfrmtFlip(obj.dataFormat, df);
       end
 
       
@@ -615,7 +620,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       function df = fullCellFormat(obj)
          % uses reshaping and raw format info to get a version of the full data frmt
          df = imfrmtReshapeFormat(obj.rawCellFormat, obj.reshapeFrom, obj.reshapeTo); 
-         df = imfrmtFlip(obj.cellFormat, df);
+         %df = imfrmtFlip(obj.cellFormat, df);
       end
       
       function obj = setCellFormat(obj, newfrmt)

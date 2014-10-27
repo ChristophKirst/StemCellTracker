@@ -1,4 +1,4 @@
 ''' Ilastik Interface Configuration Options  '''
 
-ilastikpath = '/home/ckirst/programs/ilastik-05';
+ilastikpath = '/home/ckirst/Programs/ilastik-05';
 
