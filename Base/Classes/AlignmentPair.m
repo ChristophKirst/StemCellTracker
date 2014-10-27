@@ -6,7 +6,7 @@ classdef AlignmentPair < matlab.mixin.Copyable
    properties
       from = [];         % first image id
       to = [];           % second image id
-      orientation = '';  % orientation of images to be aligned: 'lr'=1=left-right, 'du'=2=down-up 'bt'=3=bottom-top, ''=0=no primary direction
+      orientation = 0;   % orientation of images to be aligned: 'lr'=1=left-right, 'du'=2=down-up 'bt'=3=bottom-top, ''=0=no primary direction
       shift = [0,0];     % shift between the images
       quality = 1;       % quality of overlap used to detect empty image overlaps
       aerror  = Inf;     % error detected when aligninng the image pair
@@ -195,6 +195,9 @@ classdef AlignmentPair < matlab.mixin.Copyable
          [ovl1, ovl2] = overlap2ImagesOnGrid(obj.toCell, varargin{:});       
       end
       
+      
+      
+      
       function ovl = overlapSize(obj, imSizes)
          %
          % ovl = overlapSize(obj, imSizes)
@@ -202,8 +205,10 @@ classdef AlignmentPair < matlab.mixin.Copyable
          % description:
          %    returns overlap sizes
          
+         nobj = length(obj);
+         ovl = zeros(nobj, length(obj(1).shift));
          
-         for i = 1:length(obj)
+         for i = 1:nobj
             if nargin == 1
                imSizes = {size(obj(i).from), size(obj(i).to)};
             end
@@ -211,18 +216,22 @@ classdef AlignmentPair < matlab.mixin.Copyable
             sh = obj(i).shift;
             for j = 1:length(sh)
                if sh(j) >= 0
-                  ovl(i, j) = max(0, imSizes{1}(j) - sh(j)); %#ok<AGROW>
+                  ovl(i, j) = max(0, imSizes{1}(j) - sh(j));
                else
-                  ovl(i, j) = max(0, imSizes{2}(j) + sh(j));  %#ok<AGROW>
+                  ovl(i, j) = max(0, imSizes{2}(j) + sh(j));
                end
             end
          end
       end
       
       function ovl = overlapSizePrimary(obj, imSize)
-         for i = 1:length(obj)
+         nobj = length(obj);
+         ovl = zeros(1, nobj);
+         for i = 1:nobj
             o = obj(i).orientation;
-            ovl(i) = imSize(o) - obj(i).shift(o); %#ok<AGROW>
+            if o > 0
+               ovl(i) = imSize(o) - obj(i).shift(o);
+            end
          end
          
       end

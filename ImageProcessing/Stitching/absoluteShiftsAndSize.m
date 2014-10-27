@@ -4,7 +4,7 @@ function [ashifts, asize] = absoluteShiftsAndSize(shifts, isizes)
 %
 % description:
 %     calculates the full size of the algined image and absolute shifts of
-%     the individual images such that all shifts are minimally positive
+%     the individual images such that all shifts are minimally non-negative
 %     the output can be used to assemble the image
 %
 % input:

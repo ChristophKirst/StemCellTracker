@@ -28,7 +28,7 @@ is.printInfo
 %%
 % set the tiling
 is.setReshape('S', 'UV', [8, 19]);
-is.setCellFormat('Uv');
+is.setCellFormat('UvC');
 is.printInfo
 
 
@@ -40,13 +40,15 @@ is.setKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
 
 %%
 % restrict to DAPI first
+clc
 is.setRange('C', 'DAPI');
 is.range
 is.printInfo
 
 %% restric range to some sub set
 
-is.addRange('U', 1:4, 'V', 1:3)
+is.addRange('U', 1:4, 'V', 1:3);
+is.printInfo
 
 
 %%
@@ -77,9 +79,11 @@ figure(3)
 
 % create 
 clc
-algn = Alignment(is);
+algn = Alignment(is, 'UV');
 algn.setCaching(false);
 algn.printInfo
+
+algn.aformat
 
 
 %% Background Intensity for Overlap Quality of Tiles
@@ -93,7 +97,7 @@ if verbose
    hist(img1(:), nbins)
 end
 
-%% Quality of Overlap between Neighbouring Tiles 
+%% Quality of Overlap between neighbouring Tiles 
 
 % parameter: see overlapQuality
 algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
@@ -124,6 +128,31 @@ for s = 1:nsubalgn
       subalgn(s).plotAlignedPreview('scale', 0.05)
    end
 end
+
+
+%% Global preview  
+
+
+% overlap sizes
+ovl = subalgn.overlapSizePrimary;
+var2char(ovl)
+
+subalgn.meanOverlapSizePrimary
+
+
+%%
+
+
+subalgn.alignOrigins;
+
+
+%%
+clc
+d = subalgn.stitchArray;
+
+figure(10); clf;
+implot(d)
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

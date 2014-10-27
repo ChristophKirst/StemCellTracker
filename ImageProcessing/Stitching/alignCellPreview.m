@@ -1,4 +1,4 @@
-function img = alignCellPreview(celldata, varargin)
+function [img, scale] = alignCellPreview(celldata, varargin)
 
 param = parseParameter(varargin);
 
@@ -24,7 +24,7 @@ if isa(celldata, 'Alignment')
       siz = ceil(celldata.dataSize .* scale);
    end
    if isempty(pos)
-      pos = celldata.imagePositions;
+      pos = celldata.imageShifts;
       pos = cellfunc(@(x) ceil(x .* scale), pos);
    end
    
