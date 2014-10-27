@@ -39,8 +39,19 @@ if isempty(names)
    fileExpr = tagExpressionToFileExpression(tagExpr, tagRange);
    names = dirr(fileExpr);
    %length(names)
+   
+   if isempty(names)
+      error('tagRangeFromTagExpression: no files of form %s !', fileExpr);
+   end
+   
 end
  
+if isempty(names)
+    error('tagRangeFromTagExpression: no names found !');
+end
+
+
+
 if fast
    tagRange = parseParameter(tagRangeFromFirstAndLastString(tagExpr, names{1}, names{end}), tagRange);
 else

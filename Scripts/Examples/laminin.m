@@ -28,7 +28,7 @@ clc
 
 % infer the tag expression o he files from the file folder automatically
 texp = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_RUES2_Lam521_46hBMP4_Bra_Sox2_Cdx2/Cy_w4_s<S>_t1.TIF'
-
+b
 fns = tagExpressionToFiles(texp);
 length(fns)
 

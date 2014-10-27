@@ -82,14 +82,14 @@ if ~isempty(extrafrmt)
       warning('imfrmtReshapeRange: input dimensions %s of size %s lost and set to singelton!', extrafrmt, var2char(extrasize))
 
       rgs = [num2cell(extrafrmt); num2cell(ones(1,length(extrafrmt)))];
-      rgs = imfrmtParseRangeLast(struct(rgs{:}), outRange);
-      rgs = imfrmtParseRange(extrasize, extrafrmt, rgs);
+      rgs = imfrmtRangeFromVarargin(struct(rgs{:}), outRange);
+      rgs = imfrmtRangeFromSizeFormatAndVarargin(extrasize, extrafrmt, rgs);
       rgsn = fieldnames(rgs);
       for i = 1:length(rgsn)
          v = rgs.(rgsn{i});
          rgs.(rgsn{i}) = v(1);
       end
-      outRange = parseParameter(outRange, rgs);
+      outRange = imfrmtRangeFromVarargin(outRange, rgs);
    end
 end
 

@@ -145,3 +145,33 @@ tgr = struct('Z', 1);
 [tgri,resh] = imfrmtReshapeInverseCellDataRange([512,512, 15], 'XYZ', 'XY', 12, 'U', 'VU', 'V', 'Z', 15, tgr)
 
 var2char({'reshape', resh})
+
+
+
+%% Reshape Cell Data
+clc
+
+cd = repmat({rand(3,4)}, 3,4);
+
+dfrmt = 'XY'; cfrmt = 'CS';
+rsf = {'S'};
+rst = {'UV'};
+rss = {[2,2]};
+
+outdfrmt = 'XYC';
+outcfrmt = 'UV';
+
+
+outcd = imfrmtReshapeCellData(cd, dfrmt, cfrmt, outdfrmt, outcfrmt, rsf, rst, rss)
+
+%%
+
+
+
+
+
+
+
+
+
+

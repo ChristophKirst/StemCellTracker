@@ -23,23 +23,25 @@ texp = tagExpression('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames',
 %texp='140902_RUES2_BMP4_DAPI_GFP_R_Cy5__9_p<pos,6>t00000001z001c<ch,2>.tif'
 
 is = ImageSourceFiles(texp);
+is.printInfo
 
-% set the data format
-is.setDataFormat('XY');
+%%
+% set the tiling
+is.setReshape('S', 'UV', [8, 19]);
+is.setCellFormat('Uv');
+is.printInfo
+
+
+%%
 
 % set some keys for the colors
-is.setRangeKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
+is.setKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
 
+
+%%
 % restrict to DAPI first
 is.setRange('C', 'DAPI');
-
-% set the tiling and cell formats
-is.setReshape('S', 'UV', [8, 19]);
-
-is.setCellFormat('Uv');
-
-%is.setCaching(false);
-
+is.range
 is.printInfo
 
 %% restric range to some sub set

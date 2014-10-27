@@ -216,6 +216,7 @@ classdef ImageSource < ImageInfo
          d = cd{1};
       end
       
+     
       
       function cd = getCellDataFromRaw(obj, varargin)
          %
@@ -226,20 +227,34 @@ classdef ImageSource < ImageInfo
          %     then uses getRawCellData to obtain raw cell data 
          %     then reshape to output cell data
 
-         % ranges necessary to load the raw data
-         [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
-         
-         % load raw data as cell data
-         cd = obj.getRawCellData(rawRange);
-         
-         % transform to output cell data 
-         fullDataFrmt = obj.fullDataFormat;
-         fullCellFrmt = obj.fullCellFormat;
-         
-         cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, fullDataFrmt, fullCellFrmt, ...
-                                        obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
-                                     
-         cd = imfrmtReformatCellData(cd, fullDataFrmt, fullCellFrmt, obj.dataFormat,  obj.cellFormat);
+         if imfrmtIsRange(obj.cellSize, obj.cellFormat, varargin{:})  
+
+             % ranges necessary to load the raw data
+             [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
+             
+             % load raw data as cell data
+             cd = obj.getRawCellData(rawRange);
+             
+             % transform to output cell data
+             fullDataFrmt = obj.fullDataFormat;
+             fullCellFrmt = obj.fullCellFormat;
+             
+             cd = imfrmtReshapeCellData(cd, obj.rawDataFormat, obj.rawCellFormat, fullDataFrmt, fullCellFrmt, ...
+                 obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
+             
+             cd = imfrmtReformatCellData(cd, fullDataFrmt, fullCellFrmt, obj.dataFormat,  obj.cellFormat);
+             
+         else %load indices
+
+             %numerical indices can be non multiplicative
+             ids = varargin{1};
+             n = numel(ids);
+             cd = cell(1,n);
+             for i = 1:n
+                 cd{i} = obj.getDataFromRaw(ids(i));
+             end    
+             cd = reshape(cd, size(ids));
+         end
          
       end
   

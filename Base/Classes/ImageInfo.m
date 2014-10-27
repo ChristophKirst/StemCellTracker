@@ -156,7 +156,6 @@ classdef ImageInfo < matlab.mixin.Copyable
          % decription:
          %   sets data and cell size using raw data and cell size and format info 
          
- 
          % reshaped sizes
          [obj.idatasize, obj.icellsize] = imfrmtReshapeCellDataSize( obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat, ...
                                                                      obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);    
@@ -538,8 +537,8 @@ classdef ImageInfo < matlab.mixin.Copyable
 
       function obj = reformatDataFormat(obj, newfrmt)
          %obj.reformatColor(obj.idataformat, newfrmt);
-         obj.idatasize   = imfrmtReformatSize(obj.fullDataSize, obj.fullDataFormat, newfrmt);
          obj.idataformat = newfrmt;
+         obj.initializeCellDataSizeFromRaw;
          
          obj.initializeCellDataSizeFromRaw;
          
@@ -626,8 +625,9 @@ classdef ImageInfo < matlab.mixin.Copyable
       end
 
       function obj = reformatCellFormat(obj, newfrmt)
-         obj.icellsize  = imfrmtReformatSize(obj.fullCellSize, obj.fullCellFormat, newfrmt);
          obj.icellformat = newfrmt;
+         obj.initializeCellDataSizeFromRaw;
+         
          
          %obj.initializeCellDataSizeFromRaw;
          if isa(obj, 'ImageSource')
@@ -806,12 +806,22 @@ classdef ImageInfo < matlab.mixin.Copyable
          [df, cf] = imfrmtReshapeCellDataFormat(obj.rawDataFormat, obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo); 
          df = imfrmtFlip(obj.dataFormat, df);
          cf = imfrmtFlip(obj.cellFormat, cf);
-      end
+      end 
       
-
       function obj = setCellDataFormat(obj, newdatafrmt, newcellfrmt)    
-         obj.setDataFormat(newdatafrmt);
-         obj.setCellFormat(newcellfrmt);
+         obj.reformatCellDataFormat(newdatafrmt, newcellfrmt);
+      end
+
+      function obj = reformatCellDataFormat(obj, newdatafrmt, newcellfrmt)    
+         obj.idataformat = newdatafrmt;
+         obj.icellformat = newcellfrmt;
+         
+         obj.initializeCellDataSizeFromRaw;
+
+         %obj.initializeCellDataSizeFromRaw;
+         if isa(obj, 'ImageSource')
+            obj.clearCellDataCache;
+         end
       end
  
       function obj = renameCellDataFormat(obj, oldlab, newlab)
@@ -983,7 +993,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       
       
       function id = rawDataIndex(obj, varargin)
-         range = obj.rawRange(varargin{:})
+         range = obj.rawRange(varargin{:});
          id = imfrmtRangeToIndex(obj.rawDataSize, obj.rawDataFormat, range);
       end
 

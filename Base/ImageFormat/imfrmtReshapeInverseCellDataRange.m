@@ -13,7 +13,7 @@ function [rawRange, rawReshape] = imfrmtReshapeInverseCellDataRange(dataSize, da
 %     rawReshape     the reshape size to use form raw to final data reshaping
 % 
 % note:
-%     ranges cannot be inversed in general as spcifications might not be separable !
+%     ranges cannot be inversed in general as specifications might not be separable !
 %     for image data usually the format is expanded from one dim to several 
 %     in which case the inversion in range is possible. we produce an error if reshapeFrom is not a single character
 % 
