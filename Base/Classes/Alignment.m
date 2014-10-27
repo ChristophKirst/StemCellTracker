@@ -6,10 +6,12 @@ classdef Alignment < ImageSource
    properties
       apairs = [];       % pairs of overlapping images (array of AlignmentPair classes)
       anodes = [];       % ids of images used for this alignment
-      
+            
       asource = [];      % (optional) image source. assumed to have routines cell(id), cellSize(id) and data(id)
 
-      aorigin = [0,0];   % absolute position of the first node
+      aorigin = [0,0];   % absolute position of the first node (if connected component ofa larger tiling)
+      apositions = [];   % image positions assuming first node at (1,1,...)
+
       aerror  = Inf;     % alignment error
    end
   
@@ -224,6 +226,88 @@ classdef Alignment < ImageSource
          id = unique([[obj.pairs.from], [obj.pairs.to]]);
       end
   
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % images / tiles 
+      
+      function isizes = imageSizes(obj, varargin)
+         nodes = obj.nodes;
+         if nargin == 2
+            nodes = nodes(varargin);
+         end 
+         isizes = repmat({obj.sourceDataSize}, 1, length(nodes)); 
+      end
+
+      function imgs = images(obj, varargin)
+         nodes = obj.nodes;
+         if nargin == 2
+            nodes = nodes(varargin);
+         end   
+         imgs = obj.asource.cell(nodes);
+      end
+
+      function ipos = imagePositions(obj, varargin)
+         %
+         % ipos = imagePositions()
+         %
+         % description:
+         %    returns positions of the images given the origin and shifts
+         %
+         % See also: optimizePairwiseShifts
+
+         nodes = obj.nodes;
+         if nargin == 2
+            nodes = nodes(varargin);
+         end 
+         isizes = repmat({obj.sourceDataSize}, 1, length(nodes)); 
+         
+         
+         if obj.nNodes == 1
+            ipos = {ones(1,obj.dim)};
+            return
+         end
+         
+         [~, ic] = optimizePairwiseShifts(obj.apairs);
+         ic = round(ic);
+   
+         % transform consistent shifts to shifts 
+         ipos = num2cell(ic',2);
+         %var2char(shifts);
+         
+         ipos = cellfunc(@(x) x + obj.aorigin, ipos);
+      end
+
+      function shifts = imageShifts(obj)
+         %
+         % shifts = imageShifts()
+         %
+         % description:
+         %    returns absolute shifts of each image determined from pairwise shifts
+         %
+         % See also: optimizePairwiseShifts
+
+         if obj.nNodes == 1
+            shifts = {zeros(1,obj.dim)};
+            return
+         end
+         
+         [~, ic] = optimizePairwiseShifts(obj.apairs);
+         ic = round(ic);
+   
+         % transform consistent shifts to shifts 
+         shifts = num2cell(ic',2);
+         %var2char(shifts);
+
+         sh = shifts{1};
+         for i = 1:numel(shifts)
+            shifts{i} = shifts{i} - sh;
+         end
+      end
+      
+      
+      
+      
+      
+      
   
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% underlying image source
@@ -540,64 +624,7 @@ classdef Alignment < ImageSource
          %obj.pairs = alignPairsFromShifts(obj.pairs, ashifts, obj.nodes);
       end
 
-      function isizes = imageSizes(obj)
-         isizes = repmat({obj.sourceDataSize}, 1, obj.nNodes); 
-      end
-
-      function imgs = images(obj)
-         imgs = obj.asource.cell(obj.nodes);
-      end
-
-      function ipos = imagePositions(obj)
-         %
-         % ipos = imagePositions()
-         %
-         % description:
-         %    returns positions of the images given the origin and shifts
-         %
-         % See also: optimizePairwiseShifts
-
-         if obj.nNodes == 1
-            ipos = {ones(1,obj.dim)};
-            return
-         end
-         
-         [~, ic] = optimizePairwiseShifts(obj.apairs);
-         ic = round(ic);
-   
-         % transform consistent shifts to shifts 
-         ipos = num2cell(ic',2);
-         %var2char(shifts);
-         
-         ipos = cellfunc(@(x) x + obj.aorigin, ipos);
-      end
-
-      function shifts = imageShifts(obj)
-         %
-         % shifts = imageShifts()
-         %
-         % description:
-         %    returns absolute shifts of each image determined from pairwise shifts
-         %
-         % See also: optimizePairwiseShifts
-
-         if obj.nNodes == 1
-            shifts = {zeros(1,obj.dim)};
-            return
-         end
-         
-         [~, ic] = optimizePairwiseShifts(obj.apairs);
-         ic = round(ic);
-   
-         % transform consistent shifts to shifts 
-         shifts = num2cell(ic',2);
-         %var2char(shifts);
-
-         sh = shifts{1};
-         for i = 1:numel(shifts)
-            shifts{i} = shifts{i} - sh;
-         end
-      end
+ 
 
       
       function comp = connectedComponents(obj, varargin)

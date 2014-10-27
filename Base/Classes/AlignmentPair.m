@@ -194,6 +194,38 @@ classdef AlignmentPair < matlab.mixin.Copyable
          
          [ovl1, ovl2] = overlap2ImagesOnGrid(obj.toCell, varargin{:});       
       end
+      
+      function ovl = overlapSize(obj, imSizes)
+         %
+         % ovl = overlapSize(obj, imSizes)
+         %
+         % description:
+         %    returns overlap sizes
+         
+         
+         for i = 1:length(obj)
+            if nargin == 1
+               imSizes = {size(obj(i).from), size(obj(i).to)};
+            end
+
+            sh = obj(i).shift;
+            for j = 1:length(sh)
+               if sh(j) >= 0
+                  ovl(i, j) = max(0, imSizes{1}(j) - sh(j)); %#ok<AGROW>
+               else
+                  ovl(i, j) = max(0, imSizes{2}(j) + sh(j));  %#ok<AGROW>
+               end
+            end
+         end
+      end
+      
+      function ovl = overlapSizePrimary(obj, imSize)
+         for i = 1:length(obj)
+            o = obj(i).orientation;
+            ovl(i) = imSize(o) - obj(i).shift(o); %#ok<AGROW>
+         end
+         
+      end
 
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

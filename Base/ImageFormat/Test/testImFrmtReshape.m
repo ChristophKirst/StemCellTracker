@@ -151,7 +151,7 @@ var2char({'reshape', resh})
 %% Reshape Cell Data
 clc
 
-cd = repmat({rand(3,4)}, 3,4);
+cd = repmat({[1,2;3,4]}, 3,4);
 
 dfrmt = 'XY'; cfrmt = 'CS';
 rsf = {'S'};
@@ -164,11 +164,30 @@ outcfrmt = 'UV';
 
 outcd = imfrmtReshapeCellData(cd, dfrmt, cfrmt, outdfrmt, outcfrmt, rsf, rst, rss)
 
+
 %%
 
 
+clc
+
+cd = repmat({[1,2;3,4]}, 4);
+for i = 1:4
+   cd{i} = cd{i} * i;
+end
+
+dfrmt = 'XY'; cfrmt = 'S';
+rsf = {'S'};
+rst = {'UV'};
+rss = {[2,2]};
+
+outdfrmt = 'Yx';
+outcfrmt = 'Uv';
 
 
+outcd = imfrmtReshapeCellData(cd, dfrmt, cfrmt, outdfrmt, outcfrmt, rsf, rst, rss)
+
+
+var2char(outcd)
 
 
 

@@ -28,46 +28,46 @@ function outData = imfrmtReshapeCellData(inCellData, inDataFrmt, inCellFrmt, out
  reducedReshapeFrom, reducedReshapeTo, reducedReshapeSize] = ...
     formatType(inDataFrmt, inCellFrmt, outDataFrmt, outCellFrmt, ...
                reshapeFrom, reshapeTo, reshapeSize);
-            
-  inPureCellType    
-  
-  outPureCellType
+%             
+%   inPureCellType    
+%   outPureCellType
 
 % move pure cell types to end of cell frmt
 
 inCellFrmtReshape = inCellFrmt(~inPureCellType);
-inCellFrmtPure = inCellFrmt(inPureCellType)
+inCellFrmtPure = inCellFrmt(inPureCellType);
 inCellFrmtOrdered = [inCellFrmtReshape, inCellFrmtPure];
 
 inCellData = imfrmtReformat(inCellData, inCellFrmt, inCellFrmtOrdered);
 
-inDataSize = size(inCellData{1});
-inCellSize = size(inCellData);
+inDataSize = imfrmtSize(inCellData{1}, inDataFrmt);
+inCellSize = imfrmtSize(inCellData, inCellFrmtOrdered);
 
 
 % cell format after reshaping
 
-outCellFrmtReshape = outCellFrmt(~outPureCellType)
+outCellFrmtReshape = outCellFrmt(~outPureCellType);
 %outCellFrmtPure = outCellFrmt(outPureCellType);
-outCellFrmtTemp = [outCellFrmtReshape, inCellFrmtPure]
+outCellFrmtTemp = [outCellFrmtReshape, inCellFrmtPure];
 
 % reshape inner mixture data 
 
 n = prod(inCellSize(inPureCellType));
 
 [~, outCellSizeOrdered] = imfrmtReshapeCellDataSize(inDataSize, inCellSize,...
-                              inDataFrmt, inCellFrmtOrdered, outDataFrmt, outCellFrmtTemp, reducedReshapeFrom, reducedReshapeTo, reducedReshapeSize)
+                              inDataFrmt, inCellFrmtOrdered, outDataFrmt, outCellFrmtTemp, reducedReshapeFrom, reducedReshapeTo, reducedReshapeSize);
 
-outCellSizeOrdered = imfrmtSize(
+outCellSizeOrdered = imfrmtAllocateSize(outCellSizeOrdered);
                            
 outData = cell(outCellSizeOrdered);
+%size(outData)
 
 
-argsIn = repmat({':'}, 1, sum(~inPureCellType) + 1)
-argsOut = repmat({':'}, 1, sum(~outPureCellType) + 1)
+argsIn = repmat({':'}, 1, sum(~inPureCellType) + 1);
+argsOut = repmat({':'}, 1, sum(~outPureCellType) + 1);
 
-fullInFrmt = [inDataFrmt, inCellFrmtReshape]
-fullOutFrmt = [outDataFrmt, outCellFrmtReshape]
+fullInFrmt = [inDataFrmt, inCellFrmtReshape];
+fullOutFrmt = [outDataFrmt, outCellFrmtReshape];
 
 for i = 1:n
    argsIn{end} = i;
@@ -87,13 +87,13 @@ for i = 1:n
 end
 
 
-size(outData)
-outCellFrmtTemp
-outCellFrmt
-
- cellReshapeFrom
- cellReshapeTo
- cellReshapeSize
+% size(outData)
+% outCellFrmtTemp
+% outCellFrmt
+% 
+% cellReshapeFrom
+% cellReshapeTo
+% cellReshapeSize
 
 % reshape cell data
 

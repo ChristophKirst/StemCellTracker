@@ -147,6 +147,11 @@ is.fileName('F', 1:5, 'W', 1)
 is.fileNameFromRawRange
 
 %%
+clc
+is.dataSize
+
+
+%%
 
 d = is.data(1);
 size(d)
@@ -158,9 +163,15 @@ implot(d)
 
 %%
 clc
+
+is.cellFormat
+is.cellSize
+
+%%
 cdat = is.cell;
 
 size(cdat)
+imfrmtSize(cdat, is.cellFormat)
 is.cellSize
 
 

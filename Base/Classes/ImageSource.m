@@ -190,12 +190,10 @@ classdef ImageSource < ImageInfo
          if length(cid) > 1
             error('%s: getData: cell dimensions not specified to singeltons!', class(obj));
          end
-         
-         
+
          % ranges necessary to load the raw data
-         [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
-              
-%          rawRange    
+         [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});     
+         %rawRange    
          
          
          % load raw data as cell data
