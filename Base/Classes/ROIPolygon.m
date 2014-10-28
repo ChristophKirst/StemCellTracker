@@ -117,6 +117,22 @@ classdef ROIPolygon < ROI
          obj.p = dilatePolygon(obj.p, bwidth);
       end
       
+      
+      function plot(obj, varargin)
+         n = length(obj);
+         cc = colorcube(n);
+         for i = 1:n
+            pp = obj(i).p;
+            plot(pp(1,:)', pp(2,:)', varargin{:}, 'Color', cc(i,:))
+         end
+      end
+      
+      function obj = rescale(obj, scale)
+         for i = 1:length(obj)
+            obj(i).p = obj(i).p .* scale;
+         end
+      end
+  
    end
    
 end

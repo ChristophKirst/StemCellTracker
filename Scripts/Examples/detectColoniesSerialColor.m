@@ -181,12 +181,32 @@ save('./Test/Data/Colonies/colonies.mat', 'colonies')
 
 %% Change color cannel
 
-s =colonies(1).source.source;
+a = colonies(1).source;
+s = a.source;
 s.printInfo
 
+s.addRange('C', 4);
 s.fileTagRange
 
+%%
 
+figure(5); clf;
+a.clearPreview
+a.plotPreview
+
+
+
+%%
+
+if verbose
+   figure(10); clf
+   for c = 1:min(ncolonies, 10)
+      figure(10);
+      img = colonies(c).data;
+      imsubplot(10,5,c)
+      implot(img)
+   end
+end
 
 
 

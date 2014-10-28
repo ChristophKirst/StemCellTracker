@@ -70,6 +70,12 @@ classdef ROI < matlab.mixin.Copyable
 
          n = total(obj.mask); % simple but slow / mem inensive
       end
+      
+      function plotRescaled(obj, scale, varargin)
+         roi = obj.copy();
+         roi.rescale(scale);
+         plot(roi)
+      end
 
    end
    

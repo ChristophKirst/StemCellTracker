@@ -1,102 +1,79 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Serial Detection of Colonies 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
 
-% image data is read from disk each time and not cached
-% useful for large tilings that do not fit into memory
+initialize
+bfinitialize
 
+%%
 clear all
 clear classes
 close all
 clc
-initialize
-bfinitialize
-
 verbose = true;
+%initializeParallelProcessing;
+
 
 
 %% Setup Image Source
-clc
 
 % infer the tag expression o he files from the file folder automatically
-texp = tagExpression('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames', {'S', 'C'});
-%texp='140902_RUES2_BMP4_DAPI_GFP_R_Cy5__9_p<pos,6>t00000001z001c<ch,2>.tif'
+%texp = ('/Users/fetoc/Desktop/data/dilutions experiments xBMP4 91914/dilution PB31-xBMP4 c5 in RUES2 1100 fates after 48hrs Dox/Sox2 Bra Myc/20140914_ESCEpFgf52.zvi')
+%texp='exp<N>p<tile,2>c<ch>.tif'
+%texp='1_p<P,6>t00000001z001c<C,2>.tif'
+
+texp = '/var/run/media/ckirst/38cc9966-c6b8-4ff9-b338-90cd43814dda/for CK/1_p<P,6>t00000001z001c<C,2>.tif'
 
 is = ImageSourceFiles(texp);
 is.printInfo
 
-%%
-% set the tiling
-is.setReshape('S', 'UV', [8, 19]);
-is.setCellFormat('UvC');
+%% 
+
+is.setReshape('P','UV',[13,18]);
+is.setCellFormat('UvC')
+is.setRange('C',1, 'U', 1:3, 'V', 1:3)
+
 is.printInfo
 
+% %%
+% 
+% im=is.data(1);
+% figure(4);
+% implot(im)
 
-%%
+%% Dangerous for large dataset, Restrict the range first!
 
-% set some keys for the colors
-is.setKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
-
-
-%%
-% restrict to DAPI first
-clc
-is.setRange('C', 'DAPI');
-is.range
-is.printInfo
-
-%% restric range to some sub set
-
-is.addRange('U', 1:4, 'V', 1:3);
-is.printInfo
+figure(1);
+is.plottiling
 
 
-%%
-
-% % check formatting
-% cd = is.cell(1:18)
-% figure(1); clf
-% implottiling(cd, 'tiling', [8,2])
-
- 
-%%
-
-% make preview
-preview = is.previewStitchedCells('overlap', 110, 'scale', 0.1, 'lines', true);
-figure(2); clf
-implot(preview)
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Alignment
 
 % create 
-clc
-algn = Alignment(is, 'UV');
-algn.setCaching(false);
+clc;
+algn = Alignment(is, 'Uv');
 algn.printInfo
 
+%var2char({[algn.pairs.from], [algn.pairs.to]})
 
-%% Background Intensity for Overlap Quality of Tiles
+%% Background intensity for testing overlap quality of tiles
 
-img1 = algn.sourceData(2);
+img1 = is.data(2);
 nbins = 50;
 th = thresholdFirstMin(img1, 'nbins', nbins, 'delta', 1/1000 * numel(img1))
-
+%th=2000
 if verbose
-   figure(3); clf
+   figure(3)
    hist(img1(:), nbins)
 end
 
-%% Quality of Overlap between neighbouring Tiles 
+%% Quality of Overlap between neighbouring tiles 
 
 % parameter: see overlapQuality
 algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
+[algn.pairs.quality];
 
-hist(algn.overlapQuality, 256)
 
+%% Connected Components based on overlap quality
 
-%% Align components
 clc
 clear subalgn
 subalgn = algn.connectedComponents('threshold.quality', -eps);
@@ -107,11 +84,12 @@ if verbose
    var2char({subalgn.anodes})
 end
 
+%% Align Components
 
-%%
+
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
-   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
+   subalgn(s).align('alignment', 'RMS', 'overlap.max', 120, 'overlap.min', 40, 'shift.max', 140);
    if verbose && s < 20 %%&& subalgn(s).nNodes < 75
       subalgn(s).printInfo 
       figure(100+s)
@@ -120,13 +98,14 @@ for s = 1:nsubalgn
    end
 end
 
-%% Align Components
 
+
+%% Compose Final Alignment
+
+% align sub cnnected components
 subalgn.alignPositions;
 
-
-%% merge to single alignment
-
+% merge to single alignment
 algnAll = subalgn.merge;
 algnAll.printInfo
 
@@ -134,6 +113,7 @@ algnAll.printInfo
 %%
 figure(5); clf
 algnAll.plotPreview
+
 
 
 %% Colony Detection from Preview
@@ -155,10 +135,11 @@ fprintf('Found %g regions of interest\n', length(roi))
 
 %% Colony 
 
-colonies = Colony(algnFull, roi);
-colonies.plotPreview
+colonies = Colony(algnAll, roi);
 ncolonies = length(colonies);
 
+figure(1); clf
+colonies.plotPreview
 
 
 %% Visualize
@@ -181,22 +162,32 @@ save('./Test/Data/Colonies/colonies.mat', 'colonies')
 
 %% Change color cannel
 
-s =colonies(1).source.source;
+a = colonies(1).source;
+s = a.source;
 s.printInfo
 
+s.addRange('C', 2);
 s.fileTagRange
 
+%%
+
+figure(5); clf;
+a.clearPreview
+a.plotPreview
 
 
 
+%%
 
-
-
-
-
-
-
-
+if verbose
+   figure(10); clf
+   for c = 1:min(ncolonies, 10)
+      figure(10);
+      img = colonies(c).data;
+      imsubplot(10,5,c)
+      implot(img)
+   end
+end
 
 
 

@@ -205,6 +205,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -274,6 +275,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -283,6 +285,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -292,6 +295,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -301,6 +305,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -549,6 +554,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
 
@@ -637,6 +643,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          %obj.initializeCellDataSizeFromRaw;
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end 
       
@@ -690,6 +697,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearRawCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -700,6 +708,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearRawCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -745,6 +754,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearRawCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -756,6 +766,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          
          if isa(obj, 'ImageSource')
             obj.clearRawCellDataCache;
+            obj.clearPreview;
          end
       end
       
@@ -826,6 +837,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          %obj.initializeCellDataSizeFromRaw;
          if isa(obj, 'ImageSource')
             obj.clearCellDataCache;
+            obj.clearPreview;
          end
       end
  

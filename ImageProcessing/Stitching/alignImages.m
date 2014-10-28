@@ -117,6 +117,8 @@ function [shifts, pairs] = alignByGlobal(imgs, pairs, istiling, param)
          
          if isorient
             parfor p = 1:np
+               aimgs = [];
+               
                switch pairs(p).orientation
                   case 1
                      aimgs = {imgs.data(pairs(p).from); imgs.data(pairs(p).to)}; %#ok<PFBNS>

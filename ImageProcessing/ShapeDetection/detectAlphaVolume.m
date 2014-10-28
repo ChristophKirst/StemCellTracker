@@ -3,10 +3,9 @@ function [V,S] = detectAlphaVolume(X,R,plt)
 % [V,S] = detectAlphaVolume(X,R,fig)
 % 
 % description:
-%   returns ives the area or volume V of the basic alpha shape
+%   returns the area or volume V of the basic alpha shape
 %   for a 2D or 3D point set X with probe radius R
-%   R is the . In the default case
-%   the basic alpha shape (or alpha hull) is the convex hull.
+%   In the default case the basic alpha shape (or alpha hull) is the convex hull.
 %
 % input:
 %   X    coordinate matrix of size Nx2 or Nx3.

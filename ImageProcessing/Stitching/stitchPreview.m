@@ -1,9 +1,26 @@
-function [img, scale] = alignCellPreview(celldata, varargin)
+function [img, scale] = stitchPreview(celldata, varargin)
+%
+% [img, scale] = stitchPreview(celldata, varargin)
+%
+% description:
+%   stitches cells in a resmaples way using approximate overlaps
+%
+% input:
+%   celldata    cell array of cell data
+%   param       parameter struct with entires
+%               .scale    scale for resmapling ([] = 0.1)
+%               .shifts   shifts of the images in celldata ([] = infer from overlap and cell grid)
+%               .size     size of the final image, everything outsie this size will be cut ([] = automatic full size)
+%
+% output:
+%   img         stitched image
+%   scale       (optional) scale used for down sampling
+
 
 param = parseParameter(varargin);
 
 scale = getParameter(param, 'scale',    0.1);
-pos   = getParameter(param, 'position', []);
+sh    = getParameter(param, 'shifts', []);
 siz   = getParameter(param, 'size',     []);
 
 if isempty(celldata)
@@ -23,9 +40,9 @@ if isa(celldata, 'Alignment')
    if isempty(siz)
       siz = ceil(celldata.dataSize .* scale);
    end
-   if isempty(pos)
-      pos = celldata.imageShifts;
-      pos = cellfunc(@(x) ceil(x .* scale), pos);
+   if isempty(sh)
+      sh = celldata.imageShifts;
+      sh = cellfunc(@(x) ceil(x .* scale), sh);
    end
    
    % read sequentially 
@@ -39,6 +56,7 @@ if isa(celldata, 'Alignment')
 elseif isa(celldata, 'ImageSource')
    % read sequentially 
    cdat = cell(celldata.cellSize);
+   
    for i = 1:numel(cdat)
       cdat{i} = celldata.dataResample(scale, i);
    end
@@ -51,43 +69,42 @@ end
 overlap  = ceil(scale .* overlap);
 
 % 
-if isempty(pos)
+if isempty(sh)
    isize = size(celldata{1}); % assume all images are same size
-   pos = imgrid(size(celldata));
+   sh = imgrid(size(celldata));
  
-   for i = 1:length(pos)
-      pos{i} = pos{i}(:);
+   for i = 1:length(sh)
+      sh{i} = sh{i}(:);
    end
-   pos = [pos{:}] - 1;
-   pos = pos .* repmat(isize - overlap, size(pos,1), 1) + 1;
+   sh = [sh{:}] - 1;
+   sh = sh .* repmat(isize - overlap, size(sh,1), 1) + 1;
 
-   pos = num2cell(pos,2);
+   sh = num2cell(sh,2);
 end
 
 if isempty(siz)
-   [pos, siz] = absoluteShiftsAndSize(pos, cellfunc(@size, celldata));
+   [sh, siz] = absoluteShiftsAndSize(sh, cellfunc(@size, celldata));
 end
 
 
 %var2char(pos)
 
-img = stitchImages(celldata, pos, param, 'size', siz);
+img = stitchImages(celldata, sh, param, 'size', siz);
 
 
 if getParameter(param, 'lines', false)
-   pos = cell2mat(pos);
-   posx = unique(pos(:,1)); 
+   sh = cell2mat(sh);
+   posx = unique(sh(:,1)); 
    
    mval = max(img(:));
    for p = posx(:)'
       img = impixelline(img, [p,1], [p, siz(2)], mval);
    end
    
-   posy = unique(pos(:,2)); 
+   posy = unique(sh(:,2)); 
    for p = posy(:)'
       img = impixelline(img, [1, p], [siz(1), p], mval);
    end
-
 end
 
 

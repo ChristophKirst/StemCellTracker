@@ -15,14 +15,18 @@ classdef ImageSource < ImageInfo
    %     the ranges are then inversly reshaed to the raw ranges neccessary to laod the data
     
    properties   
-      icache = false;         % (optional) cache the data or not
-      icelldata    = [];     % (cached) image data as cell array
+      icache = false;            % (optional) cache the data or not
+      icelldata    = [];         % (cached) image data as cell array
       
-      irawcache = false;      % (optional) cache the raw cell data
-      irawcelldata = [];     % (cached) raw data
+      irawcache = false;         % (optional) cache the raw cell data
+      irawcelldata = [];         % (cached) raw data
       
       idatacorrect = false;      % (optional) switch on/off image correction
       idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data
+      
+            
+      ipreview = [];             % preview image of the alignment
+      ipreviewscale = [];        % scale of the preview image
    end
         
    methods   
@@ -227,8 +231,9 @@ classdef ImageSource < ImageInfo
          %     determines inverse coordinate range
          %     then uses getRawCellData to obtain raw cell data 
          %     then reshape to output cell data
-
-         if imfrmtIsRange(obj.cellSize, obj.cellFormat, varargin{:})  
+         
+         %if imfrmtIsRange(obj.cellSize, obj.cellFormat, varargin{:})  
+         if nargin > 2 || ~(nargin == 2 && isnumeric(varargin{1}))
 
              % ranges necessary to load the raw data
              [rawRange, rawReshapeSize] = obj.rawRange(varargin{:});
@@ -244,7 +249,7 @@ classdef ImageSource < ImageInfo
                  obj.reshapeFrom, obj.reshapeTo, rawReshapeSize);
              
              cd = imfrmtReformatCellData(cd, fullDataFrmt, fullCellFrmt, obj.dataFormat,  obj.cellFormat);
-             
+
          else %load indices
 
              %numerical indices can be non multiplicative
@@ -380,8 +385,18 @@ classdef ImageSource < ImageInfo
       end
       
       function d = cellResample(obj, scalefac, varargin)
-         d = obj.cell(varargin{:});
-         d = cellfun(@(x) imresize(x, scalefac), d);
+         if nargin ==3 &&  isnumeric(varargin{1})
+            idx = varargin{1};
+            n = length(idx);
+            d = cell(1,n);
+            for i = 1:n
+               d{i} = obj.dataResample(scalefac, idx(i));
+            end
+            d = reshape(d, size(idx));
+         else
+             d = obj.cell(varargin{:});
+            d = cellfunc(@(x) imresize(x, scalefac), d);
+         end
       end
 
   
@@ -475,23 +490,63 @@ classdef ImageSource < ImageInfo
          obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
       end
       
-
-      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      %%% alignment utils
  
-      function d = cellPreview(obj, varargin)
-         
-         d2 = alignCellPreview(obj, varargin);
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % previews
+      
+            
+      function obj = initializePreview(obj , varargin)
+         % 
+                  
+         for i = 1:length(obj)
+                     
+            % check for correct format
+            cs = obj.cellSize;
+            if sum(cs > 1) > 2
+               error('preview only possible for single channel grid')
+            end
 
-         if nargout < 1
-            implot(d2)
-         else
-            d = d2;
+            [obj(i).ipreview, obj(i).ipreviewscale] = stitchPreview(obj(i), varargin);   
+         end
+      end
+      
+      function obj = clearPreview(obj)
+         for i = 1:length(obj)
+            obj(i).ipreview = [];
+            obj(i).ipreviewscale = [];
          end
       end
 
+      function p = preview(obj, varargin)
+         if length(obj) == 1
+            if isempty(obj.ipreview)
+               obj.initializePreview(varargin);
+            end
+            p = obj.ipreview;
+            
+         else
+            error('%s: preview only possible for single class!', class(obj));
+         end
+      end
+      
+      function s = previewScale(obj, varargin)
+         s = obj.ipreviewscale;
+      end
+
+      function d = plotPreview(obj, varargin)
+         p = obj.preview(varargin);
+         implot(p)
+         
+         if nargout > 0
+            d = p;
+         end
+      end
+      
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % information / visulaization 
+      % information / visulaization
+       
       
       function plot(obj)
          plotImageSource(obj);

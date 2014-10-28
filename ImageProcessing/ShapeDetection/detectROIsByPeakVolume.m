@@ -12,8 +12,10 @@ function [roi, pks] = detectROIsByPeakVolume(imgs, varargin)
 %    imgs   images as cell arrays
 %    isalgn ImageSourceAligned class
 %    param  paramteer struct
-%           .radius    probe radius passed to detectAlphaVolume (100)
-%           .plot      plot the result
+%           .radius         probe radius passed to detectAlphaVolume (100)
+%           .plot           plot the result
+%           .origin.images  origin of the image set
+%           .origin.plot    origin in the plot
 %           other parametre as in stitchPeaks, detectPeaksByHmax
 %           
 % output:
@@ -37,6 +39,7 @@ elseif iscell(imgs)
 end
 
 param = parseParameter(varargin);
+origin = getParameter(param, 'origin.images', []);
 
 % find peaks
 if isa(imgs, 'Alignment')
@@ -46,9 +49,11 @@ if isa(imgs, 'Alignment')
       pks{i} = detectPeaksByHmax(imgs.nodeData(i), param); %#ok<PFBNS>
    end
    
-   pks = stitchPoints(pks, imgs.imagePositions, imgs.imageSizes);
+   pks = stitchPoints(pks, imgs.imageShifts, imgs.imageSizes);
    
-   origin = imgs.origin;
+   if isempty(origin)
+      origin = imgs.origin;
+   end
    
 else
    n = numel(imgs);
@@ -59,7 +64,9 @@ else
    
    pks = stitchPoints(pks, shifts, cellfunc(@size, imgs), param);
    
-   origin = [0,0];
+   if isempty(origin)
+      origin = [1,1];
+   end
 end
 
 
@@ -76,18 +83,21 @@ nr = length(roi);
 if getParameter(param, 'plot', false)
    cc = colorcube(nr);
    
+   plorigin = getParameter(param, 'origin.plot', origin);
+   
    hold on;
    for ii=1:nr
       rr = roi{ii};      
-      plot(rr(1,:)' - origin(1), rr(2,:)' - origin(2), 'LineWidth', 1, 'Color', cc(ii,:));
+      plot(rr(1,:)' + plorigin(1) - 1, rr(2,:)' + plorigin(2) - 1, 'LineWidth', 1, 'Color', cc(ii,:));
       
-      plot(pks(1,:) - origin(1), pks(2,:) -origin(2), '.', 'Color', 'k');
+      plot(pks(1,:) + plorigin(1) - 1, pks(2,:) + plorigin(2) - 1, '.', 'Color', 'k');
    end
 end
 
 %convert polygons to ROIs 
 for i = 1:length(roi)
    roi{i} = ROIPolygon(roi{i});
+   %roi{i} = roi{i}.shift(origin -1);
 end
 
 end

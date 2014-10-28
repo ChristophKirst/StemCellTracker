@@ -10,13 +10,10 @@ classdef Alignment < ImageSource
       asource = [];      % image source. assumed to have routines cell(id), cellSize(id) and data(id)
       aformat = [];      % coordinates in the cell dims of the source that contribute to the tiling
 
-      aorigin = [1,1];   % absolute position of the first node (i.e. if connected component of a larger tiling)
-      ashifts = {};      % image positions assuming first node at (1,1,...)
+      aposition = [1,1]; % position of the first node (i.e. if connected component of a larger tiling)
+      ashifts = {};      % image shifts assuming first node at (1,1,...)
 
       aerror  = Inf;     % alignment error
-      
-      apreview = [];     % preview image of the alignment
-      apreviewscale = [];% scale of the preview image
    end
   
    methods
@@ -161,7 +158,7 @@ classdef Alignment < ImageSource
       function obj = initializeFromPairsAndShifts(obj)
          % intializes the data size and format info using the info in pairs
          
-         [~, obj.irawdatasize] = obj.absoluteShiftsAndSize;
+         obj.irawdatasize = obj.absoluteSize;
          frmt = 'XYZ';
          frmt = frmt(1:length(obj.irawdatasize));
          obj.irawdataformat = frmt;
@@ -176,30 +173,12 @@ classdef Alignment < ImageSource
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % basics 
       
-      function n = nodes(obj)
-         n = obj.anodes;
-      end
-      
-      function p = pairs(obj)
-         p = obj.apairs;
-      end
-      
-      function s = source(obj)
-         s = obj.asource;
-      end
-      
-      function o = origin(obj)
-         o = obj.aorigin;
-      end
-
-
       function d = dim(obj)
          %
          % d = dim(obj)
          %
          % descritpion:
          %   number of dimensions of the alignment shifts
-         %
 
          if ~isempty(obj.apairs)
             d = obj.apairs(1).dim();
@@ -222,6 +201,18 @@ classdef Alignment < ImageSource
          n = length(obj.anodes);
       end
       
+      function n = nodes(obj)
+         n = obj.anodes;
+      end
+      
+      function p = pairs(obj)
+         p = obj.apairs;
+      end
+      
+      function s = source(obj)
+         s = obj.asource;
+      end
+      
       
       function idx = cellIndexFromNodeIndex(obj, id)
          idx = obj.anodes(id);
@@ -241,15 +232,7 @@ classdef Alignment < ImageSource
          
          id = unique([[obj.pairs.from], [obj.pairs.to]]);
       end
-      
-      
-      function obj = setOrigin(obj, o)
-         obj.aorigin = o;
-      end
-      
-      function obj = setShifts(obj, s)
-         obj.ashifts = s;
-      end
+ 
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -272,7 +255,7 @@ classdef Alignment < ImageSource
       end
 
       function is = sourceDataSize(obj, varargin)
-         is = obj.asource.dataSize(varargin{:});
+         is = obj(1).asource.dataSize(varargin{:});
       end
       
       function is = sourceDataFormat(obj, varargin)
@@ -296,21 +279,55 @@ classdef Alignment < ImageSource
 
   
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-      % images / tiles 
+      % images / tiles / positions
+
+      function p = position(obj)
+         p = obj.aposition;
+      end
+      
+      function obj = setPosition(obj, o)
+         obj.aposition = o;
+      end
+       
+      function p = absolutePosition(obj)
+         ap = absoluteShiftsAndSize(obj.imagePositions, obj.imageSizes);
+         k = 1;
+         n = length(obj);
+         p = cell(1, n);
+         for i = 1:n
+            p{i} = ap{k} + 1;
+            k = k + obj(i).nNodes;
+         end
+      end
+      
+      function si = absoluteSize(obj)
+         [~,si] = absoluteShiftsAndSize(obj.imagePositions, obj.imageSizes);
+      end
+      
       
       function imgs = images(obj, varargin)
-         nodes = obj.anodes;
+         nodes = [obj.anodes];
          if nargin == 2
-            nodes = nodes(varargin);
+            nodes = nodes(varargin{:});
          end   
          source = obj.asource; 
          imgs = source.cell(nodes);
          imgs = imgs(:);
       end
       
-    
+      
+      function imgs = imagesResmaple(obj, scale, varargin)
+         nodes = [obj.anodes];
+         if nargin == 2
+            nodes = nodes(varargin{:});
+         end   
+         source = obj.asource; 
+         imgs = source.cellResample(scale, nodes);
+         imgs = imgs(:);
+      end
+
       function isizes = imageSizes(obj, varargin)
-         nodes = obj.anodes;
+         nodes = [obj.anodes];
          if nargin == 2
             nodes = nodes(varargin);
          end 
@@ -323,16 +340,27 @@ classdef Alignment < ImageSource
          % shifts = imageShifts()
          %
          % description:
-         %    returns absolute shifts for the images, assumes ashifts are set
+         %    returns shifts for the images w.r.t to node 1, assumes ashifts are set
          %
          % See also: align
 
-         shifts  = obj.ashifts;
+         shifts  = vertcat(obj.ashifts);
          if isempty(shifts)
             error('%s: imageShifts: shifts not set, align images first !', class(obj));
          end
 
-         shifts = shifts(varargin{:});
+         shifts = shifts(varargin{:})';
+      end
+      
+
+      function [pos, si] = absoluteImageShifts(obj)
+         %
+         % obj = absoluteImageShifts(obj, varargin)
+         %
+         % description:
+         %     returns shifts so that all image coords are positive
+
+         [pos, si] = absoluteShiftsAndSize(obj.imagePositions, obj.imageSizes);
       end
       
 
@@ -341,36 +369,38 @@ classdef Alignment < ImageSource
          % ipos = imagePositions()
          %
          % description:
-         %    returns positions of the images given the origin and shifts
+         %    returns 'physical' positions of the images given the shifts and position
          %
          % See also: align
 
+         ipos = {obj.ashifts};
 
-         ipos = obj.ashifts;
-         if isempty(ipos)
+         if any(cellfun(@isempty, ipos))
             error('%s: imageShifts: shifts not set, align images first !', class(obj));
          end
-
-         ipos = ipos(varargin{:});
          
-         o = obj.aorigin;
-         ipos = cellfunc(@(x) x + o, ipos);
+         for i = 1:length(ipos)
+            o = obj(i).aposition;
+            ipos{i} = cellfunc(@(x) x + o, ipos{i});
+         end
+         
+         ipos = vertcat(ipos{:});
+         
+         ipos = ipos(varargin{:});
       end
-
-  
-      function [ashifts, as] = absoluteShiftsAndSize(obj)
+            
+      function pos = absoluteImagePositions(obj)
          %
-         % obj = absoluteShiftsAndSize(obj)
+         % obj = absoluteImagePositions(obj, varargin)
          %
          % description:
-         %    calculates absolute size and shifts give the image shifts and sizes
-         %
-         % See also: absoluteShiftsAndSize
-         
-         [ashifts, as] = absoluteShiftsAndSize(obj.imageShifts, obj.imageSizes);
-      end          
- 
+         %     returns positions so that all image coords are positive
+
+         pos = absoluteShiftsAndSize(obj.imagePositions, obj.imageSizes);
+         pos = cellfunc(@(x) x + 1, pos);
+      end
       
+
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       %%% data access
@@ -608,6 +638,7 @@ classdef Alignment < ImageSource
          
          if obj.nNodes == 1
             obj.ashifts = {zeros(1,obj.dim)};
+            obj.initializeFromPairsAndShifts();
             return
          end
          
@@ -644,8 +675,18 @@ classdef Alignment < ImageSource
       
       function st = stitchArray(obj, varargin)
          % stitches an array of alignement classes using thier different origins
-         st  = stitchImages([obj.images], [obj.imagePositions], varargin{:});
+         st  = stitchImages(obj.images, obj.imagePositions, varargin{:});
       end
+      
+            
+      function st = stitchArrayResample(obj, scale, varargin)
+         % stitches an array of alignement classes using their different origins 
+         % resampling the data
+         pos = obj.imagePositions;
+         pos = cellfunc(@(x)round(x .* scale), pos);
+         st  = stitchImages(obj.imagesResample(scale), pos, varargin{:});
+      end
+      
       
       
       function aerror = alignmentError(obj)
@@ -677,6 +718,7 @@ classdef Alignment < ImageSource
          %
          % See also: connectedAlignments
          
+         obj.clearPreview;
          comp = connectedAlignments(obj, varargin{:});   
       end
  
@@ -717,17 +759,17 @@ classdef Alignment < ImageSource
       
      
       
-      function obj = alignOrigins(obj, varargin)
+      function obj = alignPositions(obj, varargin)
          %
-         % obj = alignOrigins(obj, varargin)
+         % obj = alignPositions(obj, varargin)
          %
          % description:
-         %    aligns origins of an array of Alignment classes originating form a comon grid
-         %    as obtained by connectedComponents
+         %    aligns origins of an array of Alignment classes originating form a common grid
+         %    e.g. as obtained by connectedComponents
          %
          % input
          %    parameter struct with entries
-         %             overlap.mean    values to assume for mean overlap ([] = automaic)
+         %             overlap.mean    values to assume for mean overlap ([] = automatic)
          %             overlap.scale   scaling of the mena overlap to get obtain the final overlap ([] = 1)     
          %
          % See also: connectedComponents
@@ -750,23 +792,47 @@ classdef Alignment < ImageSource
 
          % assume the same source for all 
          isource = obj(1).source;
-         pos = imfrmtPermuation(isource.cellFormat, obj(1).aformat)
+         pos = imfrmtPermuation(isource.cellFormat, obj(1).aformat);
          
-         
+         isiz = obj.sourceDataSize;
+
          for i = 1:nobj
             nodes = obj(i).nodes;
             sub = isource.cellIndexToSubIndex(nodes(1));
-            sub = sub(:, pos)
+            sub = sub(:, pos);
             
-            obj(i).aorigin = round((sub - 1) .* ovl);
+            obj(i).aposition = round((sub - 1) .* (isiz - ovl)) + 1;
          end
       end
+      
 
       
       
+      function algn = merge(obj)
+         %
+         % algn = merge(obj)
+         %
+         % description:
+         %   merges the sub alignment classes to a single one
+         
+         
+         algn = obj(1).copy;
+         algn.clearPreview;
+         
+         algn.apairs = [obj.apairs];
+         algn.anodes = [obj.anodes];
+         algn.ashifts = obj.imagePositions;
+         algn.aposition = obj.absoluteImagePositions;
+         algn.aposition = algn.aposition{1};
+         
+         algn.irawdatasize = algn.absoluteSize;         
+         algn.initializeCellDataSizeAndFormatFromRaw;
+      end
+
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % rois
-      
+
       function [obj, roi] = reduceToROI(obj, roi)   
          [ids, shids] = obj.nodesFromROI(roi.boundingbox);
                
@@ -804,8 +870,6 @@ classdef Alignment < ImageSource
          nds = nds(ids);
       end
 
-
-
      
 %       function r = roi(obj, varargin)
 %          %
@@ -818,44 +882,34 @@ classdef Alignment < ImageSource
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % previews
-      
-      
+
       function p = preview(obj, varargin)
-         if isempty(obj.apreview)
-            obj.initializePreview(varargin);
+         if length(obj) == 1
+            if isempty(obj.ipreview)
+               obj.initializePreview(varargin);
+            end
+            p = obj.ipreview;
+            
+         else
+            nobj = length(obj);
+            imgs = cell(1, nobj);
+            for i = 1:nobj
+               imgs{i} = obj(i).preview(varargin);
+            end
+            
+            scale = obj(1).apreviewscale;
+            shifts = obj.absolutePosition;
+            shifts = cellfunc(@(x) round(x .* scale), shifts);
+            %var2char(shifts)
+            
+            p = stitchPreview(imgs, 'shifts', shifts, 'scale', 1);
          end
-         
-         p = obj.apreview;
-      end
-      
-      function s = previewScale(obj, varargin)
-         s = obj.apreviewscale;
-      end
-      
-      function obj = initializePreview(obj , varargin)
-         [obj.apreview, obj.apreviewscale] = alignCellPreview(obj, varargin);
       end
 
-      
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % visualization
 
-      function d = plotAlignedPreview(obj, varargin)
-         if ~isempty(obj.apreview)
-            d2 = obj.apreview;
-         else
-            [d2, obj.apreviewscale] = alignCellPreview(obj, varargin);
-            obj.apreview = d2;
-         end
-
-         if nargout < 1
-            implot(d2)
-         else
-            d = d2;
-            implot(d)
-         end
-      end
-  
       function plotAlignedImages(obj)
          %
          % plotAlignedImages(obj)
@@ -868,18 +922,6 @@ classdef Alignment < ImageSource
          plotAlignedImages(obj.images, obj.imageShifts);
       end
       
-%       
-%       function plot(obj, varargin)
-%          %
-%          % plot(obj)
-%          %
-%          % description:
-%          %    plot the stitched image
-%          %
-%          % See also: plotAlignedImages
-%                   
-%          implot(obj.data(varargin{:}));
-%       end
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % information 

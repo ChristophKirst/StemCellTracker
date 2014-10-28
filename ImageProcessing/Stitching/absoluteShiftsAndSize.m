@@ -28,8 +28,8 @@ end
 asiz = size(shifts);
 dim = length(shifts{1});
 
-maxsize = zeros(1,dim);
-minshifts = zeros(1,dim);
+maxsize = shifts{1};
+minshifts = maxsize;
 
 for i = 1:numel(shifts)
    for d = 1:dim

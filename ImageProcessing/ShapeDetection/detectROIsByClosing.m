@@ -1,6 +1,6 @@
-function imglab = detectROIsByOpening(img, varargin)
+function imglab = detectROIsByClosing(img, varargin)
 %
-% imglab = detectROIsByOpening(img, param)
+% imglab = detectROIsByClosing(img, param)
 %
 % descritption:
 %     finds shapes in an image img using morphological opening and thresholding
@@ -12,7 +12,7 @@ function imglab = detectROIsByOpening(img, varargin)
 %           .resize       resize factor before detection of objects ([]=false)
 %           .filtersize   size of Gaussian filter ([] = no filter) 
 %           .strel        structure element for morphological closing ([] = strel('disk', 20))
-%           .output       'ROIs' or 'label' ('label')
+%           .output       'ROI' or 'label' ('label')
 %           .plot         plot result
 %           
 % output:
@@ -57,7 +57,7 @@ if getParameter(param, 'plot', false)
 end
 
 
-if isequal(getParameter(param, 'output', 'label'), 'ROIs')
+if isequal(getParameter(param, 'output', 'label'), 'ROI')
    ids = regionprops(imglab, 'PixelIdxList');
    
    if ~isempty(ids)

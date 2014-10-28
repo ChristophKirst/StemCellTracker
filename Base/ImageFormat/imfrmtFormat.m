@@ -11,7 +11,7 @@ function frmt = imfrmtFormat(in)
 % output:
 %     frm   standarized format
 
-if isnumeric(in) 
+if isnumeric(in) || islogical(in)
    if size(in,1) == 1 && ismatrix(in);
       frmt = infrmFormatFromSize(in);
    else
