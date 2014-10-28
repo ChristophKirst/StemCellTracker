@@ -495,9 +495,7 @@ classdef ImageSource < ImageInfo
       % previews
       
             
-      function obj = initializePreview(obj , varargin)
-         % 
-                  
+      function obj = initializePreview(obj , varargin)         
          for i = 1:length(obj)
                      
             % check for correct format

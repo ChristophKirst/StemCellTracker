@@ -56,9 +56,10 @@ if isa(imgs, 'Alignment')
    source = imgs.source;
    is = source.dataSize;
    nds = imgs.nodes;
-   for i = 1:n
+   rsf = [];
+   parfor i = 1:n
       if ~isempty(rs)
-         img = source.dataResample(rs, nds(i));
+         img = source.dataResample(rs, nds(i)); %#ok<PFBNS>
          rsf = (size(img)-1) ./ (is-1);
       else
          img = source.data(nds(i));

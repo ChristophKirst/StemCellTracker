@@ -792,14 +792,15 @@ classdef Alignment < ImageSource
 
          % assume the same source for all 
          isource = obj(1).source;
-         pos = imfrmtPermuation(isource.cellFormat, obj(1).aformat);
+         %pos = imfrmtPermuation(isource.cellFormat, obj(1).aformat);
+         pos = imfrmtPosition(isource.cellFormat, obj(1).aformat);
          
          isiz = obj.sourceDataSize;
 
          for i = 1:nobj
             nodes = obj(i).nodes;
             sub = isource.cellIndexToSubIndex(nodes(1));
-            sub = sub(:, pos);
+            sub = sub(:, pos)
             
             obj(i).aposition = round((sub - 1) .* (isiz - ovl)) + 1;
          end

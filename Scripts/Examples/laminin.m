@@ -14,11 +14,10 @@ bfinitialize
 
 verbose = true;
 
-initializeParallelProcessing(10)
+initializeParallelProcessing(12)
 
 
 %% Overview Image
-
 
 isOverview = ImageSourceBF('/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_RUES2_Lam521_46hBMP4_Bra_Sox2_Cdx2/Cy_w1_s3009_t1.TIF')
 
@@ -30,9 +29,9 @@ clc
 
 % infer the tag expression o he files from the file folder automatically
 texp = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_RUES2_Lam521_46hBMP4_Bra_Sox2_Cdx2/Cy_w4_s<S>_t1.TIF'
-b
-fns = tagExpressionToFiles(texp);
-length(fns)
+
+% fns = tagExpressionToFiles(texp);
+% length(fns)
 
 %%
 clc
@@ -44,6 +43,7 @@ is.setReshape('S', 'UV', [64, 47]);
 is.setCellFormat('Vu');
 is.printInfo
 
+
 %%
 
 cd = is.cell('U', 1:4, 'V', 1:5);
@@ -51,11 +51,15 @@ figure(2); clf
 implottiling(cd)
 
 
+
 %% full preview
-% is.addRange('U', 1:10, 'V', 1:10)
-% preview = is.cellPreview('overlap', 110, 'scale', 0.1, 'lines', true);
-% figure(2); clf
-% implot(preview)
+
+is.addRange('U', 1:10, 'V', 1:10);
+
+preview = is.preview('overlap', 110, 'scale', 0.1, 'lines', true);
+
+figure(2); clf
+implot(preview)
 
 
 %% restric range to some sub set
@@ -71,7 +75,7 @@ implottiling(cd)
 
 % create 
 clc
-algn = Alignment(is);
+algn = Alignment(is, 'UV');
 algn.setCaching(false);
 algn.printInfo
 
@@ -111,16 +115,13 @@ nsubalgn = length(subalgn);
 fprintf('Alignment: found %g connected components\n', nsubalgn);
 
 
-%%
 if verbose  
    var2char({subalgn.anodes})
    
-   as = cellfun(@length, {subalgn.anodes});
-   
+   as = cellfun(@length, {subalgn.anodes});   
    figure(5); clf
    hist(as, 256)
    {max(as), min(as)}
-   
 end
 
 
@@ -138,51 +139,49 @@ for s = 1:nsubalgn
    end
 end
 
+%% Merge Alignments
+
+% align  connected components
+subalgn.alignPositions;
+
+% merge to single alignment
+algnAll = subalgn.merge;
+algnAll.printInfo
+
 
 %%
+figure(5); clf
+algnAll.clearPreview
+algnAll.plotPreview
 
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Colony detection
+%% Colony Detection 
 
-% detect colonies in the aligned images
-clc
-colonies = [];
+% detect by resampling and closing
 
-for s = 1:nsubalgn
-   fprintf('\n\nDetecting colonies in component: %g / %g\n', s, nsubalgn)
-   
-   plt = verbose && s < 20 && subalgn(s).nNodes < 25;
-   if plt
-      figure(200+s); clf
-      implot(subalgn(s).data)
-   end
-   
-   %rois = detectROIsByOpening(subalgn(s).data, 'threshold', th, 'output','ROIs', 'plot', true, 'strel', 50);
-   rois = detectROIsByPeakVolume(subalgn(s), 'radius', 100, 'dilate', 50, 'center', true, 'hmax', 0.25 * th, 'plot', plt);
-
-   fprintf('Found %g regoins of interest\n', length(rois))
-   
-   for r = 1:length(rois)
-      colonies = [colonies, Colony(subalgn(s), rois{r})]; %#ok<AGROW>
-   end
-end
-
-ncolonies = length(colonies)
+scale = 0.025
+roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 'radius', 100, 'dilate', 100)
 
 
+%% Colony 
+
+colonies = Colony(algnAll, roi);
+ncolonies = length(colonies);
+
+figure(1); clf
+colonies.plotPreview
 
 
 %% Visualize
 
 if verbose
    figure(10); clf
-   for c = 1:min(ncolonies, 15)
+   for c = 2:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
-      imsubplot(5,3,c)
+      imsubplot(5,1,c)
       implot(img)
    end
 end
@@ -190,13 +189,10 @@ end
 
 %%
 
-% save('./Test/Data/colonies.mat', 'colonies')
+save('./Test/Data/Colonies/colonies.mat', 'colonies')
 
 
 %%
-
-
-
 
 
 
