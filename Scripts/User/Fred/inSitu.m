@@ -116,21 +116,12 @@ algnAll.plotPreview
 
 
 
-%% Colony Detection from Preview
+%% Colony Detection 
 
-p = algnAll.preview;
-s = algnAll.previewScale;
+% detect by resampling and closing
 
-roi = detectROIsFromResampledImage(p, s, 'threshold', th, 'strel', 10, 'radius', 10, 'dilate', 8);
-
-if verbose
-   figure(1); clf
-   implot(p)
-   hold on
-   roi.plotRescaled(s)
-end
-
-fprintf('Found %g regions of interest\n', length(roi))
+scale = 0.025
+roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 'radius', 100, 'dilate', 100)
 
 
 %% Colony 
@@ -149,7 +140,7 @@ if verbose
    for c = 1:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
-      imsubplot(10,5,c)
+      imsubplot(5,1,c)
       implot(img)
    end
 end
@@ -184,7 +175,7 @@ if verbose
    for c = 1:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
-      imsubplot(10,5,c)
+      imsubplot(5,1,c)
       implot(img)
    end
 end

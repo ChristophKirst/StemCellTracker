@@ -58,8 +58,8 @@ end
 
 % check for holes = shapes inside shapes and remove
 
-shapescheck = ones(1, ns);
-shapeskeep  = ones(1, ns);
+shapescheck = true(1, ns);
+shapeskeep  = true(1, ns);
 
 for sc = 1:ns
    if shapescheck(sc)
@@ -76,12 +76,12 @@ for sc = 1:ns
    end
 end
 
-shapes = shapes(shapeskeep > 0);
+shapes = shapes(shapeskeep);
 
 % dilate
-bw = getParameter(param, 'dilate', []);
-if ~isempty(bw)
+di = getParameter(param, 'dilate', []);
+if ~isempty(di)
    for s = 1:length(shapes)
-      shapes{s} = dilatePolygon(shapes{s}, bw);
+      shapes{s} = dilatePolygon(shapes{s}, di);
    end
 end

@@ -821,7 +821,7 @@ classdef Alignment < ImageSource
          
          algn.apairs = [obj.apairs];
          algn.anodes = [obj.anodes];
-         algn.ashifts = obj.imagePositions;
+         algn.ashifts = cellfunc(@(x) x - 1, obj.imagePositions);
          algn.aposition = obj.absoluteImagePositions;
          algn.aposition = algn.aposition{1};
          

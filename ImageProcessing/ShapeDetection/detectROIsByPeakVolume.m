@@ -10,7 +10,7 @@ function [roi, pks] = detectROIsByPeakVolume(imgs, varargin)
 % input:
 %    img    image as numeric array
 %    imgs   images as cell arrays
-%    isalgn ImageSourceAligned class
+%    is     ImageSource or Alignment class
 %    param  paramteer struct
 %           .radius         probe radius passed to detectAlphaVolume (100)
 %           .plot           plot the result

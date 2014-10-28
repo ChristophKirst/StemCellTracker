@@ -1,75 +1,120 @@
-function imglab = detectROIsByClosing(img, varargin)
+function roi = detectROIsByClosing(imgs, varargin)
 %
-% imglab = detectROIsByClosing(img, param)
+% roi = detectROIsByClosing(img, param)
+% roi = detectROIsByClosing(imgs, shifts, param)
+% roi = detectROIsByClosing(is, param)
 %
 % descritption:
 %     finds shapes in an image img using morphological opening and thresholding
 %
 % input:
-%    img    image
+%    img    image as numeric array
+%    imgs   images as cell arrays
+%    is     ImageSource or Alignment class
 %    param  paramteer struct
 %           .threshold    threshold ([] = thresholdFirstMin(img))
-%           .resize       resize factor before detection of objects ([]=false)
+%           .scale        rescale factor before detection of objects ([] = 1)
 %           .filtersize   size of Gaussian filter ([] = no filter) 
 %           .strel        structure element for morphological closing ([] = strel('disk', 20))
-%           .output       'ROI' or 'label' ('label')
-%           .plot         plot result
+%           .radius       probe radius passed to detectAlphaVolume (100)
 %           
 % output:
-%    imglab labeled image or ROIMask objects
+%    roi    region of interest
+%
+% note:
+%    for Alignment classes rois coords are not shifted by the position of the Alignment
+
+%prepare
+if isnumeric(imgs)
+   shifts = {zeros(1, ndims(imgs))};
+   imgs = {imgs};
+   
+elseif iscell(imgs)
+   if nargin < 2 || ~iscell(varargin{1})
+      error('detectROIsByClosing: expects image shifts as second argument!')
+   end
+   
+   shifts = varargin{1};
+   varargin = varargin(2:end);
+end
 
 param = parseParameter(varargin);
 
-rs = getParameter(param, 'resize', []);
-if ~isempty(rs)
-   imglab = imresize(img, rs);
-else
-   imglab= img;
-end
-
+rs = getParameter(param, 'scale', []);
 fs = getParameter(param, 'filtersize', []);
-if ~isempty(fs)
-   imglab = filterGaussian(imglab, fs);
-end
-
-se= getParameter(param, 'strel', strel('disk', 20));
+se = getParameter(param, 'strel', strel('disk', 20));
 if isnumeric(se)
    se = strel('disk', se);
 end
-imglab = imclose(imglab, se);
-
 
 th = getParameter(param, 'threshold', []);
-if isempty(th)
-   th = thresholdFirstMin(mat2gray(img));
-end
 
-imglab = imglab > th;
-
-if ~isempty(rs)
-   imglab = imresize(imglab, 1/rs);
-end
-
-imglab = bwlabeln(imglab);
-
-if getParameter(param, 'plot', false)
-   implot(imoverlaylabel(img, imglab));
-end
-
-
-if isequal(getParameter(param, 'output', 'label'), 'ROI')
-   ids = regionprops(imglab, 'PixelIdxList');
-   
-   if ~isempty(ids)
-      rois(length(ids)) = ROIMask;
-   
-      for i = 1:length(ids);
-         imgm = zeros(size(imglab));
-         imgm(ids(i).PixelIdxList) = 1;
-         rois(i).mask = imgm;
+% find rois
+if isa(imgs, 'Alignment')
+   n = imgs.nNodes;
+   pks = cell(1, n);
+   source = imgs.source;
+   is = source.dataSize;
+   nds = imgs.nodes;
+   for i = 1:n
+      if ~isempty(rs)
+         img = source.dataResample(rs, nds(i));
+         rsf = (size(img)-1) ./ (is-1);
+      else
+         img = source.data(nds(i));
       end
-      imglab = rois;
-   else
-      imglab = [];
+      
+      pks{i} = detectPeaksByClosing(img, 'filtersize', fs, 'strel', se, 'threshold', th);
+      %pks{i}
+      
+      if ~isempty(rs) 
+%          size(pks{i})
+%          size(repmat(rsf(:), 1, size(pks{i},2)))
+         pks{i} = round( (pks{i}-1)./repmat(rsf(:), 1, size(pks{i},2)) + 1);
+      end
    end
+   
+   pks = stitchPoints(pks, imgs.imageShifts, imgs.imageSizes);
+   
+else
+   n = numel(imgs);
+   pks = cell(1, n);
+   
+   parfor i = 1:n
+      if ~isempty(rs)
+         img = imresize(imgs{i}, rs);
+      else
+         img = imgs{i};
+      end
+      pks{i} = detectPeaksByClosing(img, 'filtersize', fs, 'strel', se, 'threshold', th);
+      
+      if ~isempty(rs)
+         pks{i} = 1/rs * (pks{i}-1) + 1;
+      end
+   end
+   
+   pks = stitchPoints(pks, shifts, cellfunc(@size, imgs), param);
+end
+
+if size(pks,2) < 3
+   roi = [];
+   return
+end
+   
+% get the polygons from the points
+shps = points2shapes(pks, param);
+nr = length(shps);
+
+if nr == 0
+   roi = [];
+   return
+end
+
+%convert polygons to ROIs 
+roi(nr) = ROIPolygon;
+for i = 1:length(shps)
+   roi(i) = ROIPolygon(shps{i});
+   %roi{i} = roi{i}.shift(origin -1);
+end
+
 end

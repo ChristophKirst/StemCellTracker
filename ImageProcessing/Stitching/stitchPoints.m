@@ -28,7 +28,7 @@ param = getParameter(varargin);
 mth = getParameter(param, 'method', 'combine');
 
 % shift peaks
-pts = cellfun(@(x,y) x + repmat(y(:), 1, size(x,2)), pts, shifts', 'UniformOutput', false);
+pts = cellfun(@(x,y) x + repmat(y(:), 1, size(x,2)), pts, shifts, 'UniformOutput', false);
 
 switch mth
    case 'combine'
@@ -49,7 +49,8 @@ end
 end
 
 
-function pks = cleanPoints(pks, p1, p2)  
+function pks = cleanPoints(pks, p1, p2) 
+   % removes all points in specified area
    p1 = repmat(p1, 1, size(pks,2));
    p2 = repmat(p2, 1, size(pks,2));
 
