@@ -89,7 +89,7 @@ end
 
 %var2char(pos)
 
-img = stitchImages(celldata, sh, param, 'size', siz);
+img = stitchImages(celldata, sh, 'method', 'Overwrite', param, 'size', siz);
 
 
 if getParameter(param, 'lines', false)

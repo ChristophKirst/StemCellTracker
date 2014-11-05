@@ -4,11 +4,16 @@
 
 initialize
 
+clc
+clear all
+
 %%
 
 
-m = rand(5,6);
+m = 1:6;
+m = reshape(m, 2,3)
 p = numpyFromMat(m)
+m
 
 %%
 
@@ -20,13 +25,24 @@ m - m2
 
 %% large data sets
 
-m = rand(10000);
+clear all
+clc
+
+
+%%
+
+m = rand(2000, 2000, 15);
 
 
 %%
 tic
 p = numpyFromMat(m)
 toc
+
+
+%%
+
+p.shape
 
 %%
 

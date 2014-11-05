@@ -47,7 +47,7 @@ is.printInfo
 
 %% restric range to some sub set
 
-is.addRange('U', 1:4, 'V', 1:3);
+is.addRange('U', 1:8, 'V', 1:8);
 is.printInfo
 
 
@@ -62,7 +62,7 @@ is.printInfo
 %%
 
 % make preview
-preview = is.previewStitchedCells('overlap', 110, 'scale', 0.1, 'lines', true);
+preview = is.preview('overlap', 110, 'scale', 0.1, 'lines', true);
 figure(2); clf
 implot(preview)
 
@@ -155,7 +155,7 @@ fprintf('Found %g regions of interest\n', length(roi))
 
 %% Colony 
 
-colonies = Colony(algnFull, roi);
+colonies = Colony(algnAll, roi);
 colonies.plotPreview
 ncolonies = length(colonies);
 
@@ -163,12 +163,21 @@ ncolonies = length(colonies);
 
 %% Visualize
 
+
+a = colonies(1).source;
+s = a.source;
+s.printInfo
+
+s.addRange('C', 1);
+s.fileTagRange
+
+
 if verbose
    figure(10); clf
-   for c = 1:min(ncolonies, 10)
+   for c = 1:min(ncolonies, 25)
       figure(10);
       img = colonies(c).data;
-      imsubplot(10,5,c)
+      imsubplot(5,5,c)
       implot(img)
    end
 end
@@ -203,7 +212,7 @@ if verbose
    for c = 1:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
-      imsubplot(10,5,c)
+      imsubplot(5,2,c)
       implot(img)
    end
 end
@@ -211,7 +220,7 @@ end
 
 
 
-
+%% save colonies
 
 
 

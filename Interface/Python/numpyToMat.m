@@ -11,19 +11,26 @@ function m = numpyToMat(np)
 % output:
 %   m     matlab array
 %
-% note: 
-% nonly works for double so far, could extend to different data typesdec2
+% note:
+%   as internalconversion is slow we create a temp file and write from there
+%   converting to byte char object and then to matlab char looses characters
 
-% m = cell2mat(cell(np.flatten.tolist));
-m = typecast(uint32(char(np.tobytes)), 'single')
+tmpfn = [tempname, '.mat'];
+st = struct('data', np);
+py.scipy.io.savemat(tmpfn, st);
 
-m = uint8(char(np.tobytes));
+m = load(tmpfn);
+m = m.data;
 
-size(m)
+delete(tmpfn);
 
 
-
-sh = cell2mat(cell(np.shape));
-m = reshape(m, sh);
+% misc code
+%m = cell2mat(cell(np.flatten.tolist));
+%m = typecast(uint64(char(np.tobytes)), 'double')
+%m = typecast(uint32(char(np.tobytes)), 'single')
+%m = uint8(char(np.tobytes));
+%sh = cell2mat(cell(np.shape));
+%m = reshape(m, sh);
 
 end

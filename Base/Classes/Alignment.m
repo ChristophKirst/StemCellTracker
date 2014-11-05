@@ -43,6 +43,7 @@ classdef Alignment < ImageSource
             obj.fromParameter(varargin);
          end
          
+verbose = true;
          obj.setCaching(false);  % caching the stitched image is usually not a good idea if large
       end
 

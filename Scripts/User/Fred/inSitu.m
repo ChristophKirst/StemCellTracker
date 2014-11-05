@@ -1,4 +1,6 @@
-%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Analyze Wild Type Colonies - Multi channel %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 initialize
 bfinitialize
@@ -15,10 +17,7 @@ verbose = true;
 
 %% Setup Image Source
 
-% infer the tag expression o he files from the file folder automatically
-%texp = ('/Users/fetoc/Desktop/data/dilutions experiments xBMP4 91914/dilution PB31-xBMP4 c5 in RUES2 1100 fates after 48hrs Dox/Sox2 Bra Myc/20140914_ESCEpFgf52.zvi')
-%texp='exp<N>p<tile,2>c<ch>.tif'
-%texp='1_p<P,6>t00000001z001c<C,2>.tif'
+% infer the tag expression of the files from the file folder automatically
 
 texp = '/var/run/media/ckirst/38cc9966-c6b8-4ff9-b338-90cd43814dda/for CK/1_p<P,6>t00000001z001c<C,2>.tif'
 
@@ -40,9 +39,9 @@ is.printInfo
 % implot(im)
 
 %% Dangerous for large dataset, Restrict the range first!
-
-figure(1);
-is.plottiling
+% 
+% figure(1);
+% is.plottiling
 
 
 %% Alignment
@@ -86,7 +85,6 @@ end
 
 %% Align Components
 
-
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
    subalgn(s).align('alignment', 'RMS', 'overlap.max', 120, 'overlap.min', 40, 'shift.max', 140);
@@ -97,7 +95,6 @@ for s = 1:nsubalgn
       subalgn(s).plotPreview('scale', 0.05)
    end
 end
-
 
 
 %% Compose Final Alignment
@@ -150,6 +147,19 @@ end
 
 save('./Test/Data/Colonies/colonies.mat', 'colonies')
 
+
+%%
+
+clear all
+close all
+
+verbose = true;
+
+%%
+
+load('./Test/Data/Colonies/colonies.mat')
+
+ncolonies = length(colonies);
 
 %% Change color cannel
 
