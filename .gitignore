@@ -7,6 +7,9 @@ Develop/
 # Images
 Images/
 
+# Data
+Test/Data
+
 # Temporary Files
 *~
 

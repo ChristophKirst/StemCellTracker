@@ -48,8 +48,8 @@ if isa(celldata, 'Alignment')
    % read sequentially 
    nodes = celldata.nodes;
    cdat = cell(1, length(nodes));
-   for i = 1:numel(cdat)
-      cdat{i} = celldata.asource.dataResample(scale, nodes(i));
+   parfor i = 1:numel(cdat)
+      cdat{i} = celldata.asource.dataResample(scale, nodes(i)); %#ok<PFBNS>
    end
    celldata = cdat;
    
@@ -57,8 +57,8 @@ elseif isa(celldata, 'ImageSource')
    % read sequentially 
    cdat = cell(celldata.cellSize);
    
-   for i = 1:numel(cdat)
-      cdat{i} = celldata.dataResample(scale, i);
+   parfor i = 1:numel(cdat)
+      cdat{i} = celldata.dataResample(scale, i); %#ok<PFBNS>
    end
    celldata = cdat;
    
