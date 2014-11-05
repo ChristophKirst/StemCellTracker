@@ -17,6 +17,8 @@ verbose = true;
 initializeParallelProcessing(12)
 
 
+tic
+
 %% Overview Image
 
 isOverview = ImageSourceBF('/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_RUES2_Lam521_46hBMP4_Bra_Sox2_Cdx2/Cy_w1_s3009_t1.TIF')
@@ -36,7 +38,7 @@ texp = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/Cytoo_IF/131106_
 %%
 clc
 is = ImageSourceFiles();
-is.fromFileExpression(texp, 'S', 1:3008)
+is.fromFileExpression(texp, 'S', 1:3008);
 
 % set the tiling and cell formats
 is.setReshape('S', 'UV', [64, 47]);
@@ -46,25 +48,23 @@ is.printInfo
 
 %%
 
-cd = is.cell('U', 1:4, 'V', 1:5);
-figure(2); clf
-implottiling(cd)
-
+% cd = is.cell('U', 1:4, 'V', 1:5);
+% figure(2); clf
+% implottiling(cd)
 
 
 %% full preview
-
-is.addRange('U', 1:10, 'V', 1:10);
-
-preview = is.preview('overlap', 110, 'scale', 0.1, 'lines', true);
-
+% 
+%is.addRange('U', 1:30, 'V', 1:30);
+% 
+preview = is.preview('overlap', 110, 'scale', 0.05, 'lines', true);
+% 
 figure(2); clf
-implot(preview)
-
+ implot(preview)
 
 %% restric range to some sub set
 
-%is.addRange('U', 11:14, 'V', 33:37)
+%is.addRange('U', 1:4, 'V', 1:4)
 %is.setRawCellDataCaching(true);
 %figure(1); clf
 %is.plottiling
@@ -83,7 +83,7 @@ algn.printInfo
 %% Background Intensity for Overlap Quality of Tiles
 
 clc
-img1 = algn.sourceData(8);
+img1 = algn.sourceData(12);
 nbins = 100;
 th = thresholdFirstMin(img1, 'nbins', nbins, 'delta', 1/1000 * numel(img1))
 
@@ -144,10 +144,28 @@ end
 % align  connected components
 subalgn.alignPositions;
 
+%% 
+
 % merge to single alignment
 algnAll = subalgn.merge;
 algnAll.printInfo
 
+
+%%
+
+subalgn.meanOverlapSizePrimary
+
+%%
+
+
+figure(5)
+hist([subalgn.nNodes], 256)
+%%
+length(subalgn)
+
+sum([subalgn.anodes])
+
+64*
 
 %%
 figure(5); clf
@@ -170,6 +188,8 @@ roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 
 colonies = Colony(algnAll, roi);
 ncolonies = length(colonies);
 
+
+%%
 figure(1); clf
 colonies.plotPreview
 
@@ -178,17 +198,22 @@ colonies.plotPreview
 
 if verbose
    figure(10); clf
-   for c = 2:min(ncolonies, 10)
+   for c = 3:min(ncolonies, 40)
       figure(10);
       img = colonies(c).data;
-      imsubplot(5,1,c)
-      implot(img)
+      imsubplot(10,4,c)
+      if numel(img) > 0
+         implot(img)
+      end
    end
 end
 
 
 %%
 
+toc
+
+%%
 save('./Test/Data/Colonies/colonies.mat', 'colonies')
 
 

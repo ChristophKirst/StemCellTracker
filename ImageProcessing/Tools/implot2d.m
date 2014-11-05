@@ -29,7 +29,6 @@ else
    vararg = varargin;
 end
 
-
 clim = [min(img(:)), max(img(:))];
 for i = 1:2:length(vararg)
    if ischar(vararg{i}) && strcmpi(vararg{i}, 'color.scale')

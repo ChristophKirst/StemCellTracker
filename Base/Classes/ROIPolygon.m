@@ -50,7 +50,10 @@ classdef ROIPolygon < ROI
       end
       
       function v = volume(obj, varargin)
-         v = polyarea(obj.p(1,:), obj.p(2,:));
+         v = zeros(1,length(obj));
+         for i = 1:length(obj)
+            v(i) = polyarea(obj(i).p(1,:), obj(i).p(2,:));
+         end
       end
  
       function p = pixelIdxList(obj, si)
