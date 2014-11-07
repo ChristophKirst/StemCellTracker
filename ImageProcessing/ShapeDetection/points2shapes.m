@@ -10,6 +10,7 @@ function shapes = points2shapes(pts, varargin)
 %    param  parameter sturct with entries
 %           .radius   radius used in alpha volume detection (100)
 %           .dilate   dilate the shape by this width ([] = no dilation)
+%           .check    checks if polygons ae within polygons and removes them (false)
 %
 % output:
 %   shapes  cell array of shapeborders as arrays of the boundary point coordinates as row vectors
@@ -56,27 +57,31 @@ for s = 1:ns
    shapes{s} = pts(:,pol);
 end
 
+
+
 % check for holes = shapes inside shapes and remove
+if getParameter(param, 'check', false)
 
-shapescheck = true(1, ns);
-shapeskeep  = true(1, ns);
-
-for sc = 1:ns
-   if shapescheck(sc)
-      shc = shapes{sc};
-      for i = find(shapeskeep)
-         if i ~= sc
-            if ispolygonInPolygon(shapes{i}, shc)
-               shapescheck(i) = 0;
-               shapeskeep(i)  = 0;
+   shapescheck = true(1, ns);
+   shapeskeep  = true(1, ns);
+   
+   for sc = 1:ns
+      if shapescheck(sc)
+         shc = shapes{sc};
+         for i = find(shapeskeep)
+            if i ~= sc
+               if ispolygonInPolygon(shapes{i}, shc)
+                  shapescheck(i) = 0;
+                  shapeskeep(i)  = 0;
+               end
             end
          end
+         %shapescheck(sc) = 0;
       end
-      %shapescheck(sc) = 0;
    end
+   
+   shapes = shapes(shapeskeep);
 end
-
-shapes = shapes(shapeskeep);
 
 % dilate
 di = getParameter(param, 'dilate', []);

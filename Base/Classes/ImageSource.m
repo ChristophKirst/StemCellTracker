@@ -25,8 +25,8 @@ classdef ImageSource < ImageInfo
       idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data
       
             
-      ipreview = [];             % preview image of the alignment
-      ipreviewscale = [];        % scale of the preview image
+      ipreview = [];             % cell of preview images of images returned by cell
+      ipreviewscale = 0.01;      % scale of the preview images
    end
         
    methods   
@@ -385,7 +385,7 @@ classdef ImageSource < ImageInfo
       end
       
       function d = cellResample(obj, scalefac, varargin)
-         if nargin ==3 &&  isnumeric(varargin{1})
+         if nargin == 3 &&  isnumeric(varargin{1})
             idx = varargin{1};
             n = length(idx);
             d = cell(1,n);
@@ -394,7 +394,7 @@ classdef ImageSource < ImageInfo
             end
             d = reshape(d, size(idx));
          else
-             d = obj.cell(varargin{:});
+            d = obj.cell(varargin{:});
             d = cellfunc(@(x) imresize(x, scalefac), d);
          end
       end
@@ -494,47 +494,85 @@ classdef ImageSource < ImageInfo
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % previews
       
-            
-      function obj = initializePreview(obj , varargin)         
-         for i = 1:length(obj)
-                     
-            % check for correct format
-            cs = obj.cellSize;
-            if sum(cs > 1) > 2
-               error('preview only possible for single channel grid')
-            end
-
-            [obj(i).ipreview, obj(i).ipreviewscale] = stitchPreview(obj(i), varargin);   
+          
+      function s = previewScale(obj, varargin)
+         s = obj.ipreviewscale;
+         if isempty(s)
+            s = 0.01;
          end
       end
       
+      function obj = setPreviewScale(obj, scale)
+         if isempty(obj.ipreviewscale) || obj.ipreviewscale ~= scale
+            obj.clearPreview;
+            obj.ipreviewscale = scale;
+         end
+      end
+      
+
+      function p = preview(obj, varargin)
+         if length(obj) > 1
+            error('%s: preview only possible for single class!', class(obj));
+         end
+
+         id = obj.cellIndex(varargin{:});
+         cdat = obj.ipreview;
+         if isempty(cdat)
+            cdat = cell(imfrmtAllocateSize(obj.cellSize));
+         end
+
+         ids = cellfun(@isempty, cdat);
+         ids = ids(id);
+         ids = id(ids);
+
+         n = numel(ids);
+         ccdat = cell(n, 1);
+         scale = obj.previewScale;
+         parfor ii = 1:n
+            ccdat{ii} = obj.dataResample(scale, ids(ii)); %#ok<PFBNS>
+         end
+         
+%          size(id)
+%          size(ccdat)
+%          size(cdat)
+%          n
+         
+         cdat(ids) = ccdat;
+         obj.ipreview = cdat;
+         obj.ipreviewscale = scale; 
+         
+         p = cdat(id);
+      end
+
       function obj = clearPreview(obj)
          for i = 1:length(obj)
             obj(i).ipreview = [];
             obj(i).ipreviewscale = [];
          end
       end
-
-      function p = preview(obj, varargin)
-         if length(obj) == 1
-            if isempty(obj.ipreview)
-               obj.initializePreview(varargin);
-            end
-            p = obj.ipreview;
-            
-         else
-            error('%s: preview only possible for single class!', class(obj));
+      
+      function d = plotPreview(obj, varargin)
+         p = obj.preview(varargin{:});
+         implottiling(p)
+         
+         if nargout > 0
+            d = p;
          end
       end
       
-      function s = previewScale(obj, varargin)
-         s = obj.ipreviewscale;
+      function p = previewStiched(obj, varargin)
+         cs = obj.cellSize;
+         if sum(cs > 1) > 2
+            error('%s: previewStiched: stitched preview only possible for 2d grid', class(obj))
+         end
+         
+         p = stitchPreview(obj, varargin);
       end
 
-      function d = plotPreview(obj, varargin)
-         p = obj.preview(varargin);
+
+      function d = plotPreviewStiched(obj, varargin)
+         p = obj.previewStiched(varargin{:});
          implot(p)
-         
          if nargout > 0
             d = p;
          end

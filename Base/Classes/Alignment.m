@@ -43,7 +43,6 @@ classdef Alignment < ImageSource
             obj.fromParameter(varargin);
          end
          
-verbose = true;
          obj.setCaching(false);  % caching the stitched image is usually not a good idea if large
       end
 
@@ -142,7 +141,9 @@ verbose = true;
          if nargin < 3
             obj.aformat = is.cellFormat;
          else
-            obj.aformat = frmt;
+            pos = imfrmtPosition(is.cellFormat, frmt);
+            frmt = is.cellFormat;             
+            obj.aformat = frmt(pos);
          end    
          % check if non-tile dims are singletons
          
@@ -192,14 +193,15 @@ verbose = true;
          %
          % n = npairs(obj)
          %
-         n = length(obj.apairs);
+         n = cellfun(@length, {obj.apairs});
       end
       
       function n = nNodes(obj)
          %
          % n = nnodes(obj)
          %
-         n = length(obj.anodes);
+         
+         n = cellfun(@length, {obj.anodes});
       end
       
       function n = nodes(obj)
@@ -801,7 +803,7 @@ verbose = true;
          for i = 1:nobj
             nodes = obj(i).nodes;
             sub = isource.cellIndexToSubIndex(nodes(1));
-            sub = sub(:, pos)
+            sub = sub(:, pos);
             
             obj(i).aposition = round((sub - 1) .* (isiz - ovl)) + 1;
          end
@@ -886,17 +888,20 @@ verbose = true;
       % previews
 
       function p = preview(obj, varargin)
-         if length(obj) == 1
-            if isempty(obj.ipreview)
-               obj.initializePreview(varargin);
-            end
-            p = obj.ipreview;
-            
+         for i = 1:length(obj)
+            p = obj(i).asource.preview(obj(i).anodes);
+         end
+      end
+
+      function p = previewStiched(obj, varargin)
+
+         if length(obj) == 1  
+            p = stitchPreview(obj, varargin);  
          else
             nobj = length(obj);
             imgs = cell(1, nobj);
             for i = 1:nobj
-               imgs{i} = obj(i).preview(varargin);
+               imgs{i} = obj(i).previewStiched(varargin);
             end
             
             scale = obj(1).apreviewscale;

@@ -93,8 +93,8 @@
       % visualization
 
       function plotPreview(obj)
-         s = obj(1).source.previewScale;
-         p = obj(1).source.preview;
+         s = obj(1).source.source.previewScale;
+         p = obj(1).source.previewStiched;
          
          ih = ishold;
          

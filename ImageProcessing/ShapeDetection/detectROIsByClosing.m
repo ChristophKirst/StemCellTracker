@@ -17,6 +17,7 @@ function roi = detectROIsByClosing(imgs, varargin)
 %           .filtersize   size of Gaussian filter ([] = no filter) 
 %           .strel        structure element for morphological closing ([] = strel('disk', 20))
 %           .radius       probe radius passed to detectAlphaVolume (100)
+%           .preview      stitch scaled images and save in preview of the ImageSource (true if input is ImageSource)
 %           
 % output:
 %    roi    region of interest
@@ -51,16 +52,32 @@ th = getParameter(param, 'threshold', []);
 
 % find rois
 if isa(imgs, 'Alignment')
+   
+   pre = getParameter(param, 'preview', true);
+
    n = imgs.nNodes;
    pks = cell(1, n);
    source = imgs.source;
    is = source.dataSize;
    nds = imgs.nodes;
    rsf = [];
+
+   if pre
+      if isempty(rs)
+         rs = imgs.asource.previewScale;
+      else
+         imgs.asource.setPreviewScale(rs);
+      end
+   end
+
    parfor i = 1:n
-      if ~isempty(rs)
+      if pre
+         img = imgs.asource.preview(nds(i)); %#ok<PFBNS>
+         img = img{1};
+         rsf = (size(img)-1) ./ (is-1); %#ok<PFTIN>
+      elseif ~isempty(rs)
          img = source.dataResample(rs, nds(i)); %#ok<PFBNS>
-         rsf = (size(img)-1) ./ (is-1);
+         rsf = (size(img)-1) ./ (is-1); 
       else
          img = source.data(nds(i));
       end
@@ -74,9 +91,9 @@ if isa(imgs, 'Alignment')
          pks{i} = round( (pks{i}-1)./repmat(rsf(:), 1, size(pks{i},2)) + 1);
       end
    end
-   
+
    pks = stitchPoints(pks, imgs.imageShifts, imgs.imageSizes);
-   
+
 else
    n = numel(imgs);
    pks = cell(1, n);

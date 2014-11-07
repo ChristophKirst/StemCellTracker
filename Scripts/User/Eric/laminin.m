@@ -55,12 +55,13 @@ is.printInfo
 
 %% full preview
 % 
-%is.addRange('U', 1:30, 'V', 1:30);
+is.addRange('U', 1:15, 'V', 1:15);
 % 
-preview = is.preview('overlap', 110, 'scale', 0.05, 'lines', true);
+
+preview = is.previewStiched('overlap', 120, 'scale', 0.05, 'lines', false);
 % 
 figure(2); clf
- implot(preview)
+implot(preview)
 
 %% restric range to some sub set
 
@@ -76,7 +77,6 @@ figure(2); clf
 % create 
 clc
 algn = Alignment(is, 'UV');
-algn.setCaching(false);
 algn.printInfo
 
 
@@ -122,6 +122,8 @@ if verbose
    figure(5); clf
    hist(as, 256)
    {max(as), min(as)}
+   slen = cellfun(@length, {subalgn.anodes});
+   sum(slen)
 end
 
 
@@ -153,24 +155,14 @@ algnAll.printInfo
 
 %%
 
+% mean primary overlap
 subalgn.meanOverlapSizePrimary
 
 %%
+clc
 
-
-figure(5)
-hist([subalgn.nNodes], 256)
-%%
-length(subalgn)
-
-sum([subalgn.anodes])
-
-64*
-
-%%
 figure(5); clf
-algnAll.clearPreview
-algnAll.plotPreview
+algnAll.plotPreviewStiched
 
 
 
@@ -178,8 +170,7 @@ algnAll.plotPreview
 %% Colony Detection 
 
 % detect by resampling and closing
-
-scale = 0.025
+scale = algnAll.source.previewScale;
 roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 'radius', 100, 'dilate', 100)
 
 
@@ -198,7 +189,7 @@ colonies.plotPreview
 
 if verbose
    figure(10); clf
-   for c = 3:min(ncolonies, 40)
+   for c = 3:min(ncolonies, 10)
       figure(10);
       img = colonies(c).data;
       imsubplot(10,4,c)
