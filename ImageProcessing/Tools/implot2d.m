@@ -40,7 +40,7 @@ clim = double(clim);
 
 %permute to match pq coordinates
 switch ndims(img)
-   case 2 % pq
+   case 2 % xy
       ncols = size(cmap, 1);  
       img = ceil( (double(img) - clim(1)) / (clim(2)-clim(1)) * ncols);
       img(img<1) = 1;

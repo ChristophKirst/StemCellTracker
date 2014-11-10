@@ -281,7 +281,9 @@ end
 %infer channel name
 function iinfo = determineChannelname(ireader, iinfo, s)
    cn = imreadBFChannelNames(ireader, 'S', s);
-   iinfo.setChannelName(cn(:,1)');
+   if all(cellfun(@length, cn))
+      iinfo.setChannelName(cn(:,1)');
+   end
 end
 
 

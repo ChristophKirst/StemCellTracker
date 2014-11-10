@@ -20,7 +20,7 @@ switch imf
    case {'xyz', 'xyzc'}
       img = implot3d(img, varargin{:});
    otherwise
-      error('implot: image format is not pq, pqc, pql, pqlc but %s', imf);
+      error('implot: image format is not xy, xyc, xyz, xyzc but %s', imf);
 end
 
 

@@ -189,7 +189,7 @@ classdef ImageSource < ImageInfo
          %
          % note: indices passed as arguments refer to cell indices, and full data of that cell is returned
         
-         % check if all cell dims are singeltons
+         % check if all cell dims are singletons
          cid = obj.cellIndex(varargin{:});
          if length(cid) > 1
             error('%s: getData: cell dimensions not specified to singeltons!', class(obj));
@@ -486,7 +486,7 @@ classdef ImageSource < ImageInfo
          obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
       end
       
-      function obj = initializeBackgroundCorrectionFromBackgroudnAndFlatField(obj, bkg, flt)
+      function obj = initializeBackgroundCorrectionFromBackgroundAndFlatField(obj, bkg, flt)
          obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
       end
       

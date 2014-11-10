@@ -10,11 +10,11 @@ function imgr = imresample(img, fac)
 %    fac        resampling factor  number of [facX, facY (, facZ)]
 %
 % output:
-%    imgr       resmaples image
+%    imgr       resmapled image
 %
 
 % ceck for color
-imf = imformat(img);
+imf = imfrmtFormat(img);
 dim = length(imf);
 cdim = strfind(imf, 'c');
 if ~isempty(cdim)

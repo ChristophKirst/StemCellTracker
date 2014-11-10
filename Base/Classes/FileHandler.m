@@ -20,7 +20,7 @@ classdef FileHandler < matlab.mixin.Copyable
          if nargin == 1 && isa(varargin{1}, 'FileHandler') %% copy constructor
             obj = copy(varargin{1});
          else
-            obj.fromParameter(varargin)
+            obj = obj.fromParameter(varargin);
          end
       end
       
@@ -30,32 +30,37 @@ classdef FileHandler < matlab.mixin.Copyable
          %
          % description: initializes the FileHandler
             
-         if ~isdir(obj.basedirectory)
-            warning('FileHandler: basedirectory %s is not a directory!', obj.basedirectory);
+         if ~isdir(obj.fbasedirectory)
+            warning('FileHandler: basedirectory %s is not a directory!', obj.fbasedirectory);
          end
          
-         if ~isdir(obj.datadirectory)
-            warning('FileHandler: imagedirectory %s is not a directory!', obj.imagedirectory);
+         if ~isdir(obj.fdatadirectory)
+            warning('FileHandler: datadirectory %s is not a directory!', obj.fdatadirectory);
          end
       end
       
       function obj = fromParameter(obj, varargin)
-         obj = classFromParameter(obj, [], varargin);
+         obj = classFromParameter(obj, 'f', varargin);
          obj.initialize();
       end
     
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % directories 
       
-      function idir = imageDirectory(obj, varargin)
+      function bdir = baseDirectory(obj)
+         bdir = obj.fbasedirectory;
+      end
+      
+      
+      function idir = dataDirectory(obj, varargin)
          % description:
          % returns the image data directorty for the experiment
          %
          % output:
          %     ddir    image data directory
          
-         idir = fullfile(obj.fbasedirectory, obj.fimagedirectory);
-         idir = tagexpr2string(idir, varargin);       
+         idir = fullfile(obj.fbasedirectory, obj.fdatadirectory);
+         idir = tagExpressionToString(idir, varargin);       
       end
       
       function ddir = resultDirectory(obj, varargin)
@@ -66,9 +71,30 @@ classdef FileHandler < matlab.mixin.Copyable
          %     ddir    result directory
          
          ddir = fullfile(obj.fbasedirectory, obj.fresultdirectory);
-         ddir = tagexpr2string(ddir, varargin);
+         ddir = tagExpressionToString(ddir, varargin);
+      end
+      
+      function ddir = dirBaseDirectory(obj, varargin)
+         ddir = dir(obj.baseDirectory(varargin));    
+      end
+      
+      function ddir = dirDataDirectory(obj, varargin)
+         ddir = dir(obj.dataDirectory(varargin));    
       end
 
+      function ddir = dirResultDirectory(obj, varargin)
+         ddir = dir(obj.resultDirectory(varargin));    
+      end
+      
+      function fn = dataFile(obj, fname, varargin)
+         fn = tagExpressionToString(fullfile(obj.dataDirectory, fname), varargin);
+      end
+      
+      function fn = resultFile(obj, fname, varargin)
+         fn = tagExpressionToString(fullfile(obj.resultDirectory, fname), varargin);
+      end
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % io 
 
@@ -138,9 +164,9 @@ classdef FileHandler < matlab.mixin.Copyable
     
          txt = '';
          txt = [txt, 'Directories:\n'];
-         txt = [txt, 'BaseDirectory  : ', obj.baseDirectory, '\n'];
-         txt = [txt, 'ImageDirectory : ', obj.imageDirectory, '\n'];
-         txt = [txt, 'ResultDirectory: ', obj.resultDirectory, '\n'];  
+         txt = [txt, 'Base Directory  : ', obj.baseDirectory, '\n'];
+         txt = [txt, 'Data Directory  : ', obj.dataDirectory, '\n'];
+         txt = [txt, 'Result Directory: ', obj.resultDirectory, '\n'];  
       end
       
       function printInfo(obj)
