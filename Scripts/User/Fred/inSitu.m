@@ -24,6 +24,11 @@ texp = '/var/run/media/ckirst/38cc9966-c6b8-4ff9-b338-90cd43814dda/for CK/1_p<P,
 is = ImageSourceFiles(texp);
 is.printInfo
 
+%%
+
+[s, f] = is.tileSizeAndFormat
+
+
 %% 
 
 is.setReshape('P','UV',[13,18]);

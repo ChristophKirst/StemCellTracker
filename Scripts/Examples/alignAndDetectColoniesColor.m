@@ -1,9 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Serial Detection of Colonies 
+%%% Detection of Colonies 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% image data is read from disk each time and not cached
-% useful for large tilings that do not fit into memory
+% image data is read from disk once and cached
+% useful for fast processing if sufficent memory is available
 
 clear all
 clear classes
@@ -13,6 +13,8 @@ initialize
 bfinitialize
 
 verbose = true;
+
+% initializeParallelProcessing(4) % number of processors
 
 
 %% Setup Image Source
@@ -25,46 +27,38 @@ texp = tagExpression('./Test/Images/hESCells_Tiling_WildType/*.tif', 'tagnames',
 is = ImageSourceFiles(texp);
 is.printInfo
 
-%%
+%% Tiling
+
 % set the tiling
 is.setReshape('S', 'UV', [8, 19]);
 is.setCellFormat('UvC');
+is.setCaching(true);
+
 is.printInfo
 
-
-%%
+%% Color Keys
 
 % set some keys for the colors
 is.setKey('C', {'DAPI', 'GFP', 'R', 'Cy5'});
 
-
-%%
 % restrict to DAPI first
 clc
 is.setRange('C', 'DAPI');
 is.range
 is.printInfo
 
-%% restric range to some sub set
+%% Range
 
 is.addRange('U', 1:8, 'V', 1:8);
 is.printInfo
 
 
-%%
+%% Preview
 
-% % check formatting
-% cd = is.cell(1:18)
-% figure(1); clf
-% implottiling(cd, 'tiling', [8,2])
-
- 
-%%
-
-% make preview
-preview = is.preview('overlap', 110, 'scale', 0.1, 'lines', true);
-figure(2); clf
-implot(preview)
+if verbose
+   figure(1); clf
+   is.plotPreviewStiched('overlap', 120, 'scale', 0.05, 'lines', false);
+end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -114,96 +108,98 @@ for s = 1:nsubalgn
    subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
    if verbose && s < 20 %%&& subalgn(s).nNodes < 75
       subalgn(s).printInfo 
-      figure(100+s)
+      figure(100+s); clf
       
-      subalgn(s).plotPreview('scale', 0.05)
+      subalgn(s).plotPreviewStiched('scale', 0.05)
    end
 end
 
 %% Align Components
-
+clc
 subalgn.alignPositions;
 
-
-%% merge to single alignment
+% merge to single alignment
 
 algnAll = subalgn.merge;
 algnAll.printInfo
 
-
 %%
-figure(5); clf
-algnAll.plotPreview
-
-
-%% Colony Detection from Preview
-
-p = algnAll.preview;
-s = algnAll.previewScale;
-
-roi = detectROIsFromResampledImage(p, s, 'threshold', th, 'strel', 10, 'radius', 10, 'dilate', 8);
-
 if verbose
-   figure(1); clf
-   implot(p)
-   hold on
-   roi.plotRescaled(s)
+   figure(5); clf
+   algnAll.plotPreviewStiched
 end
 
-fprintf('Found %g regions of interest\n', length(roi))
+
+
+%% Colony Detection 
+
+% detect by resampling and closing
+scale = algnAll.source.previewScale;
+roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 'radius', 100, 'dilate', 100)
 
 
 %% Colony 
 
 colonies = Colony(algnAll, roi);
-colonies.plotPreview
 ncolonies = length(colonies);
 
+%%
+figure(1); clf
+colonies.plotPreview
 
 
 %% Visualize
 
-
-a = colonies(1).source;
-s = a.source;
-s.printInfo
-
-s.addRange('C', 1);
-s.fileTagRange
-
-
 if verbose
    figure(10); clf
-   for c = 1:min(ncolonies, 25)
+   for c = 1:min(ncolonies, 20)
       figure(10);
       img = colonies(c).data;
-      imsubplot(5,5,c)
-      implot(img)
+      imsubplot(5,4,c)
+      if numel(img) > 0
+         implot(img)
+      end
    end
 end
 
 
-%%
+%% Save
 
+% make sure to clear cache before saving
+colonies.clearCache();
 save('./Test/Data/Colonies/colonies.mat', 'colonies')
+
+
+%% Load
+
+clear all %#ok<CLSCR>
+close all
+clc
+
+verbose = true;
+
+load('./Test/Data/Colonies/colonies.mat')
 
 
 %% Change color cannel
 
-a = colonies(1).source;
-s = a.source;
-s.printInfo
+as = colonies(1).source;
+is = as.source;
+is.printInfo
 
-s.addRange('C', 4);
-s.fileTagRange
+is.addRange('C', 'Cy5');
+is.fileTagRange
 
 %%
-
+clc
 figure(5); clf;
-a.clearPreview
-a.plotPreview
+as.setPreviewScale(0.1);
+as.plotPreviewStiched
 
 
+%%
+figure(6); clf
+colonies.plotPreview
 
 %%
 
@@ -216,14 +212,6 @@ if verbose
       implot(img)
    end
 end
-
-
-
-
-%% save colonies
-
-
-
 
 
 

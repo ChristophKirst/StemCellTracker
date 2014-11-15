@@ -90,6 +90,20 @@
       
       
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+      % clear caching
+      
+      function obj = clearCache(obj)
+         % 
+         % obj = clearCache(obj)
+         %
+         % note:
+         %    assumes all colonies from same source !
+            obj(1).source.sourceClearCache();
+            obj(1).source.clearCache();
+      end
+      
+      
+      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % visualization
 
       function plotPreview(obj)

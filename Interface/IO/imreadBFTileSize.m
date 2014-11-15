@@ -47,7 +47,7 @@ if mod(ni, nty) == 0
    return
 end
 
-warning('imreadBFTileshape: cannot infer tile format, found u = %g, v = %g', ntx, nty)
+warning('imreadBFTileshape: cannot infer tile format, found U = %g, V = %g', ntx, nty)
 
 end
 

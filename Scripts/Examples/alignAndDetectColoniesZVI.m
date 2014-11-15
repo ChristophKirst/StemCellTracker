@@ -19,60 +19,155 @@ verbose = true;
 
 fname = './Test/Images/hESCells_EpFgf52.zvi'
 
-% read info
+is = ImageSourceBF(fname);
+is.printInfo
 
-info = imread_bf_info(fname)
+%% Tiling / Shape
 
-%%
+%auto tiling detection
+is.initializeFromTiling;
+is.printInfo
 
-info = tileshapeFromZVI(info)
-ts = info.icellsize
-
-%%
-is = ImageSourceTagged();
-is.fromReadCommandAndFileExpression('filename', fname, 'readcommand', 'imread_bf(''<file>'', ''series'', <tile>, ''channel'', <ch>)',...
-                                    'tagranges', setParameter('tile', num2cell(info.iseries), 'ch', num2cell(info.inimages)));
-is.setDataFormat('py');
-is.print
-
-%
-% (optional) restrict tiles to a certain subset
-% - usefull to restrict alignment to a fixed z plane and channel etc
-% - usefull to test on smaller subset
-% is.setTagRange('tile', {9,10,17,18});
-is.setTagRange('ch', {1});
-is.print
-
-% 
-% if verbose
-%     figure(1); clf
-%     is.plot('tiling', ts)
-% end
+%% 
+clc
+is.setCellDataFormat('XY', 'CUv');
+is.printInfo
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Setup Tiling
+%% Range
 
-% parameter:
-% tileshape   specifiess the shape of the tiles
-% tileformat  specifies the ordering of the tiles, 
-% in total the tiles are obtained via imuvwpermute(reshape(tiles,tileshape), tileformat)
-% if the celldata in is returns the correct tiling already tileshape and tileformat are inferred from there
+is.setRange('C', {1});
+is.printInfo
 
-ist = ImageSourceTiled(is, 'tileshape', ts, 'tileformat', 'uv');
-ist.print
 
-% dont cache images if the number is large 
-ist.setCache(true);
+%% Preview
 
-%%
-if verbose && ist.ntiles <= 32
-   tiles = ist.tiles;
-   figure(2); clf;
-   implottiling(tiles, 'link', false)
+if verbose
+   figure(1); clf
+   is.plotPreviewStiched('overlap', 120, 'scale', 0.05, 'lines', false);
 end
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Alignment
+
+% create 
+clc
+algn = Alignment(is, 'UV');
+algn.setCaching(false);
+algn.printInfo
+
+
+%% Background Intensity for Overlap Quality of Tiles
+
+img1 = algn.sourceData(2);
+nbins = 50;
+th = thresholdFirstMin(img1, 'nbins', nbins, 'delta', 1/1000 * numel(img1))
+
+if verbose
+   figure(3); clf
+   hist(img1(:), nbins)
+end
+
+%% Quality of Overlap between neighbouring Tiles 
+
+% parameter: see overlapQuality
+algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
+
+hist(algn.overlapQuality, 256)
+
+
+%% Align components
+clc
+clear subalgn
+subalgn = algn.connectedComponents('threshold.quality', -eps);
+nsubalgn = length(subalgn);
+fprintf('Alignment: found %g connected components\n', nsubalgn);
+
+if verbose  
+   var2char({subalgn.anodes})
+end
+
+
+%%
+for s = 1:nsubalgn
+   fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
+   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
+   if verbose && s < 20 %%&& subalgn(s).nNodes < 75
+      subalgn(s).printInfo 
+      figure(100+s); clf
+      
+      subalgn(s).plotPreviewStiched('scale', 0.05)
+   end
+end
+
+%% Align Components
+clc
+subalgn.alignPositions;
+
+% merge to single alignment
+
+algnAll = subalgn.merge;
+algnAll.printInfo
+
+%%
+if verbose
+   figure(5); clf
+   algnAll.plotPreviewStiched
+end
+
+
+
+%% Colony Detection 
+
+% detect by resampling and closing
+scale = algnAll.source.previewScale;
+roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', th, 'strel', 1, 'radius', 100, 'dilate', 100, 'check', true)
+
+
+%% Colony 
+
+colonies = Colony(algnAll, roi);
+ncolonies = length(colonies);
+
+figure(1); clf
+colonies.plotPreview
+
+
+%% Visualize
+
+if verbose
+   figure(10); clf
+   for c = 1:min(ncolonies, 20)
+      figure(10);
+      img = colonies(c).data;
+      imsubplot(5,4,c)
+      if numel(img) > 0
+         implot(img)
+      end
+   end
+end
+
+
+%% Save
+
+% make sure to clear cache before saving
+colonies.clearCache();
+save('./Test/Data/Colonies/colonies.mat', 'colonies')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 %% Alignment
 
 % create 

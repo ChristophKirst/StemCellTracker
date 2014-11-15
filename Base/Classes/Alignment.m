@@ -154,6 +154,8 @@ classdef Alignment < ImageSource
          
          obj.asource = is;
          obj.fromCellSize(is.cellSize(obj.aformat)); 
+         
+         obj.ipreviewscale = is.previewScale;
       end
       
       
@@ -912,6 +914,20 @@ classdef Alignment < ImageSource
             p = stitchPreview(imgs, 'shifts', shifts, 'scale', 1);
          end
       end
+      
+      function obj = clearPreview(obj)
+         obj.asource.clearPreview();
+         clearPreview@ImageSource(obj);
+      end
+      
+      function obj = setPreviewScale(obj, scale)
+         obj.asource.setPreviewScale(scale);
+         setPreviewScale@ImageSource(obj, scale);
+      end
+      
+%       function s = previewScale(obj)
+%          s = obj.asource.previewScale();
+%       end
 
 
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -26,14 +26,13 @@ param = parseParameter(varargin);
 
 scale = getParameter(param, 'scale',   []);
 if isempty(scale)
-   if isa(celldata, 'Alignment')
-      scale = celldata.asource.previewScale;
-   elseif isa(celldata, 'ImageSource')
+   if isa(celldata, 'ImageSource')
       scale = celldata.previewScale;
    else
       scale = 0.1;
    end
 end
+%scale
 
 sh    = getParameter(param, 'shifts',  []);
 siz   = getParameter(param, 'size',    []);
@@ -66,8 +65,12 @@ if isa(celldata, 'Alignment')
    end
    
    if pre
+      %scale
       celldata.setPreviewScale(scale);
       cdat = celldata.asource.preview(celldata.nodes);
+      %size(cdat)
+      %size(cdat{1})
+      
    else
       % read sequentially
       nodes = celldata.nodes;

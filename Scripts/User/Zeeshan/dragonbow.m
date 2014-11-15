@@ -21,10 +21,11 @@ fh.printInfo
 
 %%
 
-is = ImageSourceBF(fh.dataFile('5.tif')) 
-
-is.setCellDataFormat('XY', 'C')
+is = ImageSourceBF(fh.dataFile('DRAGONbow 2.tif'));
+is.setCellDataFormat('XY', 'C');
+is.setRange('X', 950:3200, 'Y', 850:3100);
 is.printInfo
+
 
 %%
 clc
@@ -37,8 +38,9 @@ implottiling(d)
 
 d = is.cell;
 
-dbkg = cellfunc(@(x) imopen(x, strel('disk', 100)), d);
-dc   = cellfunc(@(x,y) x-y, d, dbkg);
+dbgk = cellfunc(@(x) filterGaussian(x, 5), d);
+dbgk = cellfunc(@(x) imopen(x, strel('disk', 75)), dbgk);
+dc   = cellfunc(@(x,y) x-y, d, dbgk);
 dc   = cellfunc(@(x) double(x) / max(x(:)), dc);
 
 figure(1); clf
@@ -46,20 +48,248 @@ implottiling({dc{:}}')
 
 %% color image
 
-imgc = cat(3, dc{:});
+imgc = cat(3, dc{3}, dc{1}, dc{2});
 imgc = imgc/max(imgc(:));
 figure(2); clf
 implot(imgc)
 
+
+%% save as tif
+
+imwrite(imgc, fh.dataFile('5m.tif'))
+
+
+%% read slic result
+
+%slic = imread('~/outfile.jpg');
+slic = load('~/outfile.mat');
+slic =  double(slic.data);
+
+size(slic)
+length(unique(slic)')
+
+
+%%
+figure(5); clf
+colormap jet
+implot(slic)
+
+
+
+%%
+
+
+rp = imstatistics(slic, {'Volume', 'PixelIdxList'});
+
+imgR = imgc(:,:,1);
+imgG = imgc(:,:,2);
+imgB = imgc(:,:,3);
+
+
+imgLR = zeros(size(imgR));
+imgLG = zeros(size(imgG));
+imgLB = zeros(size(imgB));
+
+l = zeros(length(rp), 3);
+
+
+for i = 1:length(rp)
+   px = rp(i).PixelIdxList;
+   r = mean(imgR(px));
+   g = mean(imgG(px));
+   b = mean(imgB(px));
+   
+   imgLR(px) = r;
+   imgLG(px) = g;
+   imgLB(px) = b;
+   
+   l(i,:) = [r,g,b];
+   
+end
+
+
+imgL = cat(3, imgLR, imgLG, imgLB);
+
+figure(10); clf
+implottiling({imgc; imgL})
+   
+   
+%% cell line detection via clustering
+
+lpy = numpyFromMat(l);
+
+cl = py.scipy.cluster.vq.kmeans(lpy,100);
+cl = numpyToMat(cl);
+
+
+dli = distanceMatrix(l', cl{1}');
+[ml, pl] = min(dli, [], 2);
+
+%%
+
+imgLR = zeros(size(imgR));
+imgLG = zeros(size(imgG));
+imgLB = zeros(size(imgB));
+
+for i = 1:length(pl)
+   px = rp(i).PixelIdxList;
+
+   r = l(pl(i), 1);
+   g = l(pl(i), 2);
+   b = l(pl(i), 3);
+   
+   imgLR(px) = r;
+   imgLG(px) = g;
+   imgLB(px) = b; 
+end
+
+
+imgL2 = cat(3, imgLR, imgLG, imgLB);
+imgL2 = imgL2 / max(imgL2(:));
+
+figure(15); clf
+implottiling({imgc; imgL; imgL2})
+ 
+ 
+ 
+ 
+ 
+
+
+
+%% super pixel segmentation
+
+
+
+ 
+
+
+
+
+
+%% color image
+
+dt = cellfunc(@(x) imclose(x, strel('disk', 5)), dc);
+imgt = cat(3, dt{3}, dt{1}, dt{2});
+imgt = 1-imgt/max(imgt(:));
+figure(3); clf
+implot(imgt)
+
+
+
+%%
 %figure(3); clf
 %implot(sum(imgc,3))
 
 %dcc = cellfunc(@(x) imopen(x, strel('disk', 5)), dc);
-dcc = cellfunc(@(x) filterGaussian(x, 35), dc);
+dcc = cellfunc(@(x) filterDisk(x, 35), dc);
 imgcc = cat(3, dcc{:});
 
 figure(3); clf
 implot(imgcc)
+
+
+imgh = rgb2hsv(imgcc);
+figure(6)
+implottiling({imgh(:,:,1); imgh(:,:,2); imgh(:,:,3)})
+
+
+figure(7)
+h = imgh(:,:,1);
+subplot(1,2,1)
+hist(h(:), 200)
+
+subplot(1,2,2)
+h = imgh(:,:,3);
+hist(h(:), 100)
+
+%%
+th = thresholdFirstMin(h(:), 'delta', 100)
+msk = imgh(:,:,3) >  th;
+msk  = imdilate(msk, strel('diamond', 1));
+msk = msk > 0;
+
+figure(9); clf
+implottiling({imgc; msk})
+
+
+figure(10); clf
+hh = imgh(:,:,1);
+hh = hh(msk);
+hist(hh(:), 200)
+[hd, hx] = hist(hh(:), 200);
+
+%% 
+
+tt = findTroughs(hd, 400);
+tt = hx(tt)
+
+%%
+% define clusters
+
+pos = [204, 402; 246, 890; 534, 500; 788, 754; 867, 338]';
+
+for i = 1:size(pos,2);
+   cols(i,:) = imgcc(pos(1,i), pos(2,i), :);
+end
+
+%%
+% imgi = sum(imgcc,3);
+% figure(8); clf;
+% hist(imgi(:), 100)
+% 
+% th = thresholdFirstMin(imgi(:))
+% 
+% msk = imgi > th;
+% figure(14); clf
+% implottiling({imgc; msk})
+
+
+%%
+dccl = cellfunc(@(x) x(:), dcc);
+iccl = cat(2, dccl{:});
+
+di = distanceMatrix(iccl', cols');
+[m, p] = min(di, [], 2);
+%%
+
+imglab = zeros(size(dcc{1}));
+imglab(:) = p;
+imglab = immask(imglab, msk);
+
+figure(14); clf
+colormap jet
+implottiling({imgc; imglab})
+
+
+
+ht = findTroughs(hh, 300)
+tt = xx(ht)
+tt = [tt, 0.865];
+tt = [0, tt, max(dh(:))+eps];
+
+length(tt)
+
+%% labeled image
+
+lab = zeros(size(dcc{1}));
+dhh = imgh(:,:,1);
+
+for i = 1:length(tt)-1
+   lab(and(dhh >= tt(i), dhh < tt(i+1))) = i;
+end
+lab(~msk) = 0;
+
+figure(15); clf
+implottiling({imgc; lab})
+
+
+
+
+
+
+
+
 
 
 

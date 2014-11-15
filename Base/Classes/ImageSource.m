@@ -542,12 +542,15 @@ classdef ImageSource < ImageInfo
          obj.ipreviewscale = scale; 
          
          p = cdat(id);
+         
+         %size(obj.ipreview);
+         %obj.ipreview
       end
 
       function obj = clearPreview(obj)
          for i = 1:length(obj)
             obj(i).ipreview = [];
-            obj(i).ipreviewscale = [];
+            %obj(i).ipreviewscale = [];
          end
       end
       

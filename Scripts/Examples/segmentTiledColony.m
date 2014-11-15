@@ -4,13 +4,15 @@
 
 %% Clean Start
 
-clear all
-clear classes
+clear all %#ok<CLSCR>
+clear classes %#ok<CLSCR>
 close all
 clc
 
 initialize
 bfinitialize
+
+% initializeParallelProcessing(4) % number of processors
 
 
 %% Plotting
@@ -24,58 +26,142 @@ figure_offset = 0;  % offset for figure numbering / use to compare results etc..
 %  result: img the image to analyze
 
 % autodetect the tag expression for the images:
-tagexp = tagexpr('./Test/Images/hESCells_Tiling/*', 'tagnames', {'field'})
+tagexp = tagExpression('./Test/Images/hESCells_Tiling/*', 'tagnames', {'S'})
 
 % generate image source for tagged images
-is = ImageSourceTagged(tagexp);
-is.setDataFormat('pq')
-is.print
+is = ImageSourceFiles(tagexp);
+is.setDataFormat('XY');
+is.setReshape('S', 'UV', [4,4]);
+is.setCellFormat('Uv');
+is.setCaching(true);
+is.printInfo
 
-% generate ImageSourceTiled class
-%
-% note: for tiles on a grid the tile format is assumed to be uv or uvw for 3d tilings
-%       if the tiles do not match this try to permute the uv 
-%       or inverse the v and w axes by replacing them with y or z
-
-ist = ImageSourceTiled(is, 'tileshape', [4,4], 'tileformat', 'uy');
-
-% for small data, cache the tiles to avoid reloading / use ist.clearCache to clear the cache.
-ist.icachetiles = true; 
-
-
-%% Plot the tiles 
-imgs = ist.tiles;
+%% Preview 
 
 if verbose
-   figure(1+figure_offset); clf;
-   implottiling(imgs)
-end
-
-%% Align the images
-
-ia = ImageSourceAligned(ist);
-
-ia.align('overlap.max', 120, 'overlap.min', 90, 'shift.max', 10);
-
-if verbose
-   figure(2+figure_offset); clf;
-   ia.plotAlignedImages
+   figure(1); clf
+   is.plotPreviewStiched('overlap', 120, 'scale', 0.05, 'lines', false);
 end
 
 
-%% Stitch the images
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Alignment
 
-imgst = ia.stitch('method', 'Mean');
+% create 
+clc
+algn = Alignment(is, 'UV');
+algn.printInfo
+
+
+%% Background Intensity for Overlap Quality of Tiles
+
+img1 = algn.sourceData(2);
+nbins = 350;
+th = thresholdFirstMin(img1, 'nbins', nbins, 'delta', 1/10000 * numel(img1))
 
 if verbose
-   figure(3+figure_offset); clf;
-   implot(imgst)
+   figure(3); clf
+   hist(img1(:), nbins)
 end
+
+%% Quality of Overlap between neighbouring Tiles 
+
+% parameter: see overlapQuality
+algn.calculateOverlapQuality('threshold.max', th, 'overlap.max', 120);
+
+hist(algn.overlapQuality, 256)
+
+
+%% Align components
+clc
+clear subalgn
+subalgn = algn.connectedComponents('threshold.quality', -eps);
+nsubalgn = length(subalgn);
+fprintf('Alignment: found %g connected components\n', nsubalgn);
+
+if verbose  
+   var2char({subalgn.anodes})
+end
+
+
+%%
+for s = 1:nsubalgn
+   fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
+   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
+   if verbose && s < 20 %%&& subalgn(s).nNodes < 75
+      subalgn(s).printInfo 
+      figure(100+s); clf
+      
+      subalgn(s).plotPreviewStiched('scale', 0.05)
+   end
+end
+
+%% Align Components
+clc
+subalgn.alignPositions;
+
+% merge to single alignment
+
+algnAll = subalgn.merge;
+algnAll.printInfo
+
+%%
+if verbose
+   figure(5); clf
+   algnAll.plotPreviewStiched
+end
+
+
+
+%% Colony Detection 
+
+% detect by resampling and closing
+scale = algnAll.source.previewScale;
+roi = detectROIsByClosing(algnAll, 'scale', scale, 'threshold', 1.5 * th, 'strel', 1, 'radius', 50, 'dilate', 100, 'check', true)
+
+
+%% Colony 
+
+colonies = Colony(algnAll, roi);
+ncolonies = length(colonies);
+
+figure(1); clf
+colonies.plotPreview
+
+
+%% Visualize
+
+if verbose
+   figure(10); clf
+   for c = 1:min(ncolonies, 20)
+      figure(10);
+      img = colonies(c).data;
+      imsubplot(5,4,c)
+      if numel(img) > 0
+         implot(img)
+      end
+   end
+end
+
+
+%% Save
+
+colony = colonies(3);
+
+% make sure to clear cache before saving
+colony.clearCache();
+save('./Test/Data/Colonies/colony.mat', 'colony')
+
+
+%%
+
+load('./Test/Data/Colonies/colony.mat', 'colony')
+
+
 
 %% Cut to ROI 
 
-% here small region for illustrating purposes
-img = imgst(800:1000, 800:1000);
+img = colony.data;
 
 if verbose
    figure(4+figure_offset); clf;
@@ -122,7 +208,7 @@ end
 
 if verbose 
    figure(5 + figure_offset); clf; colormap jet
-   set(gcf, 'Name', ['Preprocess 1: ' is.ifilename]);
+   set(gcf, 'Name', ['Preprocess 1']);
    
    if ~isempty(background)
       implottiling({imgraw; background; imgpre}, {'imgraw', 'background', 'imgpre'}) 
@@ -183,7 +269,7 @@ imgpre2(imgpre2 < 0) = 0;
 
 if verbose
    figure(6 + figure_offset)
-   set(gcf, 'Name', ['Preprocess: ' is.ifilename]);
+   set(gcf, 'Name', ['Preprocess:']);
    implottiling({imgraw; imgpre2; imggrad},{'imgraw', 'imgpre2'});
 end
 

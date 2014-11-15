@@ -71,10 +71,11 @@ if isa(imgs, 'Alignment')
    end
 
    parfor i = 1:n
+      rsf = [];
       if pre
          img = imgs.asource.preview(nds(i)); %#ok<PFBNS>
          img = img{1};
-         rsf = (size(img)-1) ./ (is-1); %#ok<PFTIN>
+         rsf = (size(img)-1) ./ (is-1);
       elseif ~isempty(rs)
          img = source.dataResample(rs, nds(i)); %#ok<PFBNS>
          rsf = (size(img)-1) ./ (is-1); 
