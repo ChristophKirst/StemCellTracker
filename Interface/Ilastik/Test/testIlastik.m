@@ -8,16 +8,23 @@ ilinitialize()
 
 %% Initialize the Classifier
 
-illoadclassifier('./Interface/Ilastik/Test/spydimport classifier.h5')
+ilc = illoadclassifier('./Interface/Ilastik/Test/classifier.h5')
 
 
 %% Run Classifier
 
 img = imread('./Test/Images/hESCells_DAPI.tif');
 
-% classify
-imgcls = ilclassify(img);
+figure(1); clf
+implot(img);
 
+%%
+
+% classify
+imgcls = ilclassify(ilc, img);
+
+
+%%
 %segment on max predictions
 [~,imgseg] = max(imgcls,[], 3);
 
@@ -47,54 +54,6 @@ imgws = postProcessSegments(imgws, 'volume.min', 10);
 
 figure(43); clf;
 implottiling({imgseg, imgws, imoverlaylabel(img, imgws)})
-
-
-
-
-%% Test Basic Routines 
-
-initialize
-ilinitialize
-
-%% test run
-py('eval', 'ilc = IlastikClassifier()')
-py('eval', 'res = ilc.run()')
-
-res = pyget('res');
-size(res)
-
-res = squeeze(res);
-size(res)
-
-%% segmentation of the resulting data
-
-back = res(:,:,1);
-nucl = res(:,:,2);
-bord = res(:,:,3);
-
-size(res)
-[~,seg] = max(cat(3, back, nucl, 1.5*bord),[], 3);
-size(seg)
-
-
-img = imread('./Test/Images/hESCells_DAPI.tif');
-
-
-imglab = bwlabeln(seg == 2);
-
-figure(42); clf;
-implot(seg)
-
-figure(43); clf;
-implot(imoverlaylabel(img', imglab))
-
-
-
-
-
-
-
-
 
 
 

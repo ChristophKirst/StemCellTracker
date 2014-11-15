@@ -10,7 +10,7 @@ function ilc = illoadclassifier(clfile)
 %
 % See also: ilinitialize, ilclassify
 
-ilc = py.IlastikInterface.IlasticClassifier();
+ilc = py.IlastikInterface.IlastikClassifier();
 ilc.load_classifier(clfile);
 
 end

@@ -1,4 +1,4 @@
-function imgseg = ilclassify(img)
+function imgseg = ilclassify(ilc, img)
 %
 % imgseg = ilclassify(img)
 %
@@ -10,8 +10,9 @@ function imgseg = ilclassify(img)
 %
 % See also: illoadclassifier
 
-ilc = illoa
-
+if ischar(ilc)
+   ilc = illoadclassifier(ilc);
+end
 
 if ischar(img)
    if ~isfile(img)
@@ -20,22 +21,14 @@ if ischar(img)
    [~, bi, ei] = fileparts(img);
    img = fullfile(absolutepath(img), [bi, ei]); 
    
-   
-   
-   py('eval', ['ilc.load_image(' img ')'])
+   ilc.load_image(img)
 else
-   py('set', 'img', img)
-   py('eval', 'ilc.image = img')
+   imgpy = numpyFromMat(img);
+   ilc.image = imgpy;
 end
 
-
-py('eval', 'res = ilc.run()')
-imgseg = py('get', 'res');
-imgseg = squeeze(imgseg);
-
-%imf = imformat(imgseg)
-%imfn = strrep(imf, 'q', 'x'); imfn = strrep(imfn, 'p', 'q')
-%imgseg = impqlpermute(imgseg, imf, imfn);
+res = ilc.run();
+imgseg = squeeze(numpyToMat(res));
 
 end
 
