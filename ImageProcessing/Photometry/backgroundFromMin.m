@@ -51,7 +51,7 @@ end
 if nargout > 1
    flatfield = true;
 else
-   flatfield = flase;
+   flatfield = false;
 end
 
 for i = 1:n

@@ -5,7 +5,8 @@ function roi = detectROIsByClosing(imgs, varargin)
 % roi = detectROIsByClosing(is, param)
 %
 % descritption:
-%     finds shapes in an image img using morphological opening and thresholding
+%     finds shapes in an image img using morphological opening and thresholding after
+%     image rescaling and alignment if required.
 %
 % input:
 %    img    image as numeric array
@@ -18,7 +19,8 @@ function roi = detectROIsByClosing(imgs, varargin)
 %           .strel        structure element for morphological closing ([] = strel('disk', 20))
 %           .radius       probe radius passed to detectAlphaVolume (100)
 %           .preview      stitch scaled images and save in preview of the ImageSource (true if input is ImageSource)
-%           
+%           See points2shapes() for additional parameters assoc with alpha vol.
+%
 % output:
 %    roi    region of interest
 %
@@ -70,7 +72,7 @@ if isa(imgs, 'Alignment')
       end
    end
 
-   parfor i = 1:n
+   for i = 1:n
       if pre
          img = imgs.asource.preview(nds(i)); %#ok<PFBNS>
          img = img{1};
