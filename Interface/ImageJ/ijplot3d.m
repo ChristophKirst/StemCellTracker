@@ -48,7 +48,7 @@ if dim == 4 % color image
 else % stack of gray scale images   
    %image = impqlpermute(image, 'pql', 'qpl');
    %imp =  MImageJ.createImage(name, 'pql', image);
-   image = impqlpermute(image, 'pql', 'lqp');
+   image = imfrmtPermute(image, 'XYZ', 'ZYX');
    imp =  MImageJ.createImage(name, 'lpq', image);
 end
 

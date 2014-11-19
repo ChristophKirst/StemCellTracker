@@ -15,7 +15,6 @@
          % ImageSourceBF(filename)
          % ImageSourceBF(...,fieldname, fieldvalue,...)
          %
-         
          if nargin == 0
             return
          elseif nargin == 1
@@ -114,21 +113,25 @@
       end
       
       function pos = stagePositions(obj, varargin)
-         rgs = obj.reshapeRangeToRawRange(imfrmtParseRangeLast(obj.irange, varargin));
+         rgs = obj.rawRange(varargin{:});
          pos = imreadBFStagePositions(obj.ireader, rgs);
-         pos = imfrmtReshapeCellData(pos, 'XY', 'ZCTS', obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
+         %pos = imfrmtReshapeCellData(pos, 'XY', 'ZCTS', obj.dataFormat, obj.cellFormat, obj.reshapeFrom, obj.reshapeTo, obj.reshapeSize);
       end
       
-      function pos = timeStamps(obj, varargin)
-         pos = imreadBFTimeStamps(obj.ireader, varargin{:});
+      function vs = voxelSize(obj, varargin)
+         vs = imreadBFVoxelSize(obj.ireader, varargin{:});
       end
       
-      function pos = exposureTimes(obj, varargin)
-         pos = imreadBFExposureTimes(obj.ireader, varargin{:});
+      function ts = timeStamps(obj, varargin)
+         ts = imreadBFTimeStamps(obj.ireader, varargin{:});
+      end
+      
+      function et = exposureTimes(obj, varargin)
+         et = imreadBFExposureTimes(obj.ireader, varargin{:});
       end
   
       function [tsi, tpos] = tileSize(obj,varargin)
-         [tsi,tpos] = imreadBFTileSize(obj.ireader, varargin{:});
+         [tsi, tpos] = imreadBFTileSize(obj.ireader, varargin{:});
       end
       
       function [tsi, tfrmt] = tileSizeAndFormat(obj,varargin)
@@ -249,12 +252,25 @@
       
       function info = infoString(obj)
          info = infoString@ImageSource(obj, 'BF');
-         info = [info, '\nchannel:   '  var2char(obj.channelName)];
-         info = [info, '\nfilename:  ', var2char(obj.filename)];
-         info = [info, '\ntype:      ', var2char(obj.type)];
+         info = [info, '\nchannel:    '  var2char(obj.channelName)];
+         info = [info, '\nfilename:   ', var2char(obj.filename)];
+         info = [info, '\ntype:       ', var2char(obj.type)];
       end
 
    end
    
+   
+   methods(Access = protected)
+      % Override copyElement method:
+      function cpObj = copyElement(obj)
+         
+         disp copyElement
+         
+         % Make a shallow copy of all four properties
+         cpObj = copyElement@matlab.mixin.Copyable(obj);
+         % Make a deep copy of the DeepCp object
+         cpObj.ireader = copy(obj.ireader);
+      end
+   end
    
 end

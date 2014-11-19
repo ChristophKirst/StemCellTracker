@@ -35,7 +35,7 @@ classdef Alignment < ImageSource
             elseif isa(varargin{1}, 'struct')
                obj.fromStruct(varargin{1});
             elseif isa(varargin{1}, 'ImageSource')
-               obj.fromImageSource(varargin{:});
+               obj.fromImageSource(varargin{:});  
             else
                error('%s: not valid arguments for constructor', class(obj));
             end
@@ -51,7 +51,47 @@ classdef Alignment < ImageSource
       end
 
       function obj = fromCell(obj, ca)
-         obj = obj.fromCellSize(size(ca));
+         %
+         % obj = fromCell(obj, ca)
+         %
+         % descritpion:
+         %   constructs Alignment class from prealigned cell array ca
+         %
+    
+         si = size(ca);
+         si = padright(si, 3, 1);
+
+         np = si(1) * si(2) * (si(3)-1) + si(1) * (si(2)-1) * si(3) + (si(1)-1) * si(2) * si(3);
+         p(np) = AlignmentPair();
+
+         i = 1;
+         for x = 1:si(1)
+            for y = 1:si(2)
+               for z = 1:si(3)
+                  if x < si(1)
+                     p(i).from        = ca(x,y,z);
+                     p(i).to          = ca(x+1,y,z);
+                     p(i).orientation = 1;
+                     i = i + 1;
+                  end
+                  if y < si(2)
+                     p(i).from = ca(x,y,z);
+                     p(i).to   = ca(x,y+1,z);
+                     p(i).orientation = 2;
+                     i = i + 1;
+                  end
+                  if z < si(3)
+                     p(i).from = ca(x,y,z);
+                     p(i).to   = ca(x,y,z+1);
+                     p(i).orientation = 3;
+                     i = i + 1;
+                  end
+               end
+            end
+         end
+         
+         obj.apairs = p;
+         obj.anodes = [ca{:}];
       end
 
       function obj = fromCellSize(obj, si)
@@ -159,7 +199,107 @@ classdef Alignment < ImageSource
       end
       
       
-      function obj = initializeFromPairsAndShifts(obj)
+      function  obj = fromImageSourceBF(obj, is, varargin)
+         
+         % find grid of nodes form the positions assuming a grid like structure
+         
+         param = parseParameter(varargin);
+         
+         pos = getParameter(param, 'positions', []);
+         if isempty(pos)
+            pos = is.stagePositions;
+         end
+
+         isiz = [is.ireader.getSizeX; is.ireader.getSizeY];
+         vsiz = imreadBFVoxelSize(is.ireader, 'S', 1, varargin);
+         vsiz = vsiz{1};
+
+         isiz = isiz .* vsiz(1:2); 
+
+         ni = length(pos);
+         pos = [pos{:}];
+         posx = pos(1,:)'; posy = pos(2,:)';
+
+         % x clustering
+         
+         [clx, idx] = clusterMeanShift(posy, isiz(1)/2)
+         ntx = length(clx)
+
+         if mod(ni, ntx) ~= 0
+            error('%s: fromImageSourceAndStagePositions: cannot infer gird!', class(obj));
+         end
+         
+         % y clustering
+         
+         [cly, idy] = clusterMeanShift(posx, isiz(2)/2);
+         nty = length(cly);
+
+%          if mod(ni, nty) ~= 0
+%             error('%s: fromImageSourceAndStagePositions: cannot infer gird!', class(obj));
+%          end
+         
+         % z clustering
+         if size(pos,1) > 2
+            posz = pos(3,:)';
+            
+            isz = is.ireader.getSizeZ * vsiz(3);
+            [clz, idz] = clusterMeanShift(posz, isz/2);
+
+            ntz = length(clz);
+
+%             if mod(ni, ntz) ~= 0
+%                error('%s: fromImageSourceAndStagePositions: cannot infer gird!', class(obj));
+%             end
+         else
+            ntz = 1;
+            idz = ones(1,ni);
+         end
+         
+%          if ntz*nty*ntz ~= ni
+%             error('%s: fromImageSourceAndStagePositions: cannot infer gird, dimensions mistmatch!', class(obj));
+%          end
+
+         % fill grid
+         gr = cell(ntx, nty, ntz);
+         ids = sub2ind([ntx, nty, ntz], idx, idy, idz);
+         gr(ids) = 1:ni;
+         
+         % 
+         obj = obj.fromCell(gr);
+         
+         obj.ipreviewscale = is.previewScale;
+      end
+
+      
+      function  obj = fromStagePositionsAndVoxelSize(obj, pos, vsiz)
+         %
+         % obj = fromStagePositions(obj, pos, vs)
+         %
+         % initializes shifts from positions
+         
+         % intialize shifts directly form stage positions
+         if nargin == 2 && isa(pos, 'ImagesouceBF')
+            obj.asource = pos;
+ 
+            vsiz = imreadBFVoxelSize(pos.ireader, 'S', 1, varargin);
+            pos = pos.stagePositions;
+            
+            obj.anodes = 1:length(pos);
+         end
+
+         % to pixel coords
+         
+         vsiz = vsiz(1:length(pos{1}));
+         pos = cellfunc(@(x) round(x ./ vsiz), pos);
+         
+         pos = cellfunc(@(x) x(:)', pos);
+         obj.ashifts = cellfunc(@(x) x - pos{1}, pos);
+
+         obj.initializeFromShifts;
+      end
+      
+
+      function obj = initializeFromShifts(obj)
          % intializes the data size and format info using the info in pairs
          
          obj.irawdatasize = obj.absoluteSize;
@@ -623,7 +763,7 @@ classdef Alignment < ImageSource
          end
          obj.ashifts = shifts;
          
-         obj.initializeFromPairsAndShifts();
+         obj.initializeFromShifts();
       end
       
       
@@ -643,7 +783,7 @@ classdef Alignment < ImageSource
          
          if obj.nNodes == 1
             obj.ashifts = {zeros(1,obj.dim)};
-            obj.initializeFromPairsAndShifts();
+            obj.initializeFromShifts();
             return
          end
          
@@ -660,7 +800,7 @@ classdef Alignment < ImageSource
          end
          obj.ashifts = shifts;
          
-         obj.initializeFromPairsAndShifts();
+         obj.initializeFromShifts();
       end
 
       

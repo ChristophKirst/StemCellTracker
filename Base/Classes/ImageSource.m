@@ -489,8 +489,7 @@ classdef ImageSource < ImageInfo
       function obj = initializeBackgroundCorrectionFromBackgroundAndFlatField(obj, bkg, flt)
          obj.idatacorrectfunction = @(x) correctFromBackgroudAndFlatField(x, bkg, flt);
       end
-      
- 
+
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % previews
       
@@ -528,8 +527,15 @@ classdef ImageSource < ImageInfo
          n = numel(ids);
          ccdat = cell(n, 1);
          scale = obj.previewScale;
-         parfor ii = 1:n
-            ccdat{ii} = obj.dataResample(scale, ids(ii)); %#ok<PFBNS>
+
+         if isa(obj, 'ImageSourceBF') % single files cannot be paralleization 
+            for ii = 1:n
+               ccdat{ii} = obj.dataResample(scale, ids(ii));
+            end
+         else
+            parfor ii = 1:n
+               ccdat{ii} = obj.dataResample(scale, ids(ii)); %#ok<PFBNS>
+            end
          end
          
 %          size(id)

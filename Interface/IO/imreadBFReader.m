@@ -17,6 +17,7 @@ if nargin == 0
   name = [path file];
 end
 
+
 if ischar(name)  
    
    % load via file name

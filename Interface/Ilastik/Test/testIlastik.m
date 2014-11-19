@@ -32,7 +32,7 @@ imgcls = ilclassify(ilc, img);
 imglab = bwlabeln(imgseg == 2);
 
 figure(42); clf;
-implottiling({imgseg, imoverlaylabel(img, imglab)})
+implottiling({imgseg; imoverlaylabel(img, imglab)})
 
 
 %% Postprocess and Watershed
@@ -42,7 +42,7 @@ imgmask = ~(imgseg == 1);
 imgpost = postProcessSegments(imglab, 'volume.min', 10);
 
 figure(42); clf;
-implottiling({imgseg, imoverlaylabel(img, imgpost)})
+implottiling({imgseg; imoverlaylabel(img, imgpost)})
 
 imgf = mat2gray(img); imgf = imgf - 3 * imgcls(:,:,3);
 imgf(imgf < 0 ) = 0;
@@ -53,7 +53,7 @@ imgws = immask(imgws, imgmask);
 imgws = postProcessSegments(imgws, 'volume.min', 10);
 
 figure(43); clf;
-implottiling({imgseg, imgws, imoverlaylabel(img, imgws)})
+implottiling({imgseg; imgws; imoverlaylabel(img, imgws)})
 
 
 

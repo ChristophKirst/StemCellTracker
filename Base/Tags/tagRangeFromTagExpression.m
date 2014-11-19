@@ -51,8 +51,10 @@ if isempty(names)
 end
 
 
+% for names with non trailing zeros the first and last file might no reflect the range
+ll = unique(cellfun(@length, names));
 
-if fast
+if fast && length(ll) == 1
    tagRange = parseParameter(tagRangeFromFirstAndLastString(tagExpr, names{1}, names{end}), tagRange);
 else
    tags = tagExpressionToTags(tagExpr, names);
