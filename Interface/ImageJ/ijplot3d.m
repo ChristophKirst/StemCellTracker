@@ -41,7 +41,8 @@ dim = ndims(image);
 %size(image)
 
 if dim == 4 % color image
-   image = impqlpermute(image, 'pqlc', 'clpq');
+   %image = impqlpermute(image, 'pqlc', 'clpq');
+   image = imfrmtPermute(image, 'XYZC', 'CZXY');
    %size(image)
    
    imp = MImageJ.createImage(name, 'clpq', image);
