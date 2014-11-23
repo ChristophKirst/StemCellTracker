@@ -54,7 +54,7 @@ if nargout > 1
    mimagej = MImageJ();
 end
 
-fprintf('ijinitialize: ImageJ interface installed using: %s\n', ijpath(varargin{;}));
+fprintf('ijinitialize: ImageJ interface installed using: %s\n', ijpath(varargin{:}));
 
 
 end

@@ -9,7 +9,7 @@ function idx = imfrmtFullIndexToIndex(iSize, iFrmt, iRange, varargin)
 % input:
 %      iSize   full data size
 %      iFrmt   full data format
-%      iRange  range spcifying the restritions
+%      iRange  range specifying the restritions
 %
 % output:
 %      idx     restricted linear indices

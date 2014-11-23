@@ -44,7 +44,10 @@ classdef ImageInfo < matlab.mixin.Copyable
       ireshapefrom = {};             % formats dims in raw for reshaping 
       ireshapeto   = {};             % formats before and after reshaping each raw data array
       ireshapesize = {};             % sizes for the reshaping
-           
+      
+      ireorder     = {};             % reordering the indices, list of indices such the ireorder(i) gives the final index of id i
+      ireorderat   = {};             % format dimension to apply the reordering
+      
       % meta
       ichannelname = [];             % channel name
       icolor = {};                   % colors for the color channel C/c
@@ -309,8 +312,6 @@ classdef ImageInfo < matlab.mixin.Copyable
          end
       end
       
-      
-      
       function range = range(obj, varargin)
          range = obj.rangeFromVarargin(varargin{:});
       end
@@ -406,7 +407,7 @@ classdef ImageInfo < matlab.mixin.Copyable
          % output:
          %     index range w.r.t. the full data cell  size / format
          
-         if nargin == 1 % nothing spcified return full specified range
+         if nargin == 1 % nothing specified return full specified range
             range = obj.irange;
  
          elseif nargin > 1 && isnumeric(varargin{1})  % form index 
