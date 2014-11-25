@@ -10,7 +10,7 @@ function shapes = points2shapes(pts, varargin)
 %    param  parameter sturct with entries
 %           .radius   radius used in alpha volume detection (100)
 %           .dilate   dilate the shape by this width ([] = no dilation)
-%           .check    checks if polygons ae within polygons and removes them (false)
+%           .check    checks if polygons are within polygons and removes them (false)
 %
 % output:
 %   shapes  cell array of shapeborders as arrays of the boundary point coordinates as row vectors

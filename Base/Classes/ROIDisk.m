@@ -115,6 +115,14 @@ classdef ROIDisk < ROI
          obj.center = obj.center + sh;
       end
       
+      function obj = rescale(obj, scale)
+         for i = 1:length(obj)
+            obj(i).center = obj(i).center .* scale;
+            obj(i).radius = obj(i).radius .* scale;
+         end
+      end
+      
+      
 
       % special functions for disk
       function rr = r(obj)

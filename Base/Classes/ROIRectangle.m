@@ -69,7 +69,7 @@ classdef ROIRectangle < ROI
       end
       
       function obj = fromPixel(obj, p1, p2)  
-         obj.p1 = p1 -1;
+         obj.p1 = p1 - 1;
          obj.p2 = p2;
       end
       
@@ -156,6 +156,24 @@ classdef ROIRectangle < ROI
          obj.p1 = obj.p1 + sh(:);
          obj.p2 = obj.p2 + sh(:);
       end
+      
+      function obj = rescale(obj, scale)
+         for i = 1:length(obj)
+            obj(i).p1 = obj(i).p1 .* scale;
+            obj(i).p2 = obj(i).p2 .* scale;
+         end
+      end
+      
+      
+      function plot(obj, varargin)
+         n = length(obj);
+         cc = colorcube(n);
+         for i = 1:n
+            p11 = obj(i).p1; p22 = obj(i).p2;
+            plot([p11(1), p11(1), p22(1), p22(1), p11(1)], [p11(2), p22(2), p22(2), p11(2),p11(2)] , varargin{:}, 'Color', cc(i,:))
+         end
+      end
+      
       
       
       

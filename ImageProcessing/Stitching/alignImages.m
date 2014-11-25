@@ -33,7 +33,9 @@ if iscell(imgs)
    adim = ndims1(imgs);
 elseif isa(imgs, 'ImageSource')
    issource = true;
-   adim = length(imgs.cellSize);   
+   cs = imgs.cellSize;
+   cs(cs == 1) = [];
+   adim = length(cs);   
 else
    error('alignImages: expecting cell array or ImageSource as input imgs');
 end

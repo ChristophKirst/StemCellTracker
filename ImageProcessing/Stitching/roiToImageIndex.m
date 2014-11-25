@@ -5,7 +5,7 @@ function ids = roiToImageIndex(ipos, isizes, rect)
 % description: find ids of the images that overlap with the rect given as [lowerleft, upperight] 
 %
 % input:
-%      shifts     the image shifts
+%      ipos       the image positions
 %      isizes     the image sizes
 %      rect       the rectangle to check overlap with, ofthe from [p1, p2]  where p1 < p2 are row vectors of the corner coordinates
 

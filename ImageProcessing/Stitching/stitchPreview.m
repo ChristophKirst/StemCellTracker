@@ -8,6 +8,7 @@ function [img, scale] = stitchPreview(celldata, varargin)
 % input:
 %   celldata    cell array of cell data
 %   param       parameter struct with entires
+%               .overlap  uses this as the overlap between images
 %               .scale    scale for resmapling ([] = 0.1)
 %               .shifts   shifts of the images in celldata ([] = infer from overlap and cell grid)
 %               .size     size of the final image, everything outsie this size will be cut ([] = automatic full size)
