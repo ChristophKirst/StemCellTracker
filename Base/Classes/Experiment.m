@@ -26,14 +26,14 @@ classdef Experiment < FileHandler
          
          obj.date = datestr(now);
          
-         obj = obj.fromParmeter(obj, varargin);
+         obj = obj.fromParameter(obj, varargin);
          
          obj.initialize();
          
       end
       
       function obj = fromParameter(obj, varargin)
-         obj = classFromParmeter(obj, '', varargin);
+         obj = classFromParameter(obj, '', varargin);
       end
          
 %      function obj = fromFileExpression(obj, fexpr)

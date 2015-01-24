@@ -105,6 +105,12 @@ classdef ImageInfo < matlab.mixin.Copyable
          obj.setCellDataSizeAndFormatToRaw();
       end
 
+      function obj = fromCell(obj, data)
+         obj = imfrmtInfoFromCell(data, obj);
+         obj.setCellDataSizeAndFormatToRaw();
+      end
+      
+      
       function obj = fromFile(obj, filename)
          info = imreadBFInfo(filename);
          obj.fromImageInfo(info);

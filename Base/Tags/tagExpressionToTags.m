@@ -51,7 +51,9 @@ end
 
 %find tags
 m = length(names);
+%names
 %re
+
 for i = m:-1:1
    %s = regexp(names{i}, re, 'names')
    tags(i) = regexp(names{i}, re, 'names');

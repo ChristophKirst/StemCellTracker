@@ -38,6 +38,8 @@ classdef ImageSource < ImageInfo
          if nargin == 1 
             if isa(varargin{1}, 'ImageSource') %% copy constructor
                obj = copy(varargin{1});
+            elseif iscell(varargin{1})
+               obj = obj.fromData(varargin{1});
             elseif isnumeric(varargin{1})
                obj = obj.fromData(varargin{1});
             else
@@ -60,7 +62,16 @@ classdef ImageSource < ImageInfo
          obj.irawcelldata = data; 
       end
    
-   
+      function obj = fromCell(obj, data)
+         if ~iscell(data)
+            data = {data};
+         end
+         fromCell@ImageInfo(obj, data);
+         obj.irawcelldata = data; 
+      end
+      
+      
+      
       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
       % cache
       

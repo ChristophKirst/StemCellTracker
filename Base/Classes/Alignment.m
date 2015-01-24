@@ -696,8 +696,11 @@ classdef Alignment < ImageSource
          % See also: overlapQuality, overlapStatisticsImagePair
          pairs = obj.apairs;
          source = obj.asource;
+         n = obj.nPairs
+         class(obj)
+         obj.printInfo
          
-         parfor p = 1:obj.nPairs
+         parfor p = 1:n
             pp = pairs(p).copy();
             pp.from = source.data(pp.from); %#ok<PFBNS>
             pp.to   = source.data(pp.to); 
