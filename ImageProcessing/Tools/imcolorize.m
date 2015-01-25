@@ -3,7 +3,7 @@ function imgcol = imcolorize(imglab, param)
 % imgcol = imcolorize(imgcol, param)
 %
 % description:
-%    colorizes the labeled imgage imglab
+%    colorizes the labeled image imglab
 %
 % input:
 %    imgcol     labels, any dimension

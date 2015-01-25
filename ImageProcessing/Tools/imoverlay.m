@@ -56,6 +56,8 @@ end
 % Initialize the red, green, and blue output channels.
 if dim == 2
    if idim == 2
+      %
+      
       % Input is grayscale.  Initialize all output channels the same.
       out_red   = in;
       out_green = in;
