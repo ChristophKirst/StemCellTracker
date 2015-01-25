@@ -58,6 +58,7 @@ is = ImageSourceFiles(fnsexp);
 is.printInfo
 
 
+%%
 if false 
    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -76,7 +77,7 @@ figure(1); clf;
 implot(img)
 
 t = t+1
-
+   img2 = img(:,:,2) - imopen(img(:,:,2), strel('disk', 50));
 %%
 
 t = 1;
@@ -132,6 +133,8 @@ end
 
 end
 
+
+%%
 for pos = expids.(cond{1})
 
 
@@ -180,7 +183,10 @@ parfor ti = 1:timax
 
    
    %imgseg = 1 * img(:,:,1) + 1 * img(:,:,2) + 1 * img(:,:,3);
-   imgseg = 0 * img(:,:,1) + 1 * img(:,:,2) + 1 * img(:,:,3);
+   img1i = img(:,:,1) - imopen(img(:,:,1), strel('disk', 50));
+   img2i = img(:,:,2) - imopen(img(:,:,2), strel('disk', 50));
+   img3i = img(:,:,3) - imopen(img(:,:,3), strel('disk', 50));
+   imgseg = 1 * img1i + 1 * img2i + 0 * img3i;
 
    imglab = fucci_label(imgseg, verbose);
    

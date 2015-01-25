@@ -28,7 +28,7 @@ statsB = imstatistics(imglab, stats, mode, imgB);
 [~, class] = max(cat(2, 1.5 * [statsR.(mode)]', [statsG.(mode)]'), [], 2);
 
 %{max([statsB.(mode)]), min([statsB.(mode)])}
-class([statsR.(mode)] + [statsG.(mode)] < 0.1) = 3;
+class([statsR.(mode)] + [statsG.(mode)] < 0.125) = 3;
 
 cls = num2cell(class);
 [stats.class] = cls{:};
@@ -81,6 +81,6 @@ if nargout > 1
 end
 
 if nargout > 2
-   varargout{2} = cat(3, imgR, imgG, imgB);
+   varargout{2} = cat(3, 1.5 * imgR, imgG, imgB);
 end
 

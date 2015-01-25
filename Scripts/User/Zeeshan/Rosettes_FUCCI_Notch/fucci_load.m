@@ -4,7 +4,7 @@ ds = is.dataSize;
 img = zeros(ds(1),ds(2),3);
 
 % Scale
-scalemax = [4000  360     3400];
+scalemax = [4000  360     2400];
 scalemin = [100   130     150];
 
 % load image
