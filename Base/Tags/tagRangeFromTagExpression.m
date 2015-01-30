@@ -4,7 +4,7 @@ function tagRange = tagRangeFromTagExpression(tagExpr, varargin)
 % tagranges = tagRangeFromFileExpression(tagExpr, names, tag range specs)
 %
 % description:
-%      converts tagExpr to tag range using thenames or if not given the file names matching tagExpr
+%      converts tagExpr to tag range using the names or if not given the file names matching tagExpr
 %
 % input:
 %      tags    struct array of tags

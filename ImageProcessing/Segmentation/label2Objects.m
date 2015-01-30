@@ -1,11 +1,11 @@
-function [objects, varargout] = label2Objects(imglab, img, stats, param)
+function [objects, varargout] = label2Objects(imglab, img, stats, varargin)
 %
 % objects = label2Objects(imglab, img, stats, param)
 % [objects, stats] = label2Objects(...)
 %
 % description:
 %    converts a labeled image and associated data to an array of Object classes
-%    used for tracking and furtehr analysis
+%    used for tracking and further analysis
 %
 % input:
 %    imglab  labeled image (2D/3D)
@@ -24,10 +24,13 @@ function [objects, varargout] = label2Objects(imglab, img, stats, param)
 
 if nargin < 3
    stats = struc();
-end
-
-if nargin < 4
-   param = [];
+else
+   if isstruct(stats)
+      param = parseParameter(varargin);
+   else
+      param = parseParameter(stats, varargin{:});
+      stats = struct();
+   end
 end
 
 time = getParameter(param, 'time', 0);

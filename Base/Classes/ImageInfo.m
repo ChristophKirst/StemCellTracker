@@ -817,7 +817,7 @@ classdef ImageInfo < matlab.mixin.Copyable
       end
 
       function [ds, cs, df, cf] = fullCellDataSize(obj) 
-         % return full cell / data size not constrained by ranges or curent data format
+         % return full cell / data size not constrained by ranges or current data format
          [df, cf] = imfrmtReshapeCellDataFormat(obj.rawDataFormat, obj.rawCellFormat, obj.reshapeFrom. obj.reshapeTo);  
          [ds, cs] = imfrmtReshapeCellDataSize(obj.rawDataSize, obj.rawCellSize, obj.rawDataFormat, obj.rawCellFormat,...
                                        df, cf,...

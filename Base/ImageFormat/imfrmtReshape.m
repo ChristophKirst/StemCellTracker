@@ -3,7 +3,7 @@ function data = imfrmtReshape(rawData, rawFrmt, dataFrmt, reshapeFrom, reshapeTo
 % data = imfrmtReshape(rawData, rawFrmt, dataFrmt, reshapeFrom, reshapeTo, reshapeSize)
 %
 % description: 
-%    reshapes dims reshapeFrom of data of foramt inFrmt to format reshapeTo 
+%    reshapes dims reshapeFrom of data of format inFrmt to format reshapeTo 
 %    using the reshape size reshapeSize and assuming the full output format outFrmt
 %
 % input:

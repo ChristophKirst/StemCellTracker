@@ -17,8 +17,6 @@ function image = ijread(filename)
 % example:
 %    im = ijread;
 %    im = ijread('http://www.google.com/intl/en_ALL/images/logo.gif');
-% 
-% See also: MIJ, http://bigwww.epfl.ch/sage/soft/mij/
 
 opener = ij.io.Opener();
 if isjava(opener) == 0
@@ -28,10 +26,10 @@ if isjava(opener) == 0
 end
 
 if (nargin == 0)
-    path = pwd;
+    %cpath = pwd;
     dlg = ij.io.OpenDialog('Select an image', '');
-    path = dlg.getDirectory();
-    if (isjava(path)==0)
+    cpath = dlg.getDirectory();
+    if (isjava(cpath)==0)
         image = 0;
         return
     end

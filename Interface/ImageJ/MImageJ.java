@@ -50,7 +50,7 @@ class MImageJ {
     *
     * @param title    title of the new image  
     * @param object   Matlab image array representing a 2D image
-    * @param foramt   image format a string like 'pq', 'pql' 'pqlc' 'pqltc' (p, q, l = pixel coordinates, c = color, t= time)
+    * @param format   image format a string like 'pq', 'pql' 'pqlc' 'pqltc' (p, q, l = pixel coordinates, c = color, t= time)
     * @return the ImagePlus
     */
    public static ImagePlus createImage(String title, String format, Object object) {
@@ -387,6 +387,7 @@ class MImageJ {
 			int stackSize = ds.length;
 			int height = ds[0].length;
 			int width = ds[0][0].length;
+ 
 			ImageStack imagestack = new ImageStack(width, height);
 			for (int sz = 0; sz < stackSize; sz++) {
 				FloatProcessor floatprocessor = new FloatProcessor(width, height);
@@ -394,7 +395,7 @@ class MImageJ {
 				int i = 0;
 				for (int h= 0; h < height; ++h) {
 					for (int w = 0; w < width; w++) {
-						fp[i] = (float) ds[h][w][sz];
+						fp[i] = (float) ds[sz][h][w];
 						i++;
 					}
 				}
@@ -685,6 +686,33 @@ class MImageJ {
 		ImagePlus imp = new ImagePlus(title, imagestack);
 
 		return imp;
+	}
+   
+   
+   /**
+	 * Run a ImageJ command without arguments.
+	 * 
+	 * This method call the run method of ImageJ without any options.
+	 * 
+	 * @param command
+	 *            command to run
+	 */
+	public static void run(String command) {
+		IJ.run(command);
+	}
+
+	/**
+	 * Run a ImageJ command with specified arguments.
+	 * 
+	 * This method call the run method of ImageJ with specified options.
+	 * 
+	 * @param command
+	 *            command in ImageJ
+	 * @param options
+	 *            options for the command
+	 */
+	public static void run(String command, String options) {
+		IJ.run(command, options);
 	}
  
  

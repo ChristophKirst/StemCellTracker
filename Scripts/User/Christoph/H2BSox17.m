@@ -14,7 +14,7 @@ verbose = true;
 initializeParallelProcessing(12) % number of processors
 
 %%
-fns =  '/var/run/media/ckirst/ChristophsData/Science/Projects/StemCells/Experiment/Other/Aryeh/20130911T114815/MIP/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
+fns =  '/var/run/media/ckirst/ChristophsData/Eric/20130911T114815/MIP/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
 flds = 1:16;
 
 k = 1;
@@ -228,8 +228,10 @@ implot(dd)
 
 %% manual extraction as BF is slow for 1000000 files 
 
-fns =  '/var/run/media/ckirst/ChristophsData/Science/Projects/StemCells/Experiment/Other/Aryeh/20130911T114815/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
-texpout = '/data/Science/Projects/StemCells/Experiment/FateDynamics/Sox17/ColonyData/ColonyW<Q,2>T<T,4>Z<Z,2>C<C,1>.tif';
+clc
+
+fns =  '/var/run/media/ckirst/ChristophsData/Eric/20130911T114815/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
+texpout = '/data/Science/Projects/StemCells/Experiment/FateDynamics/Sox17/ColonyDataTempAlign/ColonyW<Q,2>T<T,4>Z<Z,2>C<C,1>.tif';
 
 cid = 1;
 
@@ -244,10 +246,48 @@ shifts = shifts(shids);
 
 verbose = true;
 
-parfor tt = 1:156
+for tt = 1:30
    
    fprintf('Time: %d\n', tt)
    
+ 
+   %% temporal align
+   
+   % take middle slice and align
+   zz = 8;
+   f  = 6;
+   
+   if tt  > 1
+      
+      img = double(imread(tagExpressionToString(fns, 'C', cc, 'T', tt, 'F', f, 'Z', zz)));
+      img = imfrmtPermute(img, 'XY', 'Yx');
+ 
+      % align with previous image
+      
+      [sh, q] = align2ImagesByRMS(img, imgprev, 'overlap.min', 450);
+      
+      fprintf('Time: %d Drift is: %s\n', tt, var2char(sh))
+      
+      if verbose
+         figure(11); clf
+         implottiling({img; imgprev});
+
+         figure(12); clf
+         plotAlignedImages({img; imgprev}, {[0,0]; sh});
+      end
+      
+      imgprev = img;
+      
+   else
+      
+      img = double(imread(tagExpressionToString(fns, 'C', cc, 'T', tt, 'F', f, 'Z', zz)));
+      img = imfrmtPermute(img, 'XY', 'Yx');
+      
+      imgprev = img;
+
+   end
+   
+
    for zz = 1:15
 
       imgs = cell(16,1);
@@ -263,16 +303,28 @@ parfor tt = 1:156
 
       %% stitch / extract
       st = stitchImages(imgs, shifts, 'method', 'Mean');
-      figure(20);
-      implot(st)
-      %size(st)
-      
+
       roiS = roi.copy;
-      roiS.shift(-shifts{1}+1)
+      roiS.shift(-shifts{1}+1 + sh)
       
       dat = roiS.extractData(st);
       
-      if verbose
+      if verbose && zz == 8
+
+         figure(20);
+         implot(st)
+         
+         if tt > 1
+            figure(13); clf
+            plotAlignedImages({dat; datpre}, {[0,0]; [0,0]});
+            title(num2str(tt));
+            datpre = dat;
+         else
+            datpre = dat;
+         end
+            
+            
+      %size(st)
 %          figure(21);
 %          implot(dat)
 %          drawnow
@@ -280,12 +332,20 @@ parfor tt = 1:156
          %max(dat(:))
          %class(dat)
       end
+  
       
       %% save
 
       fnout =  tagExpressionToString(texpout, 'Q', cid, 'C', cc, 'T', tt, 'Z', zz);
       imwriteTIFF(int32(dat), fnout)
    end
+   
+         
+
+      
+   
+   
+   
 end
       
       %%
