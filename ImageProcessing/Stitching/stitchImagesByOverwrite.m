@@ -15,6 +15,11 @@ function img = stitchImagesByOverwrite(imgs, ipos, varargin)
 %
 % See also: stitchImagesByMean, stitchImagesByMax, stitchImagesByMin, alignImages
 
+if numel(imgs) == 1
+   img = imgs{1};
+   return
+end
+
 param = parseParameter(varargin);
 
 asize = getParameter(param, 'size', []);

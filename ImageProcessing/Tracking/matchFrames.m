@@ -62,15 +62,21 @@ if (nargout > 1)
    cost{nframes-1} = [];
 end
 
-for t = 1:nframes-1
+if (nargout > 1)
+   sc = true;
+else
+   sc = false;
+end
+
+parfor t = 1:nframes-1
   
    if print_match
       fprintf('matchFrames: matching step %d / %d, matching frames %d -> %d with times %g -> %g\n', t, nframes-1,t,t+1, frames(t).time, frames(t+1).time);
    end
    
-   [match(t), co] = matchObjects(frames(t), frames(t+1),  param);
+   [match(t), co] = matchObjects(frames(t), frames(t+1),  param); %#ok<PFBNS>
 
-   if (nargout > 1)
+   if sc
       cost{t} = co;
    end
 end

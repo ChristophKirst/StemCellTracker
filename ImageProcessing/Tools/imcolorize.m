@@ -1,4 +1,4 @@
-function imgcol = imcolorize(imglab, param)
+function imgcol = imcolorize(imglab, varargin)
 %
 % imgcol = imcolorize(imgcol, param)
 %
@@ -20,13 +20,11 @@ function imgcol = imcolorize(imglab, param)
 % See also:
 %    label2rgb
 
-if nargin < 2
-   param = [];
-end
+param = parseParameter(varargin);
 
 cmap  = imlabelcolormap(max(imglab(:)), param);
 
-shuffle = getParameter(param, {'color', 'shuffle'}, []);
+shuffle = getParameter(param, 'color.shuffle', []);
 if isempty(shuffle)
    shuffle = 'shuffle';
 end

@@ -50,17 +50,21 @@ if isequal(order,'shuffle')
 end
 
 % Issue a warning if the zerocolor (boundary color) matches the color of one
-% of the regions. 
+% of the regions.
+
 for i=1:numregion
   if isequal(zerocolor,cmap(i,:))
     warning(message('images:label2rgb:zerocolorSameAsRegionColor', i));
   end
 end
 cmap = [zerocolor;cmap];
+label = label + 1;
 
+%size(cmap)
 
 % Make sure A is in the range from 1 to size(cm,1)
 label = max(1,min(label,size(cmap,1)));
+
 
 % Extract r,g,b components
 r = zeros(size(label)); r(:) = cmap(label,1);
@@ -97,7 +101,7 @@ function [L, Map, Zerocolor, Order, Fcnflag] = parse_inputs(varargin)
 % set defaults
 L = varargin{1};
 Map = 'jet';    
-Zerocolor = [1 1 1]; 
+Zerocolor = [0 0 0]; 
 Order = 'noshuffle';
 Fcnflag = 0;
 

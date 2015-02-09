@@ -3,7 +3,7 @@ function data = imfrmtDataSubset(data, inFrmt, varargin)
 % data = imfrmtDataSubset(data, ifrtm, varargin)
 %
 % description:
-%    extract a subset of the data given the data specifications datasepc
+%    extract a subset of the data given the data specifications dataspec
 %
 % See also: imfrmtAssignment
 

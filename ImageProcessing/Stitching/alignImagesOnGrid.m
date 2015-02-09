@@ -314,7 +314,17 @@ function sh = alignByGlobal(imgs, fun, param)
 
    % determine pairs 
 
-   si = size(imgs); dim = ndims(imgs{1});
+   si = size(imgs); 
+   if si == 0
+      sh = {};
+      return
+   end
+   if si == 1
+      sh = zeros(1, ndims(imgs{1}));
+      return
+   end
+
+   dim = ndims(imgs{1});
    si = padright(si, 3, 1);
 
    np = si(1) * si(2) * (si(3)-1) + si(1) * (si(2)-1) * si(3) + (si(1)-1) * si(2) * si(3);

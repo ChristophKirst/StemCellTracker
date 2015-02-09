@@ -20,9 +20,21 @@ if nargin < 3 || isempty(intensity)
    intensity = true;
 end
 
+frmt = imfrmtFormat(img);
 
-iol = gray2rgb(img);
+switch frmt
+   case {'XY', 'XYZ'}
+      iol = gray2rgb(img);
+      si = [size(img), 3];
+   case {'XYC', 'XYZC'} 
+      iol = img;
+      si = size(img);
+   otherwise
+      error('imoverlallabel: inappropiate image format %s', frmt);
+end
+
 iol = iol / max(iol(:));
+
 iol = reshape(iol, [],3);
 imgcl = imcolorize(label, varargin{:});
 imgcl = reshape(imgcl, [],3);
@@ -34,6 +46,6 @@ else
    iol(idx,:) = imgcl(idx,:);
 end
 
-iol = reshape(iol, [size(img) 3]);
+iol = reshape(iol, si);
 
 end

@@ -13,7 +13,7 @@ function frmt = imfrmtFormat(in)
 
 if isnumeric(in) || islogical(in)
    if size(in,1) == 1 && ismatrix(in);
-      frmt = infrmFormatFromSize(in);
+      frmt = imfrmFormatFromSize(in);
    else
       frmt = imfrmtFormatFromData(in);
    end

@@ -15,7 +15,7 @@ function [hpath, varargout] = hipath(hintpath)
 % See also: hiinitialize
 
 if ispc()
-   error('hipath: hugin tools for windows not supported yet!')
+   error('hipath: hugin tools for windows not supportedhi!')
 end
 
 
@@ -70,6 +70,7 @@ function tools = checkpath(hipath)
       fn = fullfile(hipath, bins{b});
       if ~isfile(fn)
          tools = {};
+         fprintf('hipath: cannot find %s\n!', bins{b});
          return
       else
          tools(bins{b}) = fn;

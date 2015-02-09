@@ -25,10 +25,10 @@ for l = labels
    if sum(bd(:)) > 1 % avoid seeds of single pixel to get lost
       lbl = lbl - objb;
    end   
-   ll = ll + 1;
+   %ll = ll + 1;
 end
 
-% water shed
+% watershed
 image = mat2gray(image + 1 - lbl);
 wsi = watershed(image);
 
@@ -37,7 +37,7 @@ ws = zeros(size(image));
 
 for l = labels(end:-1:1)
    obj = (label == l);
-   idx = find(obj .* cast(wsi, class(label)), 1, 'first');
+   idx = find(obj .* cast(wsi, 'like', label), 1, 'first');
    wl = wsi(idx);   
    ws(wsi == wl) = l;
 end

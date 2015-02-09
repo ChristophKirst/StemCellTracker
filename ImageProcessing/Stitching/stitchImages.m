@@ -20,7 +20,7 @@ function img = stitchImages(imgs, ipos, varargin)
 param = parseParameter(varargin{:});
 
 meth = getParameter(param, 'method', 'Max');
-methnames = {'Mean', 'Max', 'Min', 'Overwrite', 'Hugin'};
+methnames = {'Mean', 'Max', 'Min', 'Overwrite', 'Hugin', 'Interpolate', 'Pyramid'};
 
 if ~any(strcmp(methnames, meth))
    error('stitchImages: method %s not %s', meth, var2char(methnames));

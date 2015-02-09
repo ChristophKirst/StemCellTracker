@@ -18,23 +18,45 @@ function imgsep = imlabelseparate(imglab)
 %
 % See also: bwlabeln, bwlabel
 
-dim = ndims(imglab);
-%isize = size(imglab);
-labs = imlabel(imglab);
-nextlabel = length(labs) + 1;
 imgsep = imglab;
 
+n = max(imglab(:));
+if n == 0
+   return
+end
+
+dim = ndims(imglab);
+isize = size(imglab);
 bb = imlabelboundingboxes(imglab);
 
-n = length(labs);
-i = 1;
-for l = labs
-   if mod(i, 50) == 0
-      fprintf('imlabelseparate: %g / %g\n', i, n);
+nextlabel = n +1;
+
+for l = 1:n
+   if mod(l, 500) == 0
+      fprintf('imlabelseparate: %g / %g\n', l, n);
    end
    %bb(i,:)
    
-   subim = imextract(imglab, bb(i,:));
+   bbox = bb(l,:);
+   
+   % check if we have object at all
+   if prod(bbox((dim+1):end)) == 0
+      continue
+   end
+
+   %flat objects with trailling size 1 do not work with matlab !
+   if bbox(dim) == bbox(2*dim)
+      if bbox(2*dim) < isize(dim)
+         bbox(2*dim) = bbox(dim) + 1;
+      else
+         bbox(dim) = bbox(dim) - 1;
+         if bbox(dim) < 1
+            bbox(dim) = 1;
+         end
+      end
+   end
+ 
+   subim = imextract(imglab, bbox);
    %size(subim)
    
    if dim == 2
@@ -46,46 +68,12 @@ for l = labs
    cc = bwconncomp(subim == l, conn);
    
    for nl = 2:(cc.NumObjects)
-      
-
-      %dim
-      %size(subim)
-      %cc.PixelIdxList{nl}
-      %bb(i,:)
-
-      if dim == 2
-         [ix, iy] = ind2sub(size(subim), cc.PixelIdxList{nl});
-         ix = ix + bb(i, 1) -1;
-         iy = iy + bb(i, 2) -1;
-         
-         %[ix,iy]
-         
-         imgsep(ix, iy) = nextlabel;
-      else
-         [ix, iy, iz] = ind2sub(size(subim), cc.PixelIdxList{nl});
-         ix = ix + bb(i, 1) -1;
-         iy = iy + bb(i, 2) -1;
-         iz = iz + bb(i, 3) -1;
-         
-         %[ix,iy,iz]
-         %length(cc.PixelIdxList{nl}) 
-         %{min(ix), max(ix)}
-         %{min(iy), max(iy)}
-         %{min(iz), max(iz)} 
-         %size(imgsep)
-         %nextlabel
-         
-         for k  = 1:length(ix) % strange matlab bug???
-            %[k ix(k), iy(k), iz(k)]
-            imgsep(ix(k), iy(k), iz(k)) = nextlabel;
-         end
-      end
-
+      sub = imind2sub(size(subim), cc.PixelIdxList{nl});
+      sub = sub + repmat(bbox(1:dim)-1, size(sub,1), 1);
+      ind = imsub2ind(isize, sub);
+      imgsep(ind) = nextlabel;
       nextlabel = nextlabel + 1;
    end
-   i = i + 1;
-   
-   drawnow
 end
 
 end

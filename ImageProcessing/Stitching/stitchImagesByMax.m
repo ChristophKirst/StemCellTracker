@@ -10,12 +10,17 @@ function img = stitchImagesByMax(imgs, ipos, varargin)
 %     imgs         images as cell array
 %     ipos         positions or relative shifts between imgs{1} and imgs{k} ([0,0(,0)] = no shift)
 %     param        parameter struct with entries
-%                  .size     final image size, ipos are interpreted as shifts if s other wise as abaolute positions in image of this size ([])
+%                  .size     final image size, ipos are interpreted as shifts, if size is given as abaolute positions in image of this size ([])
 %
 % output:
 %     img          stitched image
 %
 % See also: stitchImages, stitchImagesByMean, stitchImagesByMin, stitchImagesByOverwrite, alignImages
+
+if numel(imgs) == 1
+   img = imgs{1};
+   return
+end
 
 isizes = cellfunc(@size, imgs);
 

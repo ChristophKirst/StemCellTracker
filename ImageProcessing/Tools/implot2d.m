@@ -7,10 +7,11 @@ function img = implot2d(img, varargin)
 %
 % input:
 %    img      image to show
-%    varargin color.scale as [cmin, cmax] and further options pasased to imshow
+%    varargin color.scale as [cmin, cmax] and further options passed to imshow
 %
 % See also: implot3d, imshow
 
+% TODO: clean up, color scale etc
 
 %in case we extrated a z slice -> squeeze
 img = squeeze(img);

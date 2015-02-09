@@ -1,4 +1,4 @@
-function [bboxes, varargout] = imlabelboundingboxes(label)
+function [bboxes, varargout] = imlabelboundingboxes(imglab)
 %
 % bboxes = imlabelboundingboxes(label)
 % [bboxeslo, bboxeshi] = imlabelboundingboxes(label)
@@ -18,9 +18,9 @@ function [bboxes, varargout] = imlabelboundingboxes(label)
 
 %%% regionprops version (faster)
 
-dim = ndims(label);
+dim = ndims(imglab);
 
-bboxes = regionprops(label, 'BoundingBox');
+bboxes = regionprops(imglab, 'BoundingBox');
 bboxes = reshape([bboxes.BoundingBox], dim * 2, []);
 
 ee = [2 1 3]; ee = ee(1:dim);

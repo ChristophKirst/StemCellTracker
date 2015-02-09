@@ -211,7 +211,7 @@ classdef ImageSource < ImageInfo
          %rawRange    
          
          
-         % load raw data as cell data
+         % load raw data as  data
          cd = obj.getRawCellData(rawRange);
          
            
@@ -539,7 +539,7 @@ classdef ImageSource < ImageInfo
          ccdat = cell(n, 1);
          scale = obj.previewScale;
 
-         if isa(obj, 'ImageSourceBF') % single files cannot be paralleization 
+         if isa(obj, 'ImageSourceBF') % single files cannot be parallelized 
             for ii = 1:n
                ccdat{ii} = obj.dataResample(scale, ids(ii));
             end

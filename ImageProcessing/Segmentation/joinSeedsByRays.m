@@ -1,4 +1,4 @@
-function [imgjoin, varargout] = joinSeedsByRays(imglab, img, imggrad, param)
+function [imgjoin, varargout] = joinSeedsByRays(imglab, img, imggrad, varargin)
 %
 % imgjoin = joinSeedsByRays(img, imglab, param)
 % imgjoin = joinSeedsByRays(img, imggrad, imglab, param)
@@ -15,10 +15,10 @@ function [imgjoin, varargout] = joinSeedsByRays(imglab, img, imggrad, param)
 %    imglabel labeled or bw image
 %    param    parameter struct with entries
 %             .threshold.min           if profile falls below this intensity objects are different (0)
-%             .threshold.max           if profile stais above thus absolute intensity objects are joined (inf)
-%             .threshold.change        maximal rel change in intensitiy above objects are assumed to be different 
-%             .threshold.gradient      maximal absolute gradient change below objects are joined 
-%             .cutoff.distance         maximal distance between labels (= 20)
+%             .threshold.max           if profile stays above this absolute intensity objects are joined (inf)
+%             .threshold.change        maximal rel change in intensitiy above objects are assumed to be different (1.5)
+%             .threshold.gradient      maximal absolute gradient change below objects are joined (0.5)
+%             .cutoff.distance         maximal distance between labels (= 15)
 %             .averaging.ksize         ksize to calculate reference mean intensity (=3)
 %             .addline                 add a line between joined label (true)
 %             .plot.profiles           plot individual profiles (false)
@@ -37,12 +37,16 @@ function [imgjoin, varargout] = joinSeedsByRays(imglab, img, imggrad, param)
 
 if nargin < 3
    param = [];
-elseif nargin < 4
+   imggrad = [];
+else
    if isstruct(imggrad)
       param = imggrad;
       imggrad = [];
+   elseif isnumeric(imggrad)
+      param = parseParameter(varargin);
    else
-      param = [];
+      param = parseParameter(imggrad, varargin{:});
+      imggrad = [];
    end
 end
  
@@ -93,7 +97,7 @@ means0(pairsidx) = double(imfiltervalues(img, centr(:, pairsidx), averaging_ksiz
 
 % find pairs to join
 join = [];
-checkgrad = ~isempty(imggrad);
+checkgrad = ~isempty(imggrad) && ~isempty(threshold_gradient);
 jp = false;
 
 for p = 1:npairs
@@ -154,7 +158,7 @@ for p = 1:npairs
    else
       jp = false;
    end
-
+   
    % all checks succesfull -> join piars 
    join = [join; pairs(p,:)]; %#ok<AGROW>
          

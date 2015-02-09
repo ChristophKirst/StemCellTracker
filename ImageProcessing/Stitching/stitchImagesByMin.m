@@ -17,6 +17,11 @@ function img = stitchImagesByMin(imgs, ipos, varargin)
 %
 % See also: stitchImages, stitchImagesByMean, stitchImagesByMax, stitchImagesByOverwrite, alignImages
 
+if numel(imgs) == 1
+   img = imgs{1};
+   return
+end
+
 isizes = cellfunc(@size, imgs);
 
 param = parseParameter(varargin);

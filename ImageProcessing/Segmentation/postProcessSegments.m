@@ -70,7 +70,7 @@ if ~isempty(statnames)
     if isempty(img)
         stats = imstatistics(imglab, statnames);
     else
-        stats = imstatistics(imglab, img, statnames);
+        stats = imstatistics(imglab, statnames, img);
     end
 end
 

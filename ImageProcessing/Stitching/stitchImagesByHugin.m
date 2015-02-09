@@ -15,6 +15,11 @@ function img = stitchImagesByHugin(imgs, shifts, varargin)
 %
 % See also: stitchImages, alignImages, histitch
 
+if numel(imgs) == 1
+   img = imgs{1};
+   return
+end
+
 img = histitch(imgs, shifts, varargin{:});
 
 end

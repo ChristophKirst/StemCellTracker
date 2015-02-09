@@ -8,7 +8,7 @@ function [data, metatdata, ireader] = imreadBF(name, varargin)
 % input:
 %    name   (optional)    filename, if not gived a file borwser to select file is opened
 %    param  (optional)    struct with optional entries
-%           .series       ids of series to import (if non scalar cell array is returned) ([] = all)
+%           .S / .s       ids of series to import (if non scalar cell array is returned) ([] = all)
 %           .T / .t       ids of time frames to import [tid1, tid2, ...] or {tid1,tid1, ...} ([] = all)
 %           .C / .c       ids of channels to import [cid1, cid2, ...] or {cid1, cid2,...} ([] = all)
 %           .Z / .z       pixel ids in z direction [zid1, zid2, ...] or {zid1,zid1, ...} ([] = all)
@@ -32,7 +32,7 @@ function [data, metatdata, ireader] = imreadBF(name, varargin)
 %
 % See also: bfinitialize, imread, ijimage2mat
 
-param = parseParameter(varargin{:});
+param = parseParameter(varargin);
 
 gui = getParameter(param, 'gui', false);
 
@@ -80,7 +80,7 @@ function [data, metadata] = importlociseries(r, param)
       data = cell(ns,1);
       metadata = cell(ns,1);
       for i = 1:length(s)
-         par.S = i;
+         par.S = s(i);
          [d, m] = importlociseries(r, par);
          data{i} = d; metadata{i} = m;
       end

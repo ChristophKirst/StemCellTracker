@@ -35,11 +35,11 @@ for s = sids
    cc = 1;
    for ch = cids
  
-      %try
+      try
          cn =char(metadataStore.getChannelName(s - 1, ch - 1));
-      %catch
-      %   name = [];
-      %end
+      catch
+         name = [];
+      end
       if isempty(name)
          name = '';
       end

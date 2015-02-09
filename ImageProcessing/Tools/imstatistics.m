@@ -30,10 +30,14 @@ function stats = imstatistics(imglab, stats, statnames, img)
 % See also: imsurface, impixelsurface, regionprops
 
 %define all statistcs names
-regionpropnames =  {'Volume', 'PixelIdxList', 'PixelList', 'PixelValues', 'BoundingBox', 'Centroid', 'WeightedCentroid'};
+regionpropnames =  {'Volume', 'PixelIdxList', 'PixelList', 'PixelValues', 'BoundingBox', 'Centroid', 'WeightedCentroid',...
+                    'FilledArea','FilledImage', 'Image', 'PixelList', 'PixelList', 'SubarrayIdx' };
 regionpropnamesimg = {'WeightedCentroid'};
 intensitypropnames = {'MaxIntensity', 'MinIntensity', 'MeanIntensity', 'MedianIntensity', '*Intensity'};
 specialpropnames =  {'UltimateErosion', 'SurfacePixelIdxList'}; %  'Surface', 'Ellipsoid'
+twodimnames = {'ConvexHull', 'ConvexImage', 'ConvexArea', 'Eccentricity', 'EquivDiameter', 'EquivDiameter', 'Extent', 'Extrema', ...
+               'MajorAxisLength', 'MinorAxisLength', 'MinorAxisLength', 'Perimeter', 'Solidity'};
+
 propnames = {regionpropnames{:} regionpropnamesimg{:} intensitypropnames{:} specialpropnames{:}}; %#ok<CCAT>
 
 nlabel = max(imglab(:));
@@ -93,6 +97,9 @@ if ~isempty(stats) && ~isempty(fieldnames(stats)) && length(stats) ~= nlabel
    error('imstatistics: inconsistent object sizes: %g , %g!', length(stats), nlabel);
 end
 
+
+
+
 %remove existing stats from statnames
 fn  = fieldnames(stats)';
 %statnames
@@ -111,6 +118,13 @@ if any(ismember(statnames, intensitypropnames)) || any(ismember(statnames, regio
    end
 end
 
+if any(ismember(statnames, twodimnames))
+   if dim ~= 2
+      ps = ismember(twodimnames, statnames);
+      ps = twodimnames(ps);
+      error('imstatistics: property %s only works with 2d images!', var2char(ps));
+   end
+end
 
 
 %%% regoinprops based statistics
@@ -143,6 +157,10 @@ if any(ismember(statnames, specialpropnames(1:2)))
    regprops = [regprops, {'BoundingBox'}];
 end
 
+idx = ismember(statnames, twodimnames);
+regprops = [regprops, statnames(idx)];
+
+
 %regprops
 
 if ~isempty(regprops)
@@ -163,7 +181,7 @@ if ~isempty(regprops)
    %Centroid: correct for space to pixel coordinates x,y -> p,q
    if isfield(regstats, 'Centroid')
       dat = {regstats.Centroid};
-      if length(regstats(1).Centroid) == 2
+      if dim == 2
          dat = cellfun(@(x) x([2,1])', dat, 'UniformOutput', false);
       else
          dat = cellfun(@(x) x([2,1,3])', dat, 'UniformOutput', false);
@@ -177,7 +195,7 @@ if ~isempty(regprops)
       if length(regstats(1).WeightedCentroid) == 2
          dat = cellfun(@(x) x([2,1])', dat, 'UniformOutput', false);
       else
-         dat = cellfun(@(x) x([2,1,3])', dat, 'UniformOutput', false);
+         dat = cellfun(@(x) x([2,1,3])', dat, 'UniformOutput', falsimstatisticse);
       end
       [regstats.WeightedCentroid] = dat{:};
    end
@@ -237,7 +255,6 @@ end
 
 % {'UltimateErosion', 'SurfacePixelIdxList', 'Surface', 'Ellipsoid'};
  
- 
 if any(ismember(statnames, specialpropnames))
 
    ue = any(ismember(statnames, 'UltimateErosion'));
@@ -291,13 +308,15 @@ if any(ismember(statnames, specialpropnames))
 %          vc = vc(:, [2 1 3]);
 %          stats(l).Surface = {vc + repmat(bmin, size(v,1), 1) - 1, fc,  nr(:,[2 1 3])};
 %       end
-         
+   
+      %Ellipsoid 2d ? 
       
-      %Ellipsoid 2d ?
+      
+      
    end
 end  % sepcial statistics
 
 
-end
+
    
    

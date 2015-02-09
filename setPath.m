@@ -5,6 +5,7 @@ function setPath()
 % description:
 %     sets all necessary paths
 %
+% See also: initialize
 
 includepaths = {
      '/Base/Classes', ...
@@ -41,7 +42,12 @@ includepaths = {
      ...
      '/Test'...
      ...
-     '/Base/Utils/External'
+     '/Base/Utils/External',...
+     ... 
+     ... // External Packages
+     '/Base/Utils/External/BM3D',...
+     '/Base/Utils/External/SLICSuperpixels',...
+     '/Base/Utils/External/image_pyramid'
 };
  
 basepath = fileparts(mfilename('fullpath'));
@@ -51,7 +57,6 @@ for p = 1:length(includepaths)
 end
 
 addpath(includepaths{:});
-     
           
 % compability to matlab previous versions
 v = version('-release');
