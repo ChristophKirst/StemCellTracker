@@ -233,13 +233,13 @@ static void propagate(double *labels_in, double *im_in, mxLogical *mask_in,
 }
 
 void mexFunction( int nlhs, mxArray *plhs[], 
-                  int nrhs, const mxArray*prhs[] )
+                  int nrhs, const mxArray *prhs[] )
      
 { 
     double *labels_in, *im_in; 
     mxLogical *mask_in;
     double *labels_out, *dists;
-    double *lambda;
+    double *lambda;untitled4.m
     int radius /*, radius_center*/;    
     unsigned int m, n; 
     
@@ -302,9 +302,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     /* Assign pointers to the various parameters */ 
     labels_in = mxGetPr(LABELS_IN);
-    im_in = mxGetPr(IM_IN);
-    mask_in = mxGetLogicals(MASK_IN);
-    lambda = mxGetPr(LAMBDA_IN);
+    im_in     = mxGetPr(IM_IN);
+    mask_in   = mxGetLogicals(MASK_IN);
+    lambda    = mxGetPr(LAMBDA_IN);
 
     intensity_refs = mxGetPr(INTENSITY_REF_IN);
     nlabel = mxGetM(INTENSITY_REF_IN);

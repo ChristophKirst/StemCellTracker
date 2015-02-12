@@ -1,8 +1,13 @@
-Hugin interface
+Hugin Interface
 ===============
 
-simple interface to stiching tools as used by Hugin 
-based on command line panotools
+Interface to Hugin / Pano stitching tools
+based on python interface hsi
+
+
+Chistoph Kirst, 02 2015, The Rockefeller University
+
+
 
 
 

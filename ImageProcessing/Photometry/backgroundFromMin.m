@@ -3,7 +3,7 @@ function [bkg, flt] = backgroundFromMin(imgs, varargin)
 %  bkg = backgroundFromMin(imgs, param)
 %
 % description:
-%    take minimum over images imgs to estimate backgournd
+%    take minimum over images imgs to estimate background
 %
 % input:
 %    imgs    cell array of images, or ImageSource.celldata

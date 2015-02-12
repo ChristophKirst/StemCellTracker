@@ -108,7 +108,7 @@ else % list of images
       ifilelist = [ifilelist ' ' fni]; %#ok<AGROW>
 
       % x,y coordinates (exchange from pq)
-      imwrite_tiff(imgo, fni, 'XResolution', resolution, 'YResolution', resolution);
+      imwriteTIFF(imgo, fni, 'XResolution', resolution, 'YResolution', resolution);
    end
 end
 

@@ -20,7 +20,7 @@ mex seedPropagation3DMEX.cpp
 
 catch
    cd ..
-   error('compileSegmentationÖ error while compiling code in ./Segmentation');
+   error('compileSegmentation: error while compiling code in ./Segmentation');
 end
 
 cd ..

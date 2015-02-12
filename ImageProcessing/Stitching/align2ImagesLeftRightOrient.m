@@ -13,7 +13,7 @@ function [img1, img2, per] = align2ImagesLeftRightOrient(imgs)
 %   per         permutation to get back to original image
 
 if numel(imgs) ~= 2
-   error('align2ImagesLeftRightOrient: expect precisle cell array with two images!');
+   error('align2ImagesLeftRightOrient: expect cell array with two images!');
 end
 img1 = imgs{1}; img2 = imgs{2};
 

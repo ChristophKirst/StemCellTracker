@@ -21,8 +21,13 @@ function [shift, quality] = align2ImagesLeftRightByHugin(img1, img2, varargin)
 param = parseParameter(varargin{:});
 [~, s1, ~, minovl, maxovl, maxshift] = align2ImagesLeftRightParameter(img1, img2, param);
 
-% cut relavant regions
-img1c = extract(img1, s1(1)-maxovl:s1(1), 1);
+% if maxovl > s1(1)
+%    warning('align2ImagesLeftRightByHugin: overlap.max=%d larger than image size %d, reducing to image size!', maxovl, s1(t))
+%    maxovl = s1(1) - 1;
+% end
+
+
+img1c = extract(img1, s1(1)-maxovl+1:s1(1), 1);
 img2c = extract(img2, 1:maxovl, 1);
 
 %figure(96); clf; implottiling({img1c, img2c});

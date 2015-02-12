@@ -10,7 +10,7 @@ bfinitialize
 verbose = true;
 initializeParallelProcessing(12) % number of processors
 %%
-texpmip = '/data/Science/Projects/StemCells/Experiment/unsorted/Voyager/h2b_citrine/MIP/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
+texpmip = '/data/Science/Projects/StemCells/Experiment/Unsorted/unsorted/Voyager/h2b_citrine/MIP/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
 %%
 ismip = ImageSourceFiles(texpmip);
 ismip.printInfo
@@ -177,7 +177,7 @@ imgs{csubids{i,:}} = imfrmtPermute(img, 'XY', 'Yx');
 %imgs{csubids{i,:}} = imreadBF(fn);
 end
 %% stitch / extract
-st = stitchImages(imgs, shifts);
+st = stitchImagesByInterpolate(imgs, shifts);
 % figure(20);
 % implot(st)
 % size(st)

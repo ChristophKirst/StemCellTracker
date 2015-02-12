@@ -88,10 +88,10 @@ else % list of images
    if (nimgs == 1)
       img = imgs{1};
       if ~oread
-         imwrite_tiff(img, fn);
+         imwriteTIFF(img, fn);
       end
       if ~tclean
-         imwrite_tiff(img, fullfile(ftpath, [ftname num2str0(1, 4) ftext]));
+         imwriteTIFF(img, fullfile(ftpath, [ftname num2str0(1, 4) ftext]));
       end
       return
    end

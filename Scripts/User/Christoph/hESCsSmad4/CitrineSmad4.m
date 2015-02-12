@@ -27,13 +27,13 @@ ismip.printInfo
 
 %%
 ismip.resetRange;
-ismip.setReshape('F', 'UVW', [6,6,2]);
-ismip.setCellFormat('UvTZCW');
+ismip.setReshape('F', 'UVP', [6,6,2]);
+ismip.setCellFormat('UvTZCP');
 ismip.printInfo
 
 %%
 
-ismip.setRange('T', 1, 'W', 1, 'C', 2)
+ismip.setRange('T', 1, 'P', 1, 'C', 2)
 ismip.printInfo
 
 % %%
@@ -306,8 +306,6 @@ save('/data/Science/Projects/StemCells/Experiment/Unsorted/SMAD4_Translocation/c
 %% Estimate for each Z separately - channel 2 !
 
 
-
-
 fns = '/data/Science/Projects/StemCells/Experiment/Unsorted/unsorted/Voyager/SMAD4_colonies/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
 
 
@@ -368,7 +366,28 @@ save('/data/Science/Projects/StemCells/Experiment/Unsorted/SMAD4_Translocation/c
 
 
 
+%% Plot Correction images
 
+
+%%
+
+load('/data/Science/Projects/StemCells/Experiment/Unsorted/SMAD4_Translocation/correctionC2.mat')
+
+fns = '/data/Science/Projects/StemCells/Experiment/Unsorted/unsorted/Voyager/SMAD4_colonies/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
+
+for z = 5:7
+
+   imgf = imgfZ{z};
+   imgb = imgbZ{z};
+   
+   img = double(imread(tagExpressionToString(fns, 'C', 2, 'T', 16, 'F', 5, 'Z', z)));
+   img = imfrmtPermute(img, 'XY', 'Yx');
+   
+   figure(13 + z); clf;
+   implottiling({mat2gray(imgf), mat2gray(imgb); mat2gray(imgfZs{z}),  mat2gray((img - imgb)./ (imgf - imgb)); 
+                 mat2gray(img), mat2gray((img -0* imgb)./ (imgfZs{z} -0 * imgb))})
+
+end
 
 
 
@@ -453,7 +472,7 @@ roi = coloniesD(cid).roi;
 shifts = as.imageShifts;
 shifts = shifts(shids);
 
-cc = 1;
+cc = 2;
 
 load(tagExpressionToString('/data/Science/Projects/StemCells/Experiment/Unsorted/SMAD4_Translocation/correctionC<C,1>.mat', 'C', cc));
 
@@ -491,7 +510,7 @@ parfor tt = 1:119
          img = imread(fn);
          img = imfrmtPermute(img, 'XY', 'Yx');
 
-         imgs{csubids{i,:}} = (double(img) - double(imgbZ{zz})) ./ (imgfZs{zz} -0* imgbZ{zz} );
+         imgs{csubids{i,:}} = (double(img) - double(imgbZ{zz})) ./ (imgfZs{zz} - imgbZ{zz} );
          %imgs{csubids{i,:}} = imreadBF(fn);
 
          % correct via de-vignetting
@@ -502,7 +521,7 @@ parfor tt = 1:119
       end
 
       % stitch / extract
-       st = stitchImages(imgs, shifts, 'method', 'Max');
+       st = stitchImages(imgs, shifts, 'method', 'Interpolate');
 %       figure(20);      clf
 %       %imsubplot(6,2,zz)
 %       implot(st, 'color.scale', [0,11])
@@ -520,7 +539,44 @@ parfor tt = 1:119
       imwriteTIFF(int32(dat / 11 * 2^16), fnout)
    end
 end
-      
+  
+
+%%
+texp = '/data/Science/Projects/StemCells/Experiment/Unsorted/unsorted/Voyager/SMAD4_colonies/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
+texpout = '~/Desktop/ColonyW<Q,2>T<T,4>Z<Z,2>C<C,1>.jpg';
+
+cc = 2; tt = 1; zz = 5;
+clear imgs;
+for i = 1:n
+   fnoderaw =  ismip.rawCellIndex(ids(i));
+   
+   fn = tagExpressionToString(texp, ismip.rawCellIndexToRange(fnoderaw), 'C', cc, 'T', tt, 'Z', zz);
+   img = imread(fn);
+   img = imfrmtPermute(img, 'XY', 'Yx');
+   
+   fnout = tagExpressionToString(texpout, 'Q', i, 'C', cc, 'T', tt, 'Z', zz);
+   
+   imwriteBF(double(mat2gray(img)), fnout)
+   
+   imgs{i} = double(mat2gray(img));
+end
+
+
+%%
+
+sh = alignImagesOnGrid(imgs(1:2)')
+
+st = stitchImagesByHugin(imgs(1:2), sh);
+%st = stitchImages(imgs(1:2), sh);
+
+figure(6); clf
+implot(st)
+
+
+%%
+clc
+st = align2ImagesOnGridByHugin(imgs(1:2))
+
       %%
 %       
 %       tdat = imread(fnout);
