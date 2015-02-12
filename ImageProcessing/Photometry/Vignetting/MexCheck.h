@@ -97,67 +97,66 @@ class MexCheckError {
 };
 
 // check for correct class
-void mexCheckArg(mxArray* array, mxClassID cls, const MexCheckError& err = MexCheckError()) {
+void mexCheckArg(const mxArray* array, mxClassID cls, const MexCheckError& err = MexCheckError()) {
    if (cls != mxGetClassID(array)) {
       mexErrMsgTxt(err.classError(cls, mxGetClassID(array)).c_str());
    }
 }
 
 //check for correct dim
-void mexCheckArg(mxArray* array, mwSize dim, const MexCheckError& err = MexCheckError()) {
+void mexCheckArg(const mxArray* array, mwSize dim, const MexCheckError& err = MexCheckError()) {
    const mwSize adim  = mxGetNumberOfDimensions(array);
    
    if (dim == 1) { //matlab 1d array issues !
-      mwSize asize = mxGetDimensions(array);
-      if (asize[1] ~= 1)
+      const mwSize* asize = mxGetDimensions(array);
+      if (asize[1] != 1)
          mexErrMsgTxt(err.dimError(dim, 2).c_str());
    } else {
-      if (dim ~= adim)
+      if (dim != adim)
          mexErrMsgTxt(err.dimError(dim, adim).c_str());
    }
 }
            
 //check for correct class and dim
-void mexCheckArg(mxArray* array, mxClassID cls, mwSize dim, const MexCheckError& err = MexCheckError()) {
+void mexCheckArg(const mxArray* array, mxClassID cls, mwSize dim, const MexCheckError& err = MexCheckError()) {
    mexCheckArg(array, cls, err);
    mexCheckArg(array, dim, err);
 }
 
 
 //check for corrent dim and size
-void mexCheckArg(mxArray* array, mwSize dim,  mwSize* size, const MexCheckError& err = MexCheckError()) {
+void mexCheckArg(const mxArray* array, mwSize dim,  const mwSize* size, const MexCheckError& err = MexCheckError()) {
    mexCheckArg(array, dim, err);
    
-   mwSize* asize = mxGetDimensions(array);
+   const mwSize* asize = mxGetDimensions(array);
    for (int d = 0; d < dim; d++) {
-      if (asize[d] ~= size[d])
+      if (asize[d] != size[d])
          mexErrMsgTxt(err.sizeError(d, size[d], asize[d]).c_str());
    }
 }
 
 //check for corrent dim and size
-void mexCheckArg(mxArray* array, mwSize s1,  mwSize s2, const MexCheckError& err = MexCheckError()) {
-   mexCheckArg(array, 2, err);
+void mexCheckArg(const mxArray* array, mwSize s1, mwSize s2, const MexCheckError& err = MexCheckError()) {
+   mexCheckArg(array, (mwSize) 2, err);
    
-   mwSize* asize = mxGetDimensions(array);
-   if (asize[0] ~= s1)
+   const mwSize* asize = mxGetDimensions(array);
+   if (asize[0] != s1)
          mexErrMsgTxt(err.sizeError(1, s1, asize[0]).c_str());
-   }
-   if (asize[1] ~= s2)
+   if (asize[1] != s2)
          mexErrMsgTxt(err.sizeError(1, s2, asize[1]).c_str());
-   }
+   
 }
 
 
 
 //check for corrent class dim and size
-void mexCheckArg(mxArray* array, mxClassID cls, mwSize dim,  mwSize* size, const MexCheckError& err = MexCheckError()) {
+void mexCheckArg(const mxArray* array, mxClassID cls, mwSize dim, const mwSize* size, const MexCheckError& err = MexCheckError()) {
    mexCheckArg(array, cls, err);
    mexCheckArg(array, dim, err);
    
-   mwSize* asize = mxGetDimensions(array);
+   const mwSize* asize = mxGetDimensions(array);
    for (int d = 0; d < dim; d++) {
-      if (asize[d] ~= size[d])
+      if (asize[d] != size[d])
          mexErrMsgTxt(err.sizeError(d, size[d], asize[d]).c_str());
    }
 }

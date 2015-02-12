@@ -8,18 +8,18 @@ function compileVignetting()
 %
 
 clc
-cd Photmetry/Vignetting
+cd ./ImageProcessing/Photometry/Vignetting
 
 try
 
 mex mexResponseTransform.cpp
 
 catch
-   cd ../..
+   cd ../../..
    error('compileVignetting: error while compiling code in ./Photmetry/Vignetting');
 end
 
-cd ..
+cd ../../..
 
 end
 

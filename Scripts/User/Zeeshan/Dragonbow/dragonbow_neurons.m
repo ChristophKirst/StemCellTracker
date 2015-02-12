@@ -78,7 +78,6 @@ implot(slic)
 
 %%
 
-
 rp = imstatistics(slic, {'Volume', 'PixelIdxList'});
 
 imgR = imgc(:,:,1);

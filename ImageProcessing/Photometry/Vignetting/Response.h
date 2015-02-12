@@ -12,6 +12,7 @@
 #ifndef VIGNETTING_RESPONSE_H
 #define VIGNETTING_RESPONSE_H
 
+#include <math.h>
 #include <vector>
 #include "LUT.h"
 
@@ -26,7 +27,7 @@ class Response
    public:
       
       //camera response
-      enum {LINEAR_RESPONSE, EMOR_RESPONSE} ResponseType;
+      enum ResponseType {LINEAR_RESPONSE = 0, EMOR_RESPONSE};
       ResponseType type;
       std::vector<double> responseParameter;
       LUT lut;
@@ -74,29 +75,29 @@ class Response
          //response
          type = tp;
          if (type == EMOR_RESPONSE) {
-            initEMRoLUT();
+            initEMoRLUT();
          }  
       }
       
       void initEMoRLUT() {
          responseParameter.resize(6);
-         for (int i = 0; i < 6< i++) {
+         for (int i = 0; i < 6; i++) {
             responseParameter[i] = 0;
          }
-         tp = EMOR_RESPONSE;
+         type = EMOR_RESPONSE;
          lutFromResponseParameter();
       }
       
       void initEMoRLUT(const std::vector<double>& respParameter) {
          responseParameter = respParameter;
-         tp = EMOR_RESPONSE;
+         type = EMOR_RESPONSE;
          lutFromResponseParameter();
       }
 
          
       void lutFromResponseParameter() {
          // build response function lookup table
-         lut.createEMoRLUT(responseParameter);
+         lut.fromEMoRLUT(responseParameter);
       }
 
       double getVignettingFactor(double x, double y) const {
@@ -126,22 +127,23 @@ class Response
          double ret = v * vig * exposure;
          
          //response
-         if (lut.size()) {
+         if (type) {
             return lut.apply(ret);
          } else {
             return ret;
          }
       }
       
-      double applyVector(int n, double* v, double* x, double* y) const {
+      double applyVector(int n, double* v, double* x, double* y, double* r) const {
          for (int i = 0; i < n; i++) {
-            v[i] = apply(v[i], x[i], y[i]);
+            r[i] = apply(v[i], x[i], y[i]);
          }
       }
 
       double applyInverse(double v, double x, double y) const {
          // inverse response
-         if (lut.size()) {
+         double ret = v;
+         if (type) {
             ret = lut.applyInverse(v);
          }
          
@@ -150,9 +152,9 @@ class Response
          return ret / (vig * exposure);
       }
       
-      double applyInverseVector(int n, double* v, double* x, double* y) const {
+      double applyInverseVector(int n, double* v, double* x, double* y, double *r) const {
          for (int i = 0; i < n; i++) {
-            v[i] = applyInverse(v[i], x[i], y[i]);
+            r[i] = applyInverse(v[i], x[i], y[i]);
          }
       }
       

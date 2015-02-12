@@ -29,11 +29,12 @@ public:
    std::vector<double> lut;
    
 public:
-   LUT();
-   ~LUT();
+   LUT() {};
+   ~LUT() {};
    
 public:
       
+   
    inline void fromEMoRLUT(const std::vector<double> & params)
    {
       const double s = (double) 1.0; //LUTTraits<VT>::max();
@@ -74,11 +75,11 @@ public:
             lut_new[oIdx] = lut.back();
          }
       }
-      lut = new_lut;
+      lut = lut_new;
    }
    
 
-   void enforceMonotonicity(LUT & lut)
+   void enforceMonotonicity()
    {
       int lutsize = lut.size();
 
@@ -95,12 +96,11 @@ public:
 		}
 	}
    
-   mex mexResponseTransform.cpp
    double apply(double v) const
    {
       assert(lut.size() > 0);
       
-      if (v > 1) return m_lut.back();
+      if (v > 1) return lut.back();
       if (v < 0) return 0;
       
       double x = v * (lut.size()-1);
@@ -137,7 +137,7 @@ public:
       if (v < lut[0])      return 0;
       
       // find the lower bound, p will point to the first *p >= v
-      lut::const_iterator p = std::lower_bound(lut.begin(), lut.end(), v);
+      std::vector<double>::const_iterator p = std::lower_bound(lut.begin(), lut.end(), v);
       
       int x = p-lut.begin();
       
@@ -163,13 +163,14 @@ public:
       }
    }
    
-   double apply(double* v, int n) const {
+   double applyInverse(double* v, int n) const {
       for (int i = 0; i < n; i++) {
          v[i] = applyInverse(v[i]);
       }
    }
    
-} // class LUT
+}; // class LUT
+
   
 } // namespace Photometry
 

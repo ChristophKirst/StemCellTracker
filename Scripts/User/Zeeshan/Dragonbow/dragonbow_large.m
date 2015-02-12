@@ -9,6 +9,7 @@ clc
 initialize
 bfinitialize
 
+verbose = true;
 
 %% Image Data
 
@@ -42,43 +43,120 @@ imgf = filterBM(img, 'sigma', 10, 'profile', 'lc');
 figure(2); clf
 implottiling({img, imgf})
 
+imgfLarge = imgf;
+
+%% subimage for testing
+
+imgf =imgfLarge;
+imgf = imgf(500:1100, 1:500, :);
+imgr = img(500:1100, 1:500, :);
+figure(3); clf
+implot(imgf)
+
+%% SLIC
+
+imglab = segmentBySLIC(imgf, 'superpixel', 2500, 'sigma', 5);
+imglabs = impixelsurface(imglab);
+
+figure(2); clf 
+%colormap parula
+imgSLIC = imoverlaylabel(imgf, imglabs, false)
+implot(imgSLIC)
+
+
+%% Masking and Intensity
+
+imgI = imgf(:,:,1) + imgf(:,:,2) + imgf(:,:,3);
+imgI = mat2gray(imgI);
+
+imgmask = imgI > 0.05;
+%imgmask = imopen(imgmask, strel('disk', 3));
+%imgmask = postProcessSegments(bwlabeln(imgmask), 'volume.min', 50) > 0;
+
+if verbose
+   %max(img(:))
+   figure(21); clf;
+   set(gcf, 'Name', ['Masking'])
+   implottiling({imoverlaylabel(imgI, double(imgmask));  imgmask})
+end
 
 
 
+%% Postprocess
+clc
+max(imglab(:))
 
-%% read slic result
-
-%slic = imread('~/outfile.jpg');
-slic = load('~/outfile.mat');
-slic =  double(slic.data);
-
-size(slic)
-length(unique(slic)')
+stats = imstatistics(imglab, {'MinIntensity'}, imgI);
+figure(7); clf; 
+hist([stats.MinIntensity], 256)
+hist(imgI(:), 256)
 
 
 %%
-figure(5); clf
-colormap jet
-implot(slic)
 
+%imgpost = postProcessSegments(imglab, imgI, 'intensity.min', 0.05, 'volume.min', 15, 'fillholes', false);
+imglabm = immask(imglab, imgmask);
+%imglabm = imlabelapplybw(imgpost, @(x) imopen(x, strel('disk', 2)));
+imglabm = imlabelseparate(imglabm);
+imglabm = imrelabel(imglabm);
 
+max(imglab(:))
+max(imglabm(:))
+
+if verbose
+   imgSp = impixelsurface(imglabm);
+   figure(5); clf;
+   imgNeurons = imoverlaylabel(imgf, imgSp, false)
+   implot(imgNeurons);
+end
 
 %%
 
+stats = imstatistics(imglabm, {'PixelIdxList', 'MinIntensity', 'MedianIntensity', 'Volume'}, imgI);
 
-rp = imstatistics(slic, {'Volume', 'PixelIdxList'});
+figure(8); clf; 
+hist([stats.MinIntensity], 256)
+hist(imgI(:), 256)
 
-imgR = imgc(:,:,1);
-imgG = imgc(:,:,2);
-imgB = imgc(:,:,3);
+%%
+ids = zeros(1,length(stats));
+%ids = [stats.Extent] < 0.5; %* pi /4;
+%ids = or(ids, [stats.FilledArea] > ([stats.Volume] + 10));
+%ids = or(ids, 0.65 * ([stats.Perimeter]) / (2 * pi) >= sqrt([stats.Volume] / pi));
+ids = or(ids, [stats.Volume] <= 20);
+%ids = or(ids, [stats.MedianIntensity] < 0.01);
+%ids = or(ids, [stats.MinIntensity] < 0.01);
 
+%ids = ~ids;
+
+imgpost = imglabm;
+for i = find(ids)
+   imgpost(stats(i).PixelIdxList) = 0;
+end
+imgpost = imrelabel(imgpost);
+max(imgpost(:))
+
+
+if verbose
+   imgSp = impixelsurface(imgpost);
+   figure(5); clf;
+   implot(imoverlaylabel(imgf, imgSp, false));
+end
+
+
+%% Colorize
+
+rp = imstatistics(imgpost, {'Volume', 'PixelIdxList'});
+
+imgR = imgf(:,:,1);
+imgG = imgf(:,:,2);
+imgB = imgf(:,:,3);
 
 imgLR = zeros(size(imgR));
 imgLG = zeros(size(imgG));
 imgLB = zeros(size(imgB));
 
 l = zeros(length(rp), 3);
-
 
 for i = 1:length(rp)
    px = rp(i).PixelIdxList;
@@ -90,29 +168,66 @@ for i = 1:length(rp)
    imgLG(px) = g;
    imgLB(px) = b;
    
-   l(i,:) = [r,g,b];
-   
+   l(i,:) = [r,g,b]; 
 end
 
 
 imgL = cat(3, imgLR, imgLG, imgLB);
 
 figure(10); clf
-implottiling({imgc; imgL})
+implottiling({imgf; imgL})
    
+
+%% spatial distances
+
+nl = max(imgpost(:));
+distL = cell(1,nl);
+st = imstatistics(imgpost, {'PixelIdxList'});
+
+for l = 1:nl
+   distL{l} = bwdist(imgpost == l);
+end
+
+distS = zeros(nl);
+for i = 1:nl
+   for j = i+1:nl
+      pxi = st(i).PixelIdxList;
+      dL = distL{j};
+      distS(i,j) = min(dL(pxi));
+      distS(j,i) = distS(i,j);
+   end
+end
+
+
+figure(15);
+implot(distS)
    
-%% cell line detection via clustering
 
-lpy = numpyFromMat(l);
+%% Cell line detection via clustering
 
-cl = py.scipy.cluster.vq.kmeans(lpy,100);
-cl = numpyToMat(cl);
+% Lab color space
+lb = rgb2lab(l);
 
 
-dli = distanceMatrix(l', cl{1}');
-[ml, pl] = min(dli, [], 2);
+figure(7); clf
+subplot(1,2,1)
+plot3(l(:,1), l(:,2), l(:,3), 'k+')
+
+subplot(1,2,2)
+plot3(lb(:,1), lb(:,2), lb(:,3), 'k+')
+
+
 
 %%
+lpy = numpyFromMat(lb);
+
+cl = py.scipy.cluster.vq.kmeans(lpy,10);
+cl = numpyToMat(cl);
+
+dli = distanceMatrix(lb', cl{1}');
+[ml, pl] = min(dli, [], 2);
+
+clc = lab2rgb(cl{1})
 
 imgLR = zeros(size(imgR));
 imgLG = zeros(size(imgG));
@@ -121,9 +236,9 @@ imgLB = zeros(size(imgB));
 for i = 1:length(pl)
    px = rp(i).PixelIdxList;
 
-   r = l(pl(i), 1);
-   g = l(pl(i), 2);
-   b = l(pl(i), 3);
+   r = clc(pl(i), 1);
+   g = clc(pl(i), 2);
+   b = clc(pl(i), 3);
    
    imgLR(px) = r;
    imgLG(px) = g;
@@ -135,13 +250,18 @@ imgL2 = cat(3, imgLR, imgLG, imgLB);
 imgL2 = imgL2 / max(imgL2(:));
 
 figure(15); clf
-implottiling({imgc; imgL; imgL2})
+implottiling({imgf; imgL; imgL2})
  
  
  
+ %% Save Images
  
- 
-
+imwriteBF(imgr, [ddir, '/DragonBow_Raw.jpg']);
+imwriteBF(imgf, [ddir, '/DragonBow_Filtered.jpg']);
+imwriteBF(imgSLIC, [ddir, '/DragonBow_SLIC.jpg']);
+imwriteBF(imgNeurons, [ddir, '/DragonBow_Neurons.jpg']);
+imwriteBF(imgL, [ddir, '/DragonBow_Segments.jpg']);
+imwriteBF(imgL2, [ddir, '/DragonBow_ColorCluster.jpg']);
 
 
 %% super pixel segmentation
@@ -269,6 +389,18 @@ lab(~msk) = 0;
 
 figure(15); clf
 implottiling({imgc; lab})
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
