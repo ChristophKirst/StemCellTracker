@@ -30,7 +30,7 @@ using namespace std;
 #define IN_INVERSE                prhs[10]
 
 /* Output Arguments */
-#define OUT_I             plhs[0]
+#define OUT_I                     plhs[0]
 
 #define IJ(i,j) ((j)*m + (i))
 

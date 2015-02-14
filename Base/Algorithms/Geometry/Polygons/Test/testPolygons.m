@@ -63,7 +63,7 @@ polygonPlot({pol, hol, hol2, pol2}, 'FaceColor', 'b', 'EdgeColor', 'r', 'LineWid
 polt = polygonFromTriangulation(tri)
 
 figure(5); clf;
-polygonPlot(polt)
+polygonPlot(polt, 'FaceColor', 'none', 'EdgeColor', 'k')
 
 
 %%
