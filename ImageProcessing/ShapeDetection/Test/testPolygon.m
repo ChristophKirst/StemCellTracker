@@ -17,3 +17,15 @@ implot(img)
 
 
 implottiling({img; mm})
+
+
+
+
+
+%%
+
+p1=rand(n,2);% make random polygon (self-intersecting)
+pout=[sin(0:(2*pi/10) : (2*pi)); cos(0:(2*pi/10) : (2*pi))]';
+pin = 0.5* p1int;
+
+%%

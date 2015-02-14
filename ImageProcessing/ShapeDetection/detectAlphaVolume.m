@@ -45,7 +45,6 @@ function [V,S] = detectAlphaVolume(X,R,plt)
 %
 %   See also DELAUNAY, TRIREP, TRISURF
 
-
 %   Author: Jonas Lundgren <splinefit@gmail.com> 2010
 %   modified: C. Kirst 2014
 
@@ -80,7 +79,9 @@ if dim == 3
 end
 
 % Limit circumradius of simplices
-[~,rcc] = circumcenters(TriRep(T,X));
+trig = triangulation(T,X);
+[~,rcc] = trig.circumcenter;
+
 T = T(rcc < R,:);
 rcc = rcc(rcc < R);
 
@@ -99,7 +100,8 @@ warning('off','MATLAB:TriRep:PtsNotInTriWarnId')
 % Alpha shape boundary
 if ~isempty(T)
     % Facets referenced by only one simplex
-    B = freeBoundary(TriRep(T,X));
+    trig = triangulation(T,X);
+    B = trig.freeBoundary;
     if dim == 3 && holes
         % The removal of zero volume tetrahedra causes false boundary
         % faces in the interior of the volume. Take care of these.
@@ -121,7 +123,8 @@ if plt
         str = 'Area';
     elseif ~isempty(B)
         % Plot boundary faces
-        trisurf(TriRep(B,X),'FaceColor','red','FaceAlpha',1/3);
+        trig = triangulation(T,B);
+        trisurf(trig,'FaceColor','red','FaceAlpha',1/3);
         str = 'Volume';
     else
         cla
@@ -176,7 +179,7 @@ function B = trueboundary(B,X)
 %   tetrahedra. The input B is the output of TriRep/freeBoundary.
 
 % Surface triangulation
-facerep = TriRep(B,X);
+facerep = triangulation(B,X);
 
 % Find edges attached to two coplanar faces
 E0 = edges(facerep);

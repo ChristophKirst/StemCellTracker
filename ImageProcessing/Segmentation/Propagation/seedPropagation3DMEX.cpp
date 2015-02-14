@@ -98,7 +98,7 @@ static double average_intensity(double * image,
 /* difference between two pixels */
 static double difference(double *image,
            int i1,  int j1, int k1,
-           int i2,  int j2, int k2,
+           int i2,  int j2, int k2,"mexPolygonBuffer".
            unsigned int m, unsigned int n, unsigned int l,
            int radius, double ref_intensity,  double lambda, double spatial_dist, double& space_dist)
 {
@@ -240,8 +240,8 @@ static void propagate(double *seeds_in, double *im_in, mxLogical *mask_in,
    }
 }
 
-void mexFunction( int nlhs, mxArray *plhs[], 
-                  int nrhs, const mxArray*prhs[] ) { 
+void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray*prhs[] ) { 
+   
    double *seeds_in, *im_in; 
    mxLogical *mask_in;
    double *seeds_out, *dists;

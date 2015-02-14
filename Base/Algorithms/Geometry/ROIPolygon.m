@@ -2,57 +2,81 @@ classdef ROIPolygon < ROI
    %
    % ROIPolygon shape represents a 2D polygon
    %
-   % note: the coordinates of the polygon are stored as rows in .p array
+   % Polygon is represented as a cell array of contours (assuming even odd order)
+   % each contour is represented as 2xn matrix of coordinates (coorinates as rows)
    
    properties
-      p = [];  % coordinates as rows
+      contours = {};
    end
    
    methods
       function obj = ROIPolygon(varargin)  % basic constructor
          %
-         % Rectangle()         empty rectangle
-         % Rectangle(p1, p2)   rectangle with opposite corners p1 and p2
-         %
+         % ROIPolygon()    empty polygon
+         % ROIPolygon(p)   single contour polygon, p coordinates as rows
+         % ROPPolygon(c)   c cell array of contours
          
          if nargin == 0
-            obj.p = [];
+            obj.contours = {};
          elseif nargin == 1
-            obj.fromPixelArray(varargin{1});
+            if isequal(class(varargin{1}), 'triangulation')
+               obj.fromTriangulation(varargin{:});
+            elseif iscell(varargin{1})
+               obj.fromCell(varargin{:});
+            else
+               obj.fromPixelArray(varargin{1});
+            end
          else
             error('%s: invalid argument number %g for constructor', class(obj), nargin);
          end
       end
 
       function a = toArray(obj)
-         a = obj.p;
+         if length(obj.contours) == 1
+            a = obj.contours{1};
+         else
+            error('ROIPolygon: toArray: polygon consists of multiple contours!');
+         end
+ 
       end
       
       function obj = fromArray(obj, a)
-         obj.p = a;    
+         obj.contours = {a};    
+      end
+      
+      function obj = fromCell(obj, c)
+         obj.contours = c;
       end
       
       function obj = fromPixelArray(obj, a)  
-         obj.p = a;
+         obj.contours = {a};
       end
       
       function a = toPixelArray(obj)
-         a = round(obj.p);
+         a = round(obj.toArray());
+      end
+      
+      function t = toTriangulation(obj, varargin)
+         t = polygonToTriangulation(obj.contours, varargin{:});
+      end
+      
+      function obj = fromTriangulation(tri, varargin)
+         obj.contours = triangulationToPolygon(tri, varargin{:});
       end
 
       
       function d = dim(obj)
-         d = size(obj(1).p, 1);
+         d = size(obj(1).contours{1}, 1);
       end
 
       function b = boundingBox(obj, varargin)
-         b = ROIRectangle(min(obj.p,[],2), max(obj.p,[],2));
+         b = ROIRectangle(min(cellfun(@(x) min(x,[],2), obj.contours)), max(cellfun(@(x) max(x,[],2), obj.contours)));
       end
       
       function v = volume(obj, varargin)
          v = zeros(1,length(obj));
          for i = 1:length(obj)
-            v(i) = polyarea(obj(i).p(1,:), obj(i).p(2,:));
+            v(i) = polygonArea(obj.countours);
          end
       end
  

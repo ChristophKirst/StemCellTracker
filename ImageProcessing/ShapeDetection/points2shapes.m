@@ -24,7 +24,7 @@ r = getParameter(param, 'radius', 100);
 [~, av] = detectAlphaVolume(pts', r);
 bnd = av.bnd;
 
-%conneected components
+%connected components
 a=sparse(bnd(:,1),bnd(:,2),1);
 a=a+speye(size(a));
 [p,~,r,~]=dmperm(a);
@@ -37,6 +37,9 @@ for ii=1:ns
 end
 shapes(cellfun(@length, shapes)==1)=[];
 ns = length(shapes);
+
+% split shapes that share a point
+
 
 % order the points
 bfrom = bnd(:,1)';

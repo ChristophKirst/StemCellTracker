@@ -34,6 +34,8 @@ using namespace std;
 
 #define IJ(i,j) ((j)*m + (i))
 
+#include <iostream>
+
 void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )      
 { 
    /* Check for proper number of arguments */
@@ -109,6 +111,12 @@ void mexFunction( int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[] )
    
    response.initEMoRLUT(resp_param);
 
+   /* Create output image */
+   OUT_I = mxCreateNumericArray(2, size, mxDOUBLE_CLASS, mxREAL);
+
+   /* Debug */
+   std::cout << exposre
+   
    if (image_input) {
       
       double * ini = mxGetPr(IN_I);

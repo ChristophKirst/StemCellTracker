@@ -375,22 +375,26 @@ load('/data/Science/Projects/StemCells/Experiment/Unsorted/SMAD4_Translocation/c
 
 fns = '/data/Science/Projects/StemCells/Experiment/Unsorted/unsorted/Voyager/SMAD4_colonies/Image/W1F<F,3>T<T,4>Z<Z,2>C<C,1>.tif';
 
-for z = 5:7
+for z = 4:7
 
    imgf = imgfZ{z};
    imgb = imgbZ{z};
+   imgbf = filterGaussian(imgb, 100);
    
-   img = double(imread(tagExpressionToString(fns, 'C', 2, 'T', 16, 'F', 5, 'Z', z)));
+   img = double(imread(tagExpressionToString(fns, 'C', 2, 'T', 16, 'F', 8, 'Z', z)));
    img = imfrmtPermute(img, 'XY', 'Yx');
    
    figure(13 + z); clf;
-   implottiling({mat2gray(imgf), mat2gray(imgb); mat2gray(imgfZs{z}),  mat2gray((img - imgb)./ (imgf - imgb)); 
-                 mat2gray(img), mat2gray((img -0* imgb)./ (imgfZs{z} -0 * imgb))})
+   implottiling({mat2gray(imgf), mat2gray(imgfZs{z}), mat2gray(imgb), mat2gray(imgbf);
+                 mat2gray(img), mat2gray(img-imgbf), mat2gray((img)./ (imgfZs{z})), mat2gray((img - imgbf)./ (imgf - imgbf)), }')
 
 end
 
-
-
+%%
+figure(18); clf;
+imgbt = imgb;
+imgbt(imgb < 1850) = 1850;
+implot(mat2gray(imgbt))
 
 
 %%
