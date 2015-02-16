@@ -1,4 +1,4 @@
-function polbuf = polygonBuffer(pol, dist, varargin) 
+function [polbuf, varargout] = polygonBuffer(pol, dist, varargin) 
 %
 % pol = polygonBuffer(pol, varargin) 
 %
@@ -9,9 +9,10 @@ function polbuf = polygonBuffer(pol, dist, varargin)
 %     pol     polygon as cell of oriented paths, each path is 2xn array of coords
 %     dist    distance positive or negative
 %     param   parameter struct with entries
-%             .join    join type, 0=Square, 1=Round, 2=Miter (2)
-%             .end     end type,  0=ClosedPolygon, 1=ClosedLine, 2=OpenButt, 3=OpenSquare, 4=OpenRoun
-%             .scale   the routines convert the plygon to integer, use this scale to convert ([]=automatic)
+%             .join     join type, 1=Square, 2=Round, 3=Miter (3)
+%             .end      end type,  1=ClosedPolygon, 2=ClosedLine, 3=OpenButt, 4=OpenSquare, 5=OpenRound (1)
+%             .scale    use this scale to convert the the plygon coords to integer ([]=automatic)
+%             .simplify simplify polygon first to fix orientations for even odd interpretation (true)
 %    
 % output
 %     polbuf  bufered polygon
@@ -19,8 +20,11 @@ function polbuf = polygonBuffer(pol, dist, varargin)
 
 param = parseParameter(varargin);
 
-jT = getParameter(param, 'join', 2);
-eT = getParameter(param, 'end' , 0);
+joinTypes = {'Square', 'Round', 'Miter'};
+endTypes  = {'ClosedPolygon', 'ClosedLine', 'OpenButt', 'OpenSquare', 'OpenRound'};
+
+[~,jT] = getParameterInNames(param, 'join', joinTypes, 3);
+[~,eT] = getParameterInNames(param, 'end' , endTypes, 1);
 sc = getParameter(param, 'scale', []);
 
 adist = abs(dist);
@@ -35,16 +39,29 @@ for i = 1:length(pol)
    end
 end
 
+if getParameter(param, 'simplify', true)
+   pol = polygonSimplify(pol);
+end
+
 if isempty(sc)
-   pmax = max(cellfun(@(x) max(x(:)), pol)) + adist;
-   pmin = min(cellfun(@(x) max(x(:)), pol)) - adist;
-   
-   sc =  9223372036854775807 / 1000 / (pmax-pmin + 1);
+   % check if we have integer array
+   if all(cellfun(@isinteger, pol)) % || all(cellfun(@(x) all(rem(x(:),1)==0), pol))
+      sc = 1;
+   else
+      pmax = max(cellfun(@(x) max(x(:)), pol)) + adist;
+      pmin = min(cellfun(@(x) max(x(:)), pol)) - adist;
+      
+      sc =  9223372036854775807 / 1000 / (pmax-pmin + 1);
+   end
 end
 
 polbuf = cellfunc(@(x) int64(sc*x), pol);
 
-polbuf = mexPolygonBuffer(polbuf, dist * sc, jT, eT);
+if nargout > 1
+   [polbuf, varargout{1}] = mexPolygonBuffer(polbuf, dist * sc, jT-1, eT-1);
+else
+   polbuf = mexPolygonBuffer(polbuf, dist * sc, jT-1, eT-1);
+end
 
 polbuf = cellfunc(@(x) double(x)/sc, polbuf);
 

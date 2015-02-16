@@ -1,22 +1,22 @@
 /***************************************************************
- * Polygon Union
- *
- * Based on clipper.cpp library
+ * Polygon Clipper / Mex Interface
  *
  * C. Kirst, The Rockefeller University 2014
  *
  ***************************************************************/
 
-
-// mex mexPolygonBuffer.cpp clipper.cpp 
-
-#include "mex.h"
-#include "clipper.hpp"
+#ifndef MEX_POLYGON_IO_H
+#define MEX_POLYGON_IO_H
 
 #include <iostream>
 using namespace std;
 
+#include "mex.h"
+#include "clipper.hpp"
+
 using namespace ClipperLib;
+
+#define IJ(i,j,m) ((j)*m + (i))
 
 void toPolygon(const mxArray *mx, Paths &poly)
 {
@@ -28,6 +28,7 @@ void toPolygon(const mxArray *mx, Paths &poly)
    nc = mxGetNumberOfElements(mx);
    //cout << "nc: " << nc << endl; cout.flush();
    
+   poly.clear();
    poly.resize(nc);
    for (unsigned i = 0; i < nc; i++){
       
@@ -73,39 +74,56 @@ mxArray* fromPolygon(Paths& poly)
    
    return mx;
 }
-   
-   
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
+
+int fromPolygonTreeRecursive(PolyNode* pn, mxArray*& pol, double* treedat, int n, int id) 
 {
-  
-   if (nrhs <  1) mexWarnMsgTxt("mexPolygonBuffer: 1 input argument expected!");
-   if (nlhs != 1) mexWarnMsgTxt("mexPolygonBuffer: 1 output argument expected!");
+   int parent = id;   
+   //cout << "from id: " << id << " parent:" << parent << endl; cout.flush();
+
+   for (unsigned i = 0; i < pn->ChildCount(); ++i)
+   {
+      id++;
+      
+      PolyNode* pc = pn->Childs[i];
+
+      int nxy = pc->Contour.size();
+      //cout << "from id:"<< id << " nxy: " << nxy << endl; cout.flush();
+
+      mxArray* xy = mxCreateDoubleMatrix(2, nxy, mxREAL);
+      double* xydat = mxGetPr(xy);
+
+      unsigned k = 0;
+      for (unsigned j = 0; j < nxy; j++) {
+         xydat[k]   = pc->Contour[j].X;
+         xydat[k+1] = pc->Contour[j].Y;
+         k+=2;
+      }
+
+      mxSetCell(pol, id, xy);
+
+      //construct the tree stucture
+      if (parent >= 0) {
+         treedat[IJ(id, parent, n)] = 1;
+      }
+            
+      id = fromPolygonTreeRecursive(pc, pol, treedat, n, id);
+   }
    
-   //Polygon 
-   Paths poly;
-   toPolygon(prhs[0], poly);
+   return id;
+}
+
+void fromPolygonTree(PolyTree* polytree, mxArray*& pol, mxArray*& tree)
+{   
+   int nc = polytree->AllNodes.size();
+   //cout << "from nc: " << nc << endl; cout.flush();
+
+   int ndim=2, dims[]={1, nc};
+   pol = mxCreateCellArray(ndim, dims);
+   tree = mxCreateDoubleMatrix(nc,nc,mxREAL);
+   double* treedat = mxGetPr(tree);
+
+   fromPolygonTreeRecursive((PolyNode*) polytree, pol, treedat, nc, -1);
+}
+
+#endif
    
-   double r = mxGetScalar(prhs[1]);
-
-   //PolyFillType 
-   //see http://glprogramming.com/red/chapter11.html
-   //PolyFillType {pftEvenOdd, pftNonZero, pftPositive, pftNegative };
-   PolyFillType pT = pftEvenOdd;
-   if (nrhs > 1) pT = (PolyFillType) mxGetScalar(prhs[1]);
-   
-   PolyFillType pT2 = pftEvenOdd;
-   if (nrhs > 2) pT2 = (PolyFillType) mxGetScalar(prhs[2]);
-
-   Paths solution;
-
-   Clipper c;
-   c.AddPaths(poly, ptSubject, true);
-   c.Execute(ctUnion, solution, pT, pT2);
-
-   plhs[0] = fromPolygon(solution);
-   
-   return;
-};
-
-
-

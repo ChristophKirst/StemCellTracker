@@ -1,13 +1,13 @@
-function [pol, varargout] = polygonUnion(pol, poladd, varargin) 
+function [pol, varargout] = polygonXor(pol, polxor, varargin) 
 %
-% pol = polygonUnion(pol, polclip) 
+% pol = polygonXor(pol, polclip) 
 %
 % description: 
 %     calculates union between polygons
 % 
 % input:
 %     pol     polygon as cell of oriented paths, each path is 2xn array of coords
-%     poladd  polygon to add 
+%     polint  polygon to xor with 
 %     param   parameter struct with entries as in polygonExecute
 %
 % output
@@ -15,9 +15,9 @@ function [pol, varargout] = polygonUnion(pol, poladd, varargin)
 %
 
 if nargout> 1
-   [pol, varargout{1}] = polygonExecute(pol, poladd, varargin{:}, 'operator', 'Union');
+   [pol, varargout{1}] = polygonExecute(pol, polxor, varargin{:}, 'operator', 'Xor');
 else
-   pol = polygonExecute(pol, poladd, varargin{:}, 'operator', 'Union');
+   pol = polygonExecute(pol, polxor, varargin{:}, 'operator', 'Xor');
 end
 
 end

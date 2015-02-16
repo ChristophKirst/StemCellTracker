@@ -17,8 +17,7 @@ P = tri.Points;
 
 pol =  cellfunc(@(x) P(x, :)', T);
 
-pol = polygonUnion(pol);
-
+pol = polygonSimplify(pol);
 
 end
 

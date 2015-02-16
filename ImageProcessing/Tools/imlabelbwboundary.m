@@ -1,33 +1,27 @@
-function [imgout, stats] = imlabelapplybw(imglab, fun, stats)
+function [bnd, tree, stats] = imlabelbwboundary(imglab, stats)
 %
-% labela = imlabelapplybw(imglab, fun)
+%  [imgout, stats] = imlabelbwboundary(imglab, stats)
 %
 % description:
-%      applies fun that transfroms a bw image into a bw image onto each label separately
+%      returns bnd and tree for each label
+%      as if bwboundaries was applied on each label separately
 %
 % input:
 %      imglab    labeled image
-%      fun       function operating on bw image representing a single region
+%      stats     (optional) pre calculated image statistics
 % 
 % output:
-%      imglab    results of applying fun
+%      bnd       cell array of cell arrays with boundaries for eahc label
+%      tree      cell array of boundaries hierarchies
 %      stats     calculated image statistics
 %
-% See also: imlabel
-
-% lab = imlabel(label);
-% labela = label;
-% 
-% for l = lab
-%    imgl = fun(label == l);
-%    labela(imgl > 0) = l;
-% end
+% See also: bwboundaries
 
 isize = size(imglab);
 dim = length(isize);
 
-if dim < 2 || dim > 3
-   error('imlabelapplybw: expect 2d or 3d labeled image');
+if dim ~= 2
+   error('imlabelboundary: expect 2d labeled image');
 end
 
 if ~exist('stats', 'var')
@@ -38,11 +32,12 @@ end
 
 n = length(stats);
 
-imgout = zeros(isize);
+bnd = cell(1,n);
+tree = cell(1,n);
 
 for l = 1:n
    if mod(l, 500) == 0
-      fprintf('imlabelapplybw: %g / %g\n', l, n);
+      fprintf('imlabelboundary: %g / %g\n', l, n);
    end
    
    idxpix = stats(l).PixelIdxList;
@@ -65,16 +60,11 @@ for l = 1:n
       end
 
       obj = imextract(imglab, bbox);
-      obj = fun(obj == ll);
+      %obj = imdilate(obj == ll, strel([1,1;1,1])); % dilate each label to get lines etc for polygons right
 
-      idx = find(obj);
+      [b, ~,~, tree{l}] = bwboundaries(obj);
+      bnd{l} = cellfunc(@(x) x' + repmat(bbox(1:dim)-1,1, size(x,1)), b);
       
-      if ~isempty(idx)
-         sub = imind2sub(size(obj), idx);
-         sub = sub + repmat(bbox(1:dim)'-1, size(sub,1), 1);
-         ind = imsub2ind(isize, sub);
-         imgout(ind) = ll;
-      end
    end
 end
 

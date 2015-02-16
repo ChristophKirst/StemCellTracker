@@ -42,15 +42,20 @@ for i = 1:length(pol)
 end
 
 %bd
+
+warning('off', 'MATLAB:delaunayTriangulation:DupPtsConsUpdatedWarnId')
 tri = delaunayTriangulation(xy', bd);
+warning('on', 'MATLAB:delaunayTriangulation:DupPtsConsUpdatedWarnId')
 
 % remove holes
-if ~a
+if ~a && ~isempty(tri.ConnectivityList)
    isi = tri.isInterior;
    if all(~isi)
       tri = [];
    else
+      warning('off', 'MATLAB:triangulation:PtsNotInTriWarnId');
       tri = triangulation(tri.ConnectivityList(isi,:), tri.Points);
+      warning('on', 'MATLAB:triangulation:PtsNotInTriWarnId');
    end
 end
 

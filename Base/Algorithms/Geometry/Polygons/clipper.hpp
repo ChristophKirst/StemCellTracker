@@ -144,7 +144,7 @@ public:
     bool IsHole() const;
     bool IsOpen() const;
     int ChildCount() const;
-private:
+//private:
     unsigned Index; //node index in Parent.Childs
     bool m_IsOpen;
     JoinType m_jointype;
@@ -162,7 +162,7 @@ public:
     PolyNode* GetFirst() const;
     void Clear();
     int Total() const;
-private:
+//private:
     PolyNodes AllNodes;
     friend class Clipper; //to access AllNodes
 };
@@ -210,6 +210,7 @@ typedef std::vector < TEdge* > EdgeList;
 typedef std::vector < Join* > JoinList;
 typedef std::vector < IntersectNode* > IntersectList;
 
+
 //------------------------------------------------------------------------------
 
 //ClipperBase is the ancestor to the Clipper class. It should not be
@@ -226,7 +227,7 @@ public:
   IntRect GetBounds();
   bool PreserveCollinear() {return m_PreserveCollinear;};
   void PreserveCollinear(bool value) {m_PreserveCollinear = value;};
-protected:
+//protected:
   void DisposeLocalMinimaList();
   TEdge* AddBoundsToLML(TEdge *e, bool IsClosed);
   void PopLocalMinima();
@@ -268,10 +269,10 @@ public:
 #ifdef use_xyz
   void ZFillFunction(ZFillCallback zFillFunc);
 #endif
-protected:
+//protected:
   void Reset();
   virtual bool ExecuteInternal();
-private:
+//private:
   PolyOutList       m_PolyOuts;
   JoinList          m_Joins;
   JoinList          m_GhostJoins;
@@ -287,7 +288,7 @@ private:
   bool             m_ReverseOutput;
   bool             m_UsingPolyTree; 
   bool             m_StrictSimple;
-#ifdef use_xyz
+#ifdef use_xyzInitEdge2
   ZFillCallback   m_ZFill; //custom callback 
 #endif
   void SetWindingCount(TEdge& edge);

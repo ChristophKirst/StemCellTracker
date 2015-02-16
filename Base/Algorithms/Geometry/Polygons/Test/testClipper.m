@@ -47,3 +47,29 @@ if length(pbuffer) > 1
 end
 
 
+
+%% Execute Operations on Polygon
+clc
+
+pol = {pgonInt', pholeInt'};
+pol2 = {int64([-300,-200; -100, -100; -100, 400]')};
+
+figure(1); clf; hold on
+polygonPlot(cellfunc(@double, pol));
+polygonPlot(cellfunc(@double, pol2), 'FaceColor', 'b')
+
+
+%%
+
+pe = mexPolygonExecute(1, 0, pol, pol2);
+length(pe)
+
+figure(2); clf
+polygonPlot(pe)
+
+
+%% Plotting
+
+%patch('Faces', tri.ConnectivityList, 'Vertices', tri.Points, 'FaceColor', 'r', 'EdgeColor', 'r' )
+
+

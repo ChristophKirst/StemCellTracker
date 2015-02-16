@@ -13,6 +13,11 @@ function a = polygonArea(pol)
 %
 % See also: triangulationArea
 
+if isempty(pol)
+   a = 0;
+   return
+end
+
 a = triangulationArea(polygonToTriangulation(pol));
 
 end

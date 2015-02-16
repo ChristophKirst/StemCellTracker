@@ -1,9 +1,9 @@
 classdef ROIRectangle < ROI
    %
-   % ROIRectangle shape represents a 2D rectangle or 3d cube
+   % ROIRectangle shape represents a 2d rectangle
    %
    % note: the pixel of a rectangle from (0,0) -> (1,1)  is pixel (1,1) etc
-   %       in particular a rectangle (0,0) -> (0,0) is empty and (0,0) -> isize spans an image fo size isize
+   %       in particular a rectangle (0,0) -> (0,0) is empty and (0,0) -> isize spans an image of size isize
    %       all coords arre assumed to be row vectors to allow for [obj.p1] concateations etc
    
    properties

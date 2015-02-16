@@ -127,7 +127,7 @@ if any(ismember(statnames, twodimnames))
 end
 
 
-%%% regoinprops based statistics
+%%% regionprops based statistics
 
 %determine regionprop properties
 regprops = {};
@@ -165,9 +165,9 @@ regprops = [regprops, statnames(idx)];
 
 if ~isempty(regprops)
    if isempty(img)
-      regstats = regionprops(imglab, regprops{:});
+      regstats = regionprops(double(imglab), regprops{:}); % double necessary for image with single label but multiple components
    else
-      regstats = regionprops(imglab, img, regprops{:});
+      regstats = regionprops(double(imglab), img, regprops{:});
    end
    
    %regstats
