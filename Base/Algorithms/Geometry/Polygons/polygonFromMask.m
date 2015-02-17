@@ -1,4 +1,4 @@
-function [pol, varargout] = polygonFromMask(imgmsk, varargin)
+function varargout = polygonFromMask(imgmsk, varargin)
 %
 % tri = polygonFromMask(img, varargin)
 % 
@@ -8,20 +8,16 @@ function [pol, varargout] = polygonFromMask(imgmsk, varargin)
 % input:
 %      pol   cell array of countours not self-intersecting
 %      param parameter struct with entries
+%            .split    split into multiple polygons
 %
 % output:
 %      pol   cell array of cell arrays representing the polygons
 %
 % See also: bwboundaries
 
-%find boundaries
-[b,~,~,tree] = bwboundaries(imgmsk);
-pol = cellfunc(@(x) x', b)';
+varargout{:} = polygonFromLabeledImage(imgmsk, varargin{:});
 
-%tree if required
-if nargout > 1
-   varargout{1} = tree; 
-end
+varargout{1} = varargout{1}{1};
 
 end
 

@@ -5,13 +5,13 @@ function roi = detectROIsByClosing(imgs, varargin)
 % roi = detectROIsByClosing(is, param)
 %
 % descritption:
-%     finds shapes in an image img using morphological opening and thresholding
+%     finds shapes in an image img using morphological closing and thresholding
 %
 % input:
 %    img    image as numeric array
 %    imgs   images as cell arrays
 %    is     ImageSource or Alignment class
-%    param  paramteer struct
+%    param  parameter struct
 %           .threshold    threshold ([] = thresholdFirstMin(img))
 %           .scale        rescale factor before detection of objects ([] = 1)
 %           .filtersize   size of Gaussian filter ([] = no filter) 
@@ -60,7 +60,7 @@ if isa(imgs, 'Alignment')
    source = imgs.source;
    is = source.dataSize;
    nds = imgs.nodes;
-   rsf = [];
+   %rsf = [];
 
    if pre
       if isempty(rs)
@@ -121,19 +121,20 @@ if size(pks,2) < 3
 end
    
 % get the polygons from the points
-shps = points2shapes(pks, param);
+shps = pointsToPolygons(pks, param);
 nr = length(shps);
-
 if nr == 0
    roi = [];
    return
+else
+   roi = shps;
 end
 
-%convert polygons to ROIs 
-roi(nr) = ROIPolygon;
-for i = 1:length(shps)
-   roi(i) = ROIPolygon(shps{i});
-   %roi{i} = roi{i}.shift(origin -1);
-end
+% %convert polygons to ROIs 
+% roi(nr) = ROIPolygon;
+% for i = 1:length(shps)
+%    roi(i) = ROIPolygon(shps{i});
+%    %roi{i} = roi{i}.shift(origin -1);
+% end
 
 end

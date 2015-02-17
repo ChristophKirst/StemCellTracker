@@ -1,12 +1,12 @@
-function imglab = polygonToLabeledImage(pol, varargin)
+function imgmask = polygonToLabeledImage(pol, varargin)
 %
-% imglab = polygonToLabeledImage(pol, varargin)
+% imgmask = polygonToLabeledImage(pol, varargin)
 %
 % description:
-%     converts a polygon into a labeled image
+%     converts a polygon into a mask
 %
 % input:
-%     pol     polygon
+%     pol     cell array of polygons
 %     param   parameter struct with entries
 %             size     image size ([] = bounding box of the poly)
 %             range    coords of the image as [lower, upper] ([] = bounding box of the poly)
@@ -21,92 +21,81 @@ param = parseParameter(varargin);
 si = getParameter(param, 'size', []);
 rg = getParameter(param, 'range', []);
 
-
 if isempty(rg)
    bb = polygonToBoundingBox(pol);
-   rg = sort(bb(:, [1,3]),2);
+   rrg = sort(bb(:, [1,3]),2); 
 end
+
+dr = diff(rrg');
 
 if isempty(si)
-   si = diff(rg');
+   si = diff(rrg');
    si(si < 1) = 1;
+else
+   if isempty(rg)
+      rg = [0.5 * [1;1], si(:) + 0.5];
+      dr = diff(rg');
+   else
+      rg = rrg;
+   end
+end
+si = si(:);
+
+if isempty(pol)
+   imgmask = zeros(si');
+   return
 end
 
-% scale the polygons appropiately    
+% scale factor
+% range rx -> rx2 is mapped to 0.5 -> sx + 0.5
+sc = si ./ dr(:);
+
+% simplify, get tree and scale
+nlab = length(pol);
+ppol = cell(1, nlab);
+tree = cell(1, nlab);
+
+for i = 1:nlab
+   [ppol{i}, tree{i}] = polygonSimplify(pol{i});
+   ppol{i} = cellfunc(@(x) (x - repmat(rg(:,1), 1, size(x,2))) .* repmat(sc, 1, size(x,2)) + 0.5, ppol{i});
+end
+
+pMaskFcn = @(xy)poly2mask(xy(1,:)',xy(2,:), si(1), si(2));
+
+imgmask = zeros(si');
+
+for i = 1:nlab
+
+   npol = length(ppol{i});
+   if ~isempty(ppol{i})
+    
+      treei = logical(tree{i});
+      poli = ppol{i};
    
+      % build image by
+      [rr,~] = find(treei);
+      listToAdd = false(1,npol);
+      listToAdd(setdiff(1:npol,rr)) = true;
+
+      msk = false(si');
+      while any(listToAdd)
+         % Add the next enclosing mask
+         nextAdd = find(listToAdd,1);
+         msk = pMaskFcn(poli{nextAdd});         
+         listToAdd(nextAdd) = false;
+         % Subtract any enclosed masks (and then add their children)
+         for nextSub = find(treei(:,nextAdd))'
+            msk = msk & ~pMaskFcn(poli{nextSub});
+            % Add any children
+            listToAdd(treei(:, nextSub)) = true;
+         end
+      end
+      
+      imgmask(msk) = i;
+   end
    
-
-
-BW = false([m,n]);
-
-% Start with any enclosing boundaries not enclosed by others
-[rr,~] = find(A);
-listToAdd = false(1,length(XY));
-listToAdd(setdiff(1:length(XY),rr)) = true;
-while any(listToAdd)
-    % Add the next enclosing mask
-    nextAdd = find(listToAdd,1);
-    BW = BW | pMaskFcn(XY{nextAdd});
-    listToAdd(nextAdd) = false;
-    % Subtract any enclosed masks (and then add their children)
-    for nextSub = find(A(:,nextAdd))'
-        BW = BW & ~pMaskFcn(XY{nextSub});
-        % Add any children 
-        listToAdd(A(:,nextSub)) = true;
-    end
 end
 
-function [XY, A, pMaskFcn, m, n] = parseInputs(XY, varargin)
-
-% Ensure cell input
-if isnumeric(XY)
-    nanIdxs = [0; find(any(isnan(XY),2)); size(XY,1)];
-    XYcell = cell(length(nanIdxs)-1,1);
-    for i = 1:length(XYcell)
-        inds = nanIdxs(i)+1 : nanIdxs(i+1)-1;
-        if isempty(inds)
-            XYcell{i} = zeros(0,2);
-        else
-            XYcell{i} = XY(inds,:);
-        end
-    end
-    XY = XYcell;
-end
-numXY = length(XY);
-
-% Detect IJ style if offered in params/values
-if nargin>2 ...
-        && ischar(varargin{end})   && strcmpi(varargin{end},'ij') ...
-        && ischar(varargin{end-1}) && strcmpi(varargin{end-1},'style')
-    XYcols = [2 1];
-    varargin(end-1:end) = [];
-else
-    XYcols = [1 2];
 end
 
-% Detect association matrix or default to all-union
-if islogical(varargin{end})
-    A = varargin{end};
-    varargin(end) = [];
-else
-    A = sparse([],[],[],numXY,numXY,false);
-end
 
-% If we are left with two vectors, we have XVEC, YVEC input. If we are left
-% with a size matrix, we have BWSIZE input. Otherwise error.
-if length(varargin)==1 && length(varargin{1})==2
-    m = varargin{1}(1);
-    n = varargin{1}(2);
-    pMaskFcn = @(xy)poly2mask(xy(:,XYcols(1)),xy(:,XYcols(2)), m, n);
-elseif length(varargin)==2 && isvector(varargin{1}) && isvector(varargin{2})
-    xVec = varargin{1};
-    yVec = varargin{2};
-    m = length(yVec);
-    n = length(xVec);
-    pMaskFcn = @(xy)poly2mask(...
-        interp1(xVec, 1:n, xy(:,XYcols(1)),'linear','extrap'),...
-        interp1(yVec, 1:m, xy(:,XYcols(2)),'linear','extrap'),...
-        m, n);
-else
-    error('mpoly2mask:input','input parameters could not be resolved.')
-end

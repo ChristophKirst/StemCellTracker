@@ -4,6 +4,8 @@ classdef ROIPolygon < ROI
    %
    % Polygon is represented as a cell array of contours (assuming even odd order)
    % each contour is represented as 2xn matrix of coordinates (coorinates as rows)
+   %
+   % TODO: clean up and integrate fully to polygon package!
    
    properties
       contours = {};
@@ -48,12 +50,20 @@ classdef ROIPolygon < ROI
          obj.contours = c;
       end
       
+      function obj = fromPolygon(obj, p)
+         obj.contours = p;
+      end
+      
       function obj = fromPixelArray(obj, a)  
          obj.contours = {a};
       end
       
       function a = toPixelArray(obj)
          a = round(obj.toArray());
+      end
+      
+      function p = toPolygon(obj)
+         p = obj;
       end
       
       function t = toTriangulation(obj, varargin)
@@ -65,8 +75,9 @@ classdef ROIPolygon < ROI
       end
 
       
-      function d = dim(obj)
-         d = size(obj(1).contours{1}, 1);
+      function d = dim(~)
+         %d = size(obj(1).contours{1}, 1);
+         d = 2;
       end
 
       function b = boundingBox(obj, varargin)
@@ -85,38 +96,40 @@ classdef ROIPolygon < ROI
       end
       
       function m = mask(obj, si)
-         x = obj.p(1,:);
-         y = obj.p(2,:);
-         m = poly2mask(y,x, si(1), si(2));
-         m = imdilate(m, strel('square', 3)); % poly2 mask is very restrictive
-         n = size(obj.p,2);
-         %add lines
-         %for i = 1:n
-         %   m = impixelline(m, obj.p(:,i), obj.p(:,mod(i,n)+1), 1);
-         %end
-         x = round(x); y = round(y);
-         ids = and(and(x > 0, x <= si(1)), and(y > 0, y <= si(2)));
-         x = x(ids); y = y(ids);
-         ids = sub2ind(si, x,y); % add corners
-         m(ids) = 1;
+%          x = obj.p(1,:);
+%          y = obj.p(2,:);
+%          m = poly2mask(y,x, si(1), si(2));
+%          m = imdilate(m, strel('square', 3)); % poly2 mask is very restrictive
+%          n = size(obj.p,2);
+%          %add lines
+%          %for i = 1:n
+%          %   m = impixelline(m, obj.p(:,i), obj.p(:,mod(i,n)+1), 1);
+%          %end
+%          x = round(x); y = round(y);
+%          ids = and(and(x > 0, x <= si(1)), and(y > 0, y <= si(2)));
+%          x = x(ids); y = y(ids);
+%          ids = sub2ind(si, x,y); % add corners
+%          m(ids) = 1;
+
+         m = polygonToMask(obj.contour, 'size', si);
       end
       
       function n = npixel(obj, si)
          n = total(obj.mask(si));
       end
       
-      function o = overlap(obj, roi) %#ok<STOUT>
-         error('%s: overlap with % s not implemented!', class(obj), class(roi));
+      function o = overlap(obj, roi)
+         o = polygonArea(polygonIntersection(obj.contour), roi.toPolygon);
       end
       
-      
+
       % exract roi from an array / image
       function [d, sh] = extractData(obj, d)
          %
          % [d, sh] = extractdata(obj, d)
          %
          % description:
-         %     extracts data from boudnign box
+         %     extracts data from bouding box
          %
          % input:
          %     d    data
@@ -124,24 +137,29 @@ classdef ROIPolygon < ROI
          % output:
          %     d    extracted data
          %    sh    (optional) shift of lower left corner w.r.t to full image
-         
-         
+ 
          bb = obj.boundingBox;
          [d, sh] = bb.extractData(d);
          shr = repmat(sh(:), 1, size(obj.p,2));
-         obj.p = obj.p - shr;
-         m = obj.mask(size(d));
-         obj.p = obj.p + shr;
+         pol = polygonShift(obj.contour, -shr);
+         m = polygonToMask(pol, size(d));
          d = immask(d, m);
       end
 
       function shift(obj, sh)
-         obj.p = obj.p + repmat(sh(:), 1, size(obj.p,2));
+         for i = 1:length(obj)
+            obj(i).contour = polygonShift(obj(i).contour, sh);
+         end
+      end
+      
+      function obj = rescale(obj, scale)
+         for i = 1:length(obj)
+            obj(i).contour = polygonScale(obj(i).contour, scale);
+         end
       end
 
-      
       function obj= dilate(obj, bwidth)
-         obj.p = dilatePolygon(obj.p, bwidth);
+         obj.p = polygonDilate(obj.contour, bwidth);
       end
       
       
@@ -149,16 +167,10 @@ classdef ROIPolygon < ROI
          n = length(obj);
          cc = colorcube(n);
          for i = 1:n
-            pp = obj(i).p;
-            plot(pp(1,:)', pp(2,:)', varargin{:}, 'Color', cc(i,:))
+            polygonPlot(obj(i).contour, 'FaceColor', 'none', 'EdgeColor', cc(i,:), varargin{:})
          end
       end
       
-      function obj = rescale(obj, scale)
-         for i = 1:length(obj)
-            obj(i).p = obj(i).p .* scale;
-         end
-      end
   
    end
    

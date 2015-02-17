@@ -61,7 +61,7 @@ if isequal(getParameter(param, 'output', 'ROI'), 'ROI')
       pks = [idx'; idy'];
       
       % get the polygons from the points
-      shapes = points2shapes(pks, param);
+      shapes = pointsToPolygons(pks, param);
       nshapes = length(shapes);
       
       if getParameter(param, 'plot', false)
@@ -69,21 +69,22 @@ if isequal(getParameter(param, 'output', 'ROI'), 'ROI')
          cc = colorcube(nshapes);
          for i = 1:nshapes
             shp = shapes{i};
-            plot(shp(1,:)', shp(2,:)', 'LineWidth', 1, 'Color', cc(ii,:))
+            %plot(shp(1,:)', shp(2,:)', 'LineWidth', 1, 'Color', cc(ii,:))
+            polygonPlot(shp, 'FaceColor', 'none', 'EdgeColor', cc(ii,:));
          end
       end
 
       % rescale
       for i = 1:nshapes
-         shapes{i} = round(shapes{i} * (1/scale));
+         shapes{i}.contour = cellfunc(@(x) round(x * 1/scale), shapes{i}.contour);
       end
          
       %convert polygons to ROIs 
-      roi(nshapes) = ROIPolygon;
+      %roi(nshapes) = ROIPolygon;
       
-      for i = 1:nshapes
-         roi(i) = ROIPolygon(shapes{i});
-      end
+      %for i = 1:nshapes
+      %   roi(i) = ROIPolygon(shapes{i});
+      %end
    end
    
    imglab = roi;

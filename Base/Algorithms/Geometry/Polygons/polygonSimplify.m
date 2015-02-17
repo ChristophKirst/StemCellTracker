@@ -17,6 +17,14 @@ function [poly, varargout] = polygonSimplify(poly, varargin)
 %     tree    hierarchical structure of polygons as matrix A as e.g. in bwboundaries
 %
 
+if isempty(poly)
+   if nargout > 1
+      varargout{1} = [];
+   end
+   return
+end
+  
+
 param = parseParameter(varargin);
 
 fillTypes = {'EvenOdd', 'NonZero', 'Positive', 'Negative'};

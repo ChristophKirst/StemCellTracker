@@ -10,9 +10,11 @@ function bbox = polygonToBoundingBox(pol)
 %
 % output:
 %    bbox     rectangular polygon representing the bounding box 
-     
+   
 if ~iscell(pol) 
    pol = {pol};
+else
+   pol = flatten(pol);
 end
 
 pmax = max(cell2mat(cellfunc(@(x) max(x, [], 2), pol)), [],2);

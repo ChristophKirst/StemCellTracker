@@ -5,7 +5,7 @@ function [roi, pks] = detectROIsByPeakVolume(imgs, varargin)
 % roi = detectROIsByPeakVolume(isalgn, param)
 %
 % descritption:
-%     finds shapes in an image img bz detecting peaks and determining theri alpha volumes.
+%     finds shapes in an image img by detecting peaks and determining theri alpha volumes.
 %
 % input:
 %    img    image as numeric array
@@ -76,7 +76,7 @@ if size(pks,2) < 3
 end
    
 % get the polygons from the points
-roi = points2shapes(pks, param);
+roi = pointsToPolygons(pks, param);
 nr = length(roi);
 
 
@@ -87,9 +87,9 @@ if getParameter(param, 'plot', false)
    
    hold on;
    for ii=1:nr
-      rr = roi{ii};      
-      plot(rr(1,:)' + plorigin(1) - 1, rr(2,:)' + plorigin(2) - 1, 'LineWidth', 1, 'Color', cc(ii,:));
-      
+      rr = polygonShift(roi{ii}, plorigin - 1);      
+      %plot(rr(1,:)' + plorigin(1) - 1, rr(2,:)' + plorigin(2) - 1, 'LineWidth', 1, 'Color', cc(ii,:));
+      polygonPlot(rr, 'FaceColor' , 'none', 'EdgeColor', cc(ii,:));
       plot(pks(1,:) + plorigin(1) - 1, pks(2,:) + plorigin(2) - 1, '.', 'Color', 'k');
    end
 end

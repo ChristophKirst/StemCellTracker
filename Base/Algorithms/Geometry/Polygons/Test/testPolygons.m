@@ -196,7 +196,7 @@ for i = 1:length(ps)
 end
 
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Polygon From Image
 
 close all
@@ -204,27 +204,30 @@ clc
 
 imglab = syntheticLabeledImage([100,100], 5, 10);
 
+
+%% check bwboundaries
 % imglab(20:50, 60:90) = 1;
 % imglab(30:40, 70:80) = 0;
 % imglab(33:37, 73:77) = 1;
-imglab = zeros(30,30);
-imglab(10:20, 5) = 1;
-imglab(10:20, 8) = 1;
+imglab = zeros(24,14);
+imglab(10:20, 5) = 2;
+imglab(3:20, 8) = 2;
+imglab(5:10, 8:13) = 2;
+imglab(6:8, 10) = 0;
 
 figure(3); clf
 implot(imglab)
 
-[B, L, N, A] =bwboundaries(imglab);
+[B, L, N, A] =bwboundaries(imglab)
 
 figure(5); clf
 implot(L)
 
-
-%%
+%% Clipper Bug on Buffering single horizontal line on the left
 clc
 i = 1;
 
-[B, L, N, A] =bwboundaries(imglab == i);
+[B, L, N, A] =bwboundaries(imglab == 2);
 
 figure(6); clf
 implot(imglab == i)
@@ -235,14 +238,34 @@ length(B)
 figure(9); clf
 imgl = zeros(size(imglab));
 for k = 1:length(B)
-   imgl(sub2ind(size(imglab), B{k}(:,1), B{k}(:,2))) = 1;
+   imgl(sub2ind(size(imglab), B{k}(:,1), B{k}(:,2))) = k;
 end
 implot(imgl)
+
+%implot(imglab)
+
 polygonPlot(cellfunc(@(x) x', B)', 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
 
-%%
+polb = polygonBuffer(B{2}', 0.5, 'simplify', false, 'end', 2);
+
+polygonPlot(polb{1}, 'FaceColor', 'none', 'EdgeColor', 'b', 'LineWidth', 2)
+
+bb = B{3}';
+bb = bb(:,[3:length(bb), 1:2]);
+polb = polygonBuffer(bb, 0.50, 'simplify', false, 'join', 'Square', 'end', 2);
+%polb = polygonBuffer(polb, -0.25, 'simplify', false);
+
+polygonPlot(polb{1}, 'FaceColor', 'none', 'EdgeColor', 'g', 'LineWidth', 2)
+
+%% bwboundaries on each label
+
+[b,tree] = imlabelbwboundary(imglab)
+b{2}
+tree{2}
+
+%% Polygon From Labeled Image
 clc
-pol = polygonFromLabeledImage(imglab == 1);
+[pol, ids, tree] = polygonFromLabeledImage(imglab)
 
 figure(10); clf; hold on
 implot(imglab)
@@ -251,20 +274,18 @@ for i = 1:length(pol)
    polygonPlot(pol{i}, 'FaceColor', 'none', 'EdgeColor', col(i,:), 'LineWidth', 3)
 end
 
-
-%%
+%%  with splitting
 clc
-pol = polygonFromLabeledImage(imglab, 'split', false);
+[pol, ids, tree] = polygonFromLabeledImage(imglab, 'split', true)
 
-figure(11); clf; hold on
+figure(10); clf; hold on
 implot(imglab)
 col = colorcube(length(pol)+1);
 for i = 1:length(pol)
-   polygonPlot(pol{i}, 'FaceColor','none', 'EdgeColor', col(i,:), 'LineWidth', 3);
+   polygonPlot(pol{i}, 'FaceColor', 'none', 'EdgeColor', col(i,:), 'LineWidth', 3)
 end
 
-
-%%
+%% single pixel / pixel on boundary
 
 img = zeros(10);
 %img(3:5, 4) = 1;
@@ -281,39 +302,7 @@ polygonPlot(pol{1}, 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
 polygonPlot(pol{2}, 'FaceColor', 'none', 'EdgeColor', 'g', 'LineWidth', 2)
 
 
-%%
-
-img = zeros(10);
-img(3:5, 4) = 1;
-img(4:7, 5) = 2;
-
-img2 = imdilate(img, strel([1,1; 1,1]))
-
-
-pol = polygonFromLabeledImage(img);
-length(pol)
-pol{1}{1}
-
-figure(6); clf; hold on
-implot(img2)
-polygonPlot(pol{1}, 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
-polygonPlot(pol{2}, 'FaceColor', 'none', 'EdgeColor', 'g', 'LineWidth', 2)
-
-
 %% Polygon From Mask
-
-%%
-
-polt = [[2,6,6,2]; [1,1,2,2]];
-img = poly2mask(polt(2,:)', polt(1,:)', 7,7);
-
-figure(2); clf; hold on
-implot(img);
-polygonPlot(polt+0.5, 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
-
-
-%%
-
 
 clc
 pol = polygonFromMask(imglab > 0);
@@ -322,16 +311,61 @@ figure(10); clf
 polygonPlot(pol)
 
 
-%% Polygon To Image
+%% Ploygon To Mask
+
+pol = polygonFromMask(imglab);
+
+img = poly2mask(pol{1}(2,:)' -0.5, pol{1}(1,:)' -0.5, size(imglab,1), size(imglab,2));
+
+figure(2); clf; hold on
+implot(imglab + img);
+polygonPlot(pol, 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
+
+%%
+
+pol = polygonFromMask(imglab);
+
+img = polygonToMask(pol, 'size', size(imglab));
+
+figure(2); clf; hold on
+implot(img);
+polygonPlot(pol, 'FaceColor', 'none', 'EdgeColor', 'r', 'LineWidth', 2)
 
 
-polygonToLabeledImage
+%% Polygons To Labeled Image
+
+pol = polygonFromLabeledImage(imglab, 'split', true);
+
+figure(5); clf;
+col = colorcube(length(pol)+1);
+for i = 1:length(pol)
+   polygonPlot(pol{i},'FaceColor', 'none', 'EdgeColor', col(i,:), 'LineWidth', 2);
+end
+
+%%
+
+imgt = polygonToLabeledImage(pol, 'size', size(imglab));
+
+figure(6); clf;
+implot(imgt)
 
 
 
+%% Test bwbountaries tree matix
 
 
+imglab = zeros(30,30);
+imglab(5:25, 5:25) = 1;
+imglab(10:20, 10:20) = 0;
+imglab(13:17, 13:17) = 1;
+
+figure(8); clf;
+implot(imglab)
+
+[b, ~, ~, t] = bwboundaries(imglab)
 
 
+[pol, ids, tree] = polygonFromLabeledImage(imglab)
 
-
+pol{1}
+tree{1}
