@@ -93,13 +93,14 @@ end
 %%
 imgSt =cell(1,3);
 th = [200, 50, 100];
+th = [0,0,0];
 for i = 1:3
    imgsS = stitchImages(imgsAll{i}, sh, 'method', stmeth);
    imgsS = imgsS(region2{:});
    %imgsS = filterAutoContrast(imgsS/max(imgsS(:)));
    
    figure(16);
-   subplot(1,3,i); 
+   subplot(3,1,i); 
    hist(imgsS(:), 256);
    
    imgsS(imgsS < th(i)) = 0;
@@ -110,12 +111,24 @@ end
 figure(1); clf; colormap jet
 implottiling(imgSt')
 
-imgC = cat(3, imgSt{:});
+%%
+imgC = cat(3, 1.25* imgSt{1}, imgSt{2}, 1 * imgSt{3});
 %imgC = imclip(imgC, 0, 2500);
 imgC = imgC / max(imgC(:));
 
 figure(2)
-implot(imgC)
+implottiling({imgC, imgC(:,:,1); imgC(:,:,2), imgC(:,:,3)}')
+
+
+%%
+
+figure(3); clf
+subplot(3,1,1);
+hist(flatten(imgC(:,:,1)), 256);
+subplot(3,1,2);
+hist(flatten(imgC(:,:,1)), 256);
+subplot(3,1,3); 
+hist(flatten(imgC(:,:,3)), 256);
 
 %%
 
@@ -187,9 +200,10 @@ imglabc = imdilate(imglabc, strel('disk', 2));
 h = figure(7); clf;
 subreg = {[600:900], [550:950], ':'};
 imgCfsub = imgCf(subreg{:});
+imgCsub = imgC(subreg{:});
 imglabsub = imglabc(subreg{:});
 
-implot(imoverlaylabel(imgCfsub, imglabsub > 0,false, 'color.map', [[0,0,0]; 0.2*[1,1,1]]));
+implot(imoverlaylabel(imgCsub, imglabsub > 0,false, 'color.map', [[0,0,0]; 0.2*[1,1,1]]));
 axis off
 xlabel([]); ylabel([])
 
@@ -199,7 +213,7 @@ saveas(h, [datadir, dataname, '_Segmentation_Seeds.pdf'])
 h = figure(8); clf;
 imgCCsub = imgCC(subreg{:});
 
-implot(imgCCsub);
+implottiling({imgCsub; imgCCsub});
 axis off
 xlabel([]); ylabel([])
 
@@ -357,17 +371,17 @@ end
 
 %% classify
 
-cth = {0.1, 0.15, 0.1};
+cth = {0.1, 0.15, 0.15};
 
 clear neuroClass
 for c = 1:3
    neuroClass(c,:) = double([statsCC{c}.(mode)] > cth{c});
 end
-neuroClass = fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:))+1;
+neuroClassTotal = fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:))+1;
 
 neuroClassColor = {[0,0,0]; [0.6,0,0]; [0,0.6,0]; [0.33,0.33,0]; [0,0.33,0]; [0.33,0,0.33]; [0,0.33,0.33]; [0.5,0.5,0.5]};
-neuroColor = reshape([neuroClassColor{neuroClass}], 3,[])';
-size(neuroColor)
+neuroColor = reshape([neuroClassColor{neuroClassTotal}], 3,[])';
+size(neuroClassTotal)
 
 R = zeros(si); G = R; B = R;
 for i = 1:length(stats);
@@ -409,7 +423,7 @@ for i = 1:ncls
       clslab{i} = 'None';
    end
    
-   nstat(i) = sum(neuroClass == i);
+   nstat(i) = sum(neuroClassTotal == i);
 end
 
 nc = num2cell(nstat);
@@ -418,9 +432,70 @@ tb = table(nc{:}, 'VariableNames', clslab)
 %% save numbers
 writetable(tb, [datadir dataname '_Counts.txt'])
 
+%% hist
+
+h = figure(10); clf; hold on
+
+for i = 1:length(nstat)
+   bar(i, nstat(i), 'FaceColor', neuroClassColor{i});
+end
+
+set(gca, 'XTickLabel', '')  
+xlabetxt =  strrep(clslab, '_', '+')
+n = length(clslab);
+ypos = -max(ylim)/50;
+text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35,'FontSize',15)
+saveas(h, [datadir dataname '_Classification_Statistics' '.pdf']);
+ b 
 
 
 
+%% Channel Based Classification
 
+
+
+col = {[1,0,0], [0,1,0], [0,0,1]};
+
+clear imgsCC
+
+for c = 1:3
+   neuroClassC = neuroClass(c,:);
+
+   C = zeros(si);
+   for i = 1:length(stats);
+      C(stats(i).PixelIdxList) =  neuroClassC(i);
+   end
+   imgClass = zeros([si, 3]);
+   imgClass(:,:,c) = C;
+
+   
+   imgsCC{8 - 2 * (c - 1)} = imgClass;
+   imgsCC{8 - 2 * (c - 1) -1} = imgray2color(3*imgCf(:,:,c), col{c});
+end
+   
+
+neuroClassColor = {[0,0,0]; [0.6,0,0]; [0,0.6,0]; [0.33,0.33,0]; [0,0.33,0]; [0.33,0,0.33]; [0,0.33,0.33]; [0.5,0.5,0.5]};
+neuroColor = reshape([neuroClassColor{neuroClassTotal}], 3,[])';
+
+R = zeros(si); G = R; B = R;
+for i = 1:length(stats);
+   R(stats(i).PixelIdxList) =  neuroColor(i,1);
+   G(stats(i).PixelIdxList) =  neuroColor(i,2);
+   B(stats(i).PixelIdxList) =  neuroColor(i,3);
+end
+imgClass = cat(3, R, G, B);
+
+
+imgsCC{1} = imgC;
+imgsCC{2} = imgClass;
+
+
+h = figure(8); clf;
+implottiling(reshape(imgsCC, 2, 4))
+
+saveas(h, [datadir dataname '_Classification_Image_Separate' '.pdf']);
+
+
+%% hist on classes
 
 

@@ -118,25 +118,14 @@ max(imgS(:))
 
 imgSP = imgS;
 
-% stats = imstatistics(imgSP, {'MinIntensity'}, imgI);
-% figure(7); clf; 
-%hist([stats.MinIntensity], 256)
+stats = imstatistics(imgSP, {'MinIntensity'}, imgI);
+figure(7); clf; 
+hist([stats.MinIntensity], 256)
 %hist(imgI(:), 256)
 
-imgSP = postProcessSegments(imgSP, imgI, 'intensity.min', 0.1, 'volume.min', 15, 'fillholes', false);
-%imgSP = immask(imgS, imgmask);
-imgSP = imlabelapplybw(imgSP, @(x) imopen(x, strel('disk', 2)));
-imgSP = imlabelseparate(imgSP);
 
-% stats = imstatistics(imgSP, {'MinIntensity'}, imgI);
-% figure(7); clf; 
-% hist([stats.MinIntensity], 56)
-%hist(imgI(:), 256)
-
-imgSP = postProcessSegments(imgSP, imgI, 'intensity.min', 0.1, 'volume.min', 15, 'fillholes', false);
-%imgSP = postProcessSegments(imgSP, 'volume.min', 7, 'fillholes', false);
-imgSP = imrelabel(imgSP);
-max(imgSP(:))
+%%
+imgSP = postProcessSegments(imgS, imgI, 'intensity.min', 0.085, 'volume.min', 15, 'fillholes', false);
 
 if verbose
    imgSp = impixelsurface(imgSP);
@@ -144,8 +133,35 @@ if verbose
    implot(imoverlaylabel(imgCf, imgSp, false));
 end
 
+
 %%
-% stats = imstatistics(imgSP, {'Volume', 'PixelIdxList', 'MedianIntensity', 'Perimeter', 'Extent', 'FilledArea'}, imgI);
+
+
+imgSP2 = immask(imgSP, imgmask);
+imgSP2 = imlabelapplybw(imgSP2, @(x) imopen(x, strel('disk', 2)));
+imgSP2 = imlabelseparate(imgSP2);
+
+% stats = imstatistics(imgSP, {'MinIntensity'}, imgI);
+% figure(7); clf; 
+% hist([stats.MinIntensity], 56)
+%hist(imgI(:), 256)
+
+imgSP2 = postProcessSegments(imgSP2, imgI, 'intensity.min', 0.085, 'volume.min', 15, 'fillholes', false);
+%imgSP = postProcessSegments(imgSP, 'volume.min', 7, 'fillholes', false);
+imgSP2 = imrelabel(imgSP2);
+max(imgSP2(:))
+
+if verbose
+   imgSp = impixelsurface(imgSP2);
+   figure(5); clf;
+   implot(imoverlaylabel(imgCf, imgSp, false));
+end
+
+%%
+
+imgSPP = imgSP2;
+
+stats = imstatistics(imgSPP, {'Volume', 'PixelIdxList', 'MedianIntensity', 'Perimeter', 'Extent', 'FilledArea'}, imgI);
 % 
 % %figure(78); clf; hist([stats.MinIntensity], 256);
 % 
@@ -179,11 +195,10 @@ end
 % imgSPP = imrelabel(imgSPP);
 % max(imgSPP(:))
 
-imgSPP = imgSP;
 
 if verbose 
    figure(6); clf;
-   implottiling({imoverlaylabel(imgCf, impixelsurface(imgSPP), false); imoverlaylabel(imgCf, imgSP, false)});
+   %implottiling({imoverlaylabel(imgCf, impixelsurface(imgSPP), false); imoverlaylabel(imgCf, imgSP, false)});
    
    statsF = imstatistics(imgSPP, {'PixelIdxList', 'Centroid'});
    

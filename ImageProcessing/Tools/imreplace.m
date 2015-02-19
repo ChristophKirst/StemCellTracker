@@ -8,7 +8,7 @@ function img = imreplace(img, subimg, coords, varargin)
 % input: 
 %    img     original image
 %    subimg  replacement sub image
-%    coords  p,q,l corner coordinates from which to start replacement
+%    coords  XY(Z) corner coordinates from which to start replacement
 %    chop    if subimage does not fit then chop if true, otherwise gerneate error
 %
 % output:
@@ -39,7 +39,7 @@ if any(ssize + coords - 1 > isize)
          si{i} = 1:ssize(i);
       end
       subimg = subimg(si{:});
-      ssize = size(subimg);
+      ssize = sized(subimg, dim);
       if isempty(subimg)
          return
       end 
@@ -57,7 +57,7 @@ if any(coords < 1)
       end
       subimg = subimg(si{:});
       coords = max(1, coords);
-      ssize = size(subimg);
+      ssize = sized(subimg, dim);
       
       if isempty(subimg)
          return
@@ -68,10 +68,10 @@ if any(coords < 1)
    end
 end
 
-
 if isempty(subimg)
    return
 end
+
 
 idx = arrayfun(@(i,j)(i:j), coords , coords + ssize-1, 'UniformOutput', false);
 img(idx{:}) = subimg;

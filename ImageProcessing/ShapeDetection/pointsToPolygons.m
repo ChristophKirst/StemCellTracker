@@ -10,7 +10,7 @@ function polys = pointsToPolygons(pts, varargin)
 %    param  parameter sturct with entries
 %           .radius   radius used in alpha volume detection (100)
 %           .dilate   dilate alphavolume with this width ([] = no dilation)
-%           .split    split non connected components ([] = false)
+%           .split    split non connected components ([] = true)
 %
 % output:
 %   shapes  cell array of shape borders as arrays of the boundary point coordinates as row vectors
@@ -34,8 +34,8 @@ if ~isempty(di) && isnumeric(di)
 end
 
 %split
-sp = getParameter(param, 'split', []);
-if ~isempty(sp) && sp
+sp = getParameter(param, 'split', true);
+if isempty(sp) || sp
    pol = polygonSplit(pol);
 else
    pol = {pol};

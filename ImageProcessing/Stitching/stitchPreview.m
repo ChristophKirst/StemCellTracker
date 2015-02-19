@@ -127,7 +127,6 @@ end
 
 
 %var2char(pos)
-
 img = stitchImages(celldata, sh, 'method', 'Overwrite', param, 'size', siz);
 
 

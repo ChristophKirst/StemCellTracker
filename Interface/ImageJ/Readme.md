@@ -5,17 +5,14 @@ Provides a link to ImageJ
 
 Features:
 ---------
-   -ijplot3d    plot 3d graphics
-   -ijget       get current image openin imagej
-   -ijread      read images via imagej libraries
+   -ijplot3d    plot 3d graphics using 3d plugin
+   -ijplot5d    plot 5d graphics using 2d sectioning
    -ijimage2mat converts ImagePlus to matlab array
 
-   
 Requirements:
 -------------
    - A working ImageJ or Fiji installation
    - java's j3d
-
 
 Installation:
 -------------

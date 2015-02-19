@@ -1,4 +1,4 @@
-function stack = imread_stack(filefilter, varargin)
+function stack = imreadStack(filefilter, varargin)
 %
 % stack = imread_stack(filefilter, varargin)
 %
@@ -22,7 +22,7 @@ else
    filenames = {d(~[d.isdir]).name};
    nz = length(filenames);
    if nz == 0
-      error('imreadstack: no files found of the form: %s', filefilter)
+      error('imreadStack: no files found of the form: %s', filefilter)
    end
    path = fileparts(filefilter);
    for i=1:nz
@@ -36,7 +36,7 @@ for z=1:nz
    img = imread(filenames{z}, varargin{:});
    if z > 1
       if ~isequal(size(img),siz)
-         error('imreadstack: image %s size is not consitent with stack', filenames{z})
+         error('imreadStack: image %s size is not consitent with stack', filenames{z})
       end
       
       stack(:,:,z) = img;     %#ok<AGROW>

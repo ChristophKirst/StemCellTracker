@@ -1,9 +1,9 @@
-function img = imrescale(data, varargin)
+function img = imrescale(img, varargin)
 %
 % img = imrescale(data, varargin)
 %
 % description:
-%   recast data to class cls
+%   rescale data into class cls
 %
 % inputs:
 %   data    image data
@@ -18,12 +18,10 @@ function img = imrescale(data, varargin)
 
 param = parseParameter(varargin{:});
 
-clsd = class(data);
+dmin = getParameter(param, 'data.min', min(img(:)));
+dmax = getParameter(param, 'data.max', max(img(:)));
 
-dmin = getParameter(param, 'data.min', min(data(:)));
-dmax = getParameter(param, 'data.max', max(data(:)));
-
-clso = getParameter(param, 'class', class(data));
+clso = getParameter(param, 'class', class(img));
 clsrange = imvaluerange(clso);
 
 rmin = getParameter(param, 'rescale.min', clsrange(1));
@@ -33,12 +31,12 @@ rmin = cast(rmin, clso);
 rmax = cast(rmax, clso);
 
 if dmin == dmax
-   img = zeros(size(data), clso) + rmin;
+   img = zeros(size(img), clso) + rmin;
    return
 end
 
 fac = double(rmax - rmin) / double(dmax - dmin);
-img = cast(double(data - dmin) * fac + double(rmin), clso);
+img = cast(double(img - dmin) * fac + double(rmin), clso);
 
 end
 

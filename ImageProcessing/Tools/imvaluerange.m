@@ -7,14 +7,15 @@ function m = imvaluerange(in)
 %
 % input:
 %    in    image data or image class name
-
+% 
+% output:
+%    m      range for the image of a specific class, for nts the min max integer values, for double and single [0,1]
 
 if ischar(in)
    cls = in;
 else
    cls = class(in);
 end
-
 
 switch cls
    case {'int8', 'int16', 'int32', 'int64', 'uint8', 'uint16', 'uint32', 'uint64'}

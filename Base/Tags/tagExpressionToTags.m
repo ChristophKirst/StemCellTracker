@@ -50,14 +50,7 @@ end
 % end
 
 %find tags
-m = length(names);
-%names
-%re
-
-for i = m:-1:1
-   %s = regexp(names{i}, re, 'names')
-   tags(i) = regexp(names{i}, re, 'names');
-end
+tags = cell2mat(regexp(names, re, 'names'));
 
 % filter out required tagsnames
 for i = 1:length(tagnames);
@@ -74,7 +67,7 @@ if numel(tags) > 0
    for i = n:-1:1
       if isfield(tags, tagnames{i})
          if strcmp(ttypes{i}, 'd')
-            dat = num2cell(str2double({tags.(tagnames{i})}));
+            dat = num2cell(str2doubleq({tags.(tagnames{i})}));
             [tags.(tagnames{i})] = dat{:};
          end
       else

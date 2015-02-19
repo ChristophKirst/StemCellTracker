@@ -5,22 +5,22 @@ function compileVignetting()
 % description:
 %    compiles all files necessary for vignetting algorithms
 %
-%
 
-clc
-cd ./ImageProcessing/Photometry/Vignetting
+oldpath = pwd;
+path = fileparts(mfilename('fullpath'));
+
+cd(path)
 
 try
-
-mex mexResponseTransform.cpp
+   clc
+   mex mexResponseTransform.cpp
 
 catch
-   cd ../../..
+   cd(oldpath)
    error('compileVignetting: error while compiling code in ./Photmetry/Vignetting');
 end
 
-cd ../../..
+cd(oldpath)
 
 end
-
 

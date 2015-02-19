@@ -214,7 +214,7 @@ classdef Trajectory < handle
       % [trajpos, tpos, objs] = frameSlice(obj, t)
       %
       % description:
-      %   finds all trajectories ids tids and objects objs passing through frame t
+      %   finds all trajectories and objects objs passing through frame t
       %
       % input:
       %   t     time 
@@ -266,7 +266,7 @@ classdef Trajectory < handle
       %
       % description:
       %   finds all trajectories tids and objects objs passing through frame t
-      %   together with nearest neightbout objects
+      %   together with nearest neightbour objects
       %
       % input:
       %   t        time 

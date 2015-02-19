@@ -1,6 +1,6 @@
-function ijcompile(force)
+function compileImageJ(force)
 %
-% ijcompile(force)
+% compileImageJ(force)
 %
 % description:
 %    compiles MImageJ.java
@@ -16,7 +16,7 @@ target = fullfile(fileparts(which(mfilename)), 'MImageJ.class');
 
 
 if (nargin < 1 || ~force) && exist(target, 'file')   
-   fprintf('ijcompile: %s already exists!\n', target) 
+   fprintf('compileImageJ: %s already exists!\n', target) 
    return;
 end
 
@@ -28,9 +28,9 @@ system(['export CLASSPATH=' ipath]);
 res = system(['javac -cp ' ijar ' ' mijname]);
 
 if (res ~=0)
-   fprintf('ijcompile: compilation of %s failed!\n', mijname)
+   fprintf('compileImageJ: compilation of %s failed!\n', mijname)
 else
-   fprintf('ijcompile: compilation of %s succeeded!\n', mijname)
+   fprintf('compileImageJ: compilation of %s succeeded!\n', mijname)
 end
 
 

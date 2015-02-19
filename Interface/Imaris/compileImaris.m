@@ -1,4 +1,10 @@
 function compileImaris
+%
+% comileImaris()
+%
+% description:
+%     compile files needed for the Imaris inteface
+%
 
 % create the statistics rgb color map
 cmap = imarisrgbstatisticscolormap(8);

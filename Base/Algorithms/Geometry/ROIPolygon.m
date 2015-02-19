@@ -81,13 +81,14 @@ classdef ROIPolygon < ROI
       end
 
       function b = boundingBox(obj, varargin)
-         b = ROIRectangle(min(cellfun(@(x) min(x,[],2), obj.contours)), max(cellfun(@(x) max(x,[],2), obj.contours)));
+         bb = polygonToBoundingBox(obj.contours);
+         b = ROIRectangle(bb(:,1), bb(:,3));
       end
       
       function v = volume(obj, varargin)
          v = zeros(1,length(obj));
          for i = 1:length(obj)
-            v(i) = polygonArea(obj.countours);
+            v(i) = polygonArea(obj.contours);
          end
       end
  
@@ -111,7 +112,7 @@ classdef ROIPolygon < ROI
 %          ids = sub2ind(si, x,y); % add corners
 %          m(ids) = 1;
 
-         m = polygonToMask(obj.contour, 'size', si);
+         m = polygonToMask(obj.contours, 'size', si);
       end
       
       function n = npixel(obj, si)
@@ -119,7 +120,7 @@ classdef ROIPolygon < ROI
       end
       
       function o = overlap(obj, roi)
-         o = polygonArea(polygonIntersection(obj.contour), roi.toPolygon);
+         o = polygonArea(polygonIntersection(obj.contours), roi.toPolygon);
       end
       
 
@@ -141,25 +142,25 @@ classdef ROIPolygon < ROI
          bb = obj.boundingBox;
          [d, sh] = bb.extractData(d);
          shr = repmat(sh(:), 1, size(obj.p,2));
-         pol = polygonShift(obj.contour, -shr);
+         pol = polygonShift(obj.contours, -shr);
          m = polygonToMask(pol, size(d));
          d = immask(d, m);
       end
 
       function shift(obj, sh)
          for i = 1:length(obj)
-            obj(i).contour = polygonShift(obj(i).contour, sh);
+            obj(i).contours = polygonShift(obj(i).contours, sh);
          end
       end
       
       function obj = rescale(obj, scale)
          for i = 1:length(obj)
-            obj(i).contour = polygonScale(obj(i).contour, scale);
+            obj(i).contours = polygonScale(obj(i).contours, scale);
          end
       end
 
       function obj= dilate(obj, bwidth)
-         obj.p = polygonDilate(obj.contour, bwidth);
+         obj.p = polygonDilate(obj.contours, bwidth);
       end
       
       
@@ -167,7 +168,7 @@ classdef ROIPolygon < ROI
          n = length(obj);
          cc = colorcube(n);
          for i = 1:n
-            polygonPlot(obj(i).contour, 'FaceColor', 'none', 'EdgeColor', cc(i,:), varargin{:})
+            polygonPlot(obj(i).contours, 'FaceColor', 'none', 'EdgeColor', cc(i,:), varargin{:})
          end
       end
       

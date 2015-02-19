@@ -50,27 +50,27 @@ class MImageJ {
     *
     * @param title    title of the new image  
     * @param object   Matlab image array representing a 2D image
-    * @param format   image format a string like 'pq', 'pql' 'pqlc' 'pqltc' (p, q, l = pixel coordinates, c = color, t= time)
+    * @param format   image format  string like 'xy', 'xyz' 'xyzc' (x, y, z = pixel coordinates, c = color)
     * @return the ImagePlus
     */
    public static ImagePlus createImage(String title, String format, Object object) {
       ImagePlus img;
-      if (format.equals("pq")) {
+      if (format.equals("xy")) {
          img = createImageGray2D(title, object);
-      } else if (format.equals("pql")) {
+      } else if (format.equals("xyz")) {
          img = createImageGray3D(title, object);
-      } else if (format.equals("lpq")) {
+      } else if (format.equals("zxy")) {
          img = createImageGray3DFast(title, object);              
-      } else if (format.equals("pqc")) {
+      } else if (format.equals("xyc")) {
          img = createImageRGB2D(title, object);
-      } else if (format.equals("cpq")) {
+      } else if (format.equals("cxy")) {
          img = createImageRGB2DFast(title, object);
-      } else if (format.equals("pqlc")) {
+      } else if (format.equals("xyzc")) {
          img = createImageRGB3D(title, object);
-      } else if (format.equals("clpq")) {
+      } else if (format.equals("czxy")) {
          img = createImageRGB3DFast(title, object); 
       } else{
-         System.out.println("MImageI: error: unknown image format: " + format);
+         System.out.println("MImageI: error: createImage: cannot create mage from format: " + format);
          return null;
       }
       
@@ -164,7 +164,7 @@ class MImageJ {
     * Create ImagePlus object from a gray 3d Matlab array 
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a gray 3D image (pql format)
+    * @param object   Matlab image array representing a gray 3D image (xyz format)
     * @return the ImagePlus
     */
    public static ImagePlus createImageGray3D(String title, Object object) {
@@ -299,7 +299,7 @@ class MImageJ {
     * Create ImagePlus object from a gray 3d Matlab array (fast)
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a gray 3D image (lpq format)
+    * @param object   Matlab image array representing a gray 3D image (zxy format)
     * @return the ImagePlus
     */
    public static ImagePlus createImageGray3DFast(String title, Object object) {
@@ -417,10 +417,10 @@ class MImageJ {
    
    
    /**
-    * Create ImagePlus object from a color 2D Matlab array (pqc)
+    * Create ImagePlus object from a color 2D Matlab array (xyc)
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a rgb 2D image (pqc format)
+    * @param object   Matlab image array representing a rgb 2D image (xyc format)
     * @return the ImagePlus
     */         
     public static ImagePlus createImageRGB2D(String title, Object object) {
@@ -478,10 +478,10 @@ class MImageJ {
 
     
    /**
-    * Create ImagePlus object from a color 2D Matlab array (fast, cpq)
+    * Create ImagePlus object from a color 2D Matlab array (fast, cxy)
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a rgb 2D image (cpq format)
+    * @param object   Matlab image array representing a rgb 2D image (cxy format)
     * @return the ImagePlus
     */         
     public static ImagePlus createImageRGB2DFast(String title, Object object) {
@@ -533,7 +533,7 @@ class MImageJ {
     * Create ImagePlus object from a rgb 3d Matlab array 
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a rgb 3D image (pqlc format)
+    * @param object   Matlab image array representing a rgb 3D image (xyzc format)
     * @return the ImagePlus
     */     
 	public static ImagePlus createImageRGB3D(String title, Object object) {
@@ -612,10 +612,10 @@ class MImageJ {
    
    
    /**
-    * Create ImagePlus object from a rgb 3d Matlab array (fast, clpq format)
+    * Create ImagePlus object from a rgb 3d Matlab array (fast, czxy format)
     *
     * @param title    title of the new image  
-    * @param object   Matlab image array representing a rgb 3D image (clpq format)
+    * @param object   Matlab image array representing a rgb 3D image (czxy format)
     * @return the ImagePlus
     */     
 	public static ImagePlus createImageRGB3DFast(String title, Object object) {

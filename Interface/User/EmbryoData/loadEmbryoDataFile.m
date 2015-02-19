@@ -59,6 +59,7 @@ elseif print_load && isempty(size_flag) && s < 12
 end
 
 labels = strsplit(data.textdata{1}, ',');
+labels = strtrim(labels);
 %if labels{end} == ''
 %   labels = labels{1:end-1};
 %end
@@ -80,18 +81,13 @@ end
 data = data.data;
 data = data(:,data_inds);
 
-% add time
-data  = [data(:,1) time * ones(size(data,1),1) data(:, 2:end)];
-
-% code assumes that columns are data points
-data = data';
-
 % convert to Object class
 
-for n = size(data,2):-1:1
-   objs(n) = Object(data(:,n), 3);
+for n = size(data,1):-1:1 
+   dd = data(n,:);
+   objs(n) = Object('id', dd(1), 'r', dd(2:4)', 'volume', dd(5), 'intensity', dd(6), 'time', time);
 end
 
-frame = Frame(fn, objs);
+frame = Frame('t', time, 'objects', objs);
 
 end

@@ -79,10 +79,14 @@ for i = 2:length(sp)
       end
    
       % get all tags and check for string vs number
-      tn = strfun(@(x) x(s:e), fns);
+      %tn = strfun(@(x) x(s:e), fns);
+      tn = cell2mat(fns);
+      tn = num2cell(tn(:, s:e), 2);    
+      
+      
       n = true;
       try 
-         cellfun(@str2num, tn); 
+         cellfun(@str2doubleq, tn); 
       catch
          n = false;
       end

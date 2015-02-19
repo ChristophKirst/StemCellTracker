@@ -3,7 +3,7 @@ function data = ijimage2mat(ijplus)
 % data = ijimage2mat(ijp)  
 %
 % description:
-%    converts ImageJ ImagePlus image to matalb array in p,q,l coordinates
+%    converts ImageJ ImagePlus image to matalb array
 %
 % input:
 %    ijplus         ImagePlus java class
@@ -29,6 +29,6 @@ end
 
 %imagej usually stores data as
 %y,x,c,l,t
-data = impqlpermute(data, 'qpclt', 'pqlct');
+data = impqlpermute(data, 'yxczt', 'xyzct');
 
 end

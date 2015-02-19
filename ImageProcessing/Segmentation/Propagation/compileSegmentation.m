@@ -7,24 +7,29 @@ function compileSegmentation()
 %
 %
 
-clc
-cd Segmentation
+oldpath = pwd;
+path = fileparts(mfilename('fullpath'));
+
+cd(path)
 
 try
 
-mex segmentByPropagationMEX.cpp
-mex segmentByPropagation3DMEX.cpp
+   clc
+   mex segmentByPropagationMEX.cpp
+   mex segmentByPropagation3DMEX.cpp
 
-mex seedPropagationMEX.cpp
-mex seedPropagation3DMEX.cpp
+   mex seedPropagationMEX.cpp
+   mex seedPropagation3DMEX.cpp
 
 catch
-   cd ..
+   cd(oldpath)
    error('compileSegmentation: error while compiling code in ./Segmentation');
 end
 
-cd ..
+cd(oldpath)
 
 end
+
+
 
 

@@ -16,7 +16,7 @@ if isempty(mij)
    try
       mij = ij.ImageJ([], 2);
    catch
-      error('ijstart: could not start ij, run ijinitialize first');
+      error('ijstart: could not start ImageJ, run ijinitialize first');
    end
 end
 

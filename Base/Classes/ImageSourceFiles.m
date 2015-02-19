@@ -21,13 +21,13 @@
          
          if nargin == 0
             return
-         elseif nargin == 1
+         elseif nargin >= 1
             if isa(varargin{1}, 'ImageSourceFiles') %% copy constructor
                obj = copy(varargin{1});
             elseif ischar(varargin{1})
                obj.fromFileExpression(varargin{1});
             elseif iscellstr(varargin{1})
-               obj.fromFileList(varargin{1});
+               obj.fromFileList(varargin{:});
             else
                error('%s: invalid constructor input, expects char at position %g',class(obj), 1);
             end
@@ -79,7 +79,7 @@
          % description:
          %    infer properties from a list of image files
    
-         [fileExpr, tagnames, tags] = tagExpression(fname, varargin{:}, 'tagnames', num2cell('SUVWABC'));
+         [fileExpr, tagnames, tags] = tagExpression(fname, 'tagnames', num2cell('SUVWABC'), varargin{:});
 
          if any(cellfun(@length, tagnames) > 1)
             error('%s: initializeRawCellFromFileList: tag names need to be single character!');

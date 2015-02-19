@@ -4,11 +4,16 @@
    % 
 
    properties 
-      ireader        = [];  % instance of loci.formats.ChannelSeparator
-      ifilename      = '';  % bio-format file name
+      ifilename       = '';  % bio-format file name
+      ireaderInstance = [];  % instance of loci.formats.ChannelSeparator
+   end
+   
+   properties (Dependent = true)
+      ireader
    end
 
    methods
+      
       function obj = ImageSourceBF(varargin) % constructor
          %
          % ImageSourceBF()
@@ -59,7 +64,7 @@
          % initialize the reader
          obj.ifilename       = filename;
          
-         % read form specific series if specified
+         % read from specific series if specified
          rawRange = obj.rawRange(varargin);
          if isfield(rawRange, 'S')
             s = {'S', rawRange.S};
@@ -69,7 +74,7 @@
             s = {};
          end
 
-         [info, obj.ireader] = imreadBFInfo(filename, s{:});
+         [info, obj.ireaderInstance] = imreadBFInfo(filename, s{:});
          obj.fromImageInfo(info);
       end
       
@@ -90,6 +95,15 @@
          [ts, tf] = obj.tileSizeAndFormat(varargin{:});
          obj.setReshape('S', 'UV', ts);
          obj.setCellFormat(tf);
+      end
+      
+      
+      % for parallel processing the non-serializeable ChannerlReder is not broadcasted to he workers -> check if intialized
+      function ir = get.ireader(obj)
+         if isempty(obj.ireaderInstance)
+            obj.ireaderInstance = imreadBFReader(obj.filename);
+         end
+         ir = obj.ireaderInstance;
       end
       
 
@@ -263,13 +277,11 @@
    methods(Access = protected)
       % Override copyElement method:
       function cpObj = copyElement(obj)
-         
-         disp copyElement
-         
+         %disp copyElement
          % Make a shallow copy of all four properties
          cpObj = copyElement@matlab.mixin.Copyable(obj);
          % Make a deep copy of the DeepCp object
-         cpObj.ireader = copy(obj.ireader);
+         cpObj.ireaderInstance = copy(obj.ireaderInstance);
       end
    end
    

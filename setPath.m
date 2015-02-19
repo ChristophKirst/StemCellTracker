@@ -50,7 +50,8 @@ includepaths = {
      ... // External Packages
      '/Base/Utils/External/BM3D',...
      '/Base/Utils/External/SLICSuperpixels',...
-     '/Base/Utils/External/image_pyramid'
+     '/Base/Utils/External/image_pyramid',...
+     '/Base/Utils/External/str2doubleq'
 };
  
 basepath = fileparts(mfilename('fullpath'));

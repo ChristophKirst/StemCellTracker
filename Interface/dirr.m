@@ -11,7 +11,7 @@ function names = dirr(foldername, varargin)
 %                   .directories    include directory names in result (false)
 %                   .files          include files in result (true)
 %                   .recursive      propagate into sub directories after final folder is matched (false)
-%                   .dots           include '.' and '..' in dirctories (false)
+%                   .dots           include '.' and '..' in directories (false)
 %
 % output:
 %     fnames        all filenames that match foldername as cellstr array
@@ -26,7 +26,6 @@ includefiles = getParameter(param, 'files', true);
 recursive = getParameter(param, 'recursive', false);
 dots = getParameter(param, 'dots', false);
 %apath = getParameter(param, 'absolutepath', false);
-
 
 names = {};
 
@@ -93,8 +92,16 @@ end
 if recursive
    names = findfiles(dirs, folders{end});
 else
+  
    for d = 1:length(dirs)
-      na = fullfile(dirs{d}, folders{end});
+      
+      dirsd = dirs{d};
+      if ~isempty(dirsd) && dirsd(end) ~= filesep
+         dirsd(end+1) = filesep;
+      end
+      
+      na = [dirsd, folders{end}];
+      %na = fullfile(dirs{d}, folders{end}); % fullfile is super slow
       
       if isempty(strfind(folders{end},'*'))
          if includefiles && isfile(na)
@@ -116,7 +123,8 @@ else
          if ~dots % get rid of dots
             newfiles = newfiles(cellfun('isempty',regexp(newfiles,'\<\.', 'match')));
          end
-         newfiles = cellfun(@(x) fullfile(dirs{d}, x), newfiles, 'UniformOutput', false);
+         newfiles = cellfun(@(x) [dirsd, x], newfiles, 'UniformOutput', false);
+         %newfiles = cellfun(@(x) fullfile(dirs{d}, x), newfiles, 'UniformOutput', false);
          names = [names, newfiles]; %#ok<AGROW>
       end
    end

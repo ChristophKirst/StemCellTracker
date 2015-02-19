@@ -1,6 +1,6 @@
-function imwrite_tiff(data, filename, varargin)
+function imwriteTIFF(data, filename, varargin)
 %
-% imwrite_tiff(data, filename, varargin)
+% imwriteTIFF(data, filename, varargin)
 %
 % description:
 %    writes data to tiff file
@@ -31,7 +31,7 @@ switch nc
       t.setTag('Photometric', Tiff.Photometric.RGB);
       t.setTag('ExtraSamples',Tiff.ExtraSamples.Unspecified);
    otherwise
-      error('imwrite_tiff: image data is not Gray, RGB, GrayAlpha or RGBA');
+      error('imwriteTIFF: image data is not Gray, RGB, GrayAlpha or RGBA');
 end
 
 % check data type
@@ -65,12 +65,12 @@ switch cls
       t.setTag('SampleFormat',Tiff.SampleFormat.Int);
    case {'single', 'double'}
       % rescale to uint16
-      warning('imwrite_tiff: rescaling double image data to unit16');
+      warning('imwriteTIFF: rescaling double image data to unit16');
       data = imrescale(data, 'class', 'uint16');
       t.setTag('BitsPerSample',16);
       t.setTag('SampleFormat',Tiff.SampleFormat.UInt);
    otherwise
-      error('imwrite_tiff: unknonw image data class %s for export!', cls);
+      error('imwriteTIFF: unknonw image data class %s for export!', cls);
 end
 
 t.setTag('ImageLength',siz(1));
