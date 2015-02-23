@@ -97,7 +97,7 @@ void rgbtolab(int* rin, int* gin, int* bin, int sz, double* lvec, double* avec, 
 void getLABXYSeeds(int STEP, int width, int height, int* seedIndices, int* numseeds)
 {
     const bool hexgrid = false;
-	int n;
+	 int n;
     int xstrips, ystrips;
     int xerr, yerr;
     double xerrperstrip,yerrperstrip;
@@ -110,8 +110,8 @@ void getLABXYSeeds(int STEP, int width, int height, int* seedIndices, int* numse
 	xstrips = (0.5+(double)(width)/(double)(STEP));
 	ystrips = (0.5+(double)(height)/(double)(STEP));
     
-    xerr = width  - STEP*xstrips;if(xerr < 0){xstrips--;xerr = width - STEP*xstrips;}
-    yerr = height - STEP*ystrips;if(yerr < 0){ystrips--;yerr = height- STEP*ystrips;}
+   xerr = width  - STEP*xstrips;if(xerr < 0){xstrips--;xerr = width - STEP*xstrips;}
+   yerr = height - STEP*ystrips;if(yerr < 0){ystrips--;yerr = height- STEP*ystrips;}
     
 	xerrperstrip = (double)(xerr)/(double)(xstrips);
 	yerrperstrip = (double)(yerr)/(double)(ystrips);
@@ -119,22 +119,27 @@ void getLABXYSeeds(int STEP, int width, int height, int* seedIndices, int* numse
 	xoff = STEP/2;
 	yoff = STEP/2;
     
-    n = 0;
+   n = 0;
 	for( y = 0; y < ystrips; y++ )
 	{
 		ye = y*yerrperstrip;
 		for( x = 0; x < xstrips; x++ )
 		{
 			xe = x*xerrperstrip;
-            seedx = (x*STEP+xoff+xe);
-            if(hexgrid){ seedx = x*STEP+(xoff<<(y&0x1))+xe; if(seedx >= width)seedx = width-1; }//for hex grid sampling
-            seedy = (y*STEP+yoff+ye);
-            i = seedy*width + seedx;
+         seedx = (x*STEP+xoff+xe);
+         
+         if(hexgrid){
+            seedx = x*STEP+(xoff<<(y&0x1))+xe;
+            if(seedx >= width) seedx = width-1;
+         }//for hex grid sampling
+         
+         seedy = (y*STEP+yoff+ye);
+         i = seedy*width + seedx;
 			seedIndices[n] = i;
 			n++;
 		}
 	}
-    *numseeds = n;
+   *numseeds = n;
 }
 
 void PerformSuperpixelSLIC(double* lvec, double* avec, double* bvec, double* kseedsl, double* kseedsa, double* kseedsb, double* kseedsx, double* kseedsy, int width, int height, int numseeds, int* klabels, int STEP, double compactness)

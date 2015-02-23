@@ -31,7 +31,7 @@ param = parseParameter(varargin);
 nspxls = getParameter(param, 'superpixel', 2500);
 compact = getParameter(param, 'compactness', 10);
 
-img8 = imrescale(img, 'class', 'uint8');
+img8 = imrecast(img, 'uint8', 'rescale', 'full');
 
 [imglab, ~] = slicmex(img8, nspxls, compact);
 
