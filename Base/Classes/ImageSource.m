@@ -25,7 +25,7 @@ classdef ImageSource < ImageInfo
       idatacorrectfunction = []; % (optional) function handle to correct images, applied to each data
       
             
-      ipreview = [];             % cell of preview images of images returned by cell
+      ipreview = [];             % cell of preview images for images as returned by cell
       ipreviewscale = 0.01;      % scale of the preview images
    end
         

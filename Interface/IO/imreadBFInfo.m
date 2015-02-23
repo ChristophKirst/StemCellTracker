@@ -14,8 +14,8 @@ function [iinfo, ireader] = imreadBFInfo(fname, varargin)
 %            .metadata  include meta data in iinfo (true)
 %            .table     transform metadata to a table (true)
 %            .struct    return struct instead of ImageInfo class (false)
-%            .array     return image info for each series separately (false, i.e. assuming it is the same for all series, e.g. for a tiled image)
-%            .squeeze   return info assuming data is squezed by imreadBF (true)
+%            .array     return image info for each series separately (false, i.e. assuming it is the same for all series, e.g. tiles of a larger image)
+%            .squeeze   return info assuming data is squeezed by imreadBF (true)
 %
 %            sub image specs as passed to imreadBF to determine the returned size:
 %            .S / .s   ids for series     [sid1, sid2, ...], {sid1, sid2, ...} ([] = all)

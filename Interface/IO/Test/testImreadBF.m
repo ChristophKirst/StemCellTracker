@@ -1,5 +1,6 @@
-%% example
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%% Test imreadBF Bioformats %%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clc
 clear all
@@ -10,7 +11,6 @@ bfinitialize
 %%
 
 [info, ir] = imreadBFInfo('./Test/Images/hESCells_tripple_reporter.TIF')
-
 
 %%
 clc
