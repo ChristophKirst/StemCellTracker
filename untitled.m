@@ -55,7 +55,9 @@ clc
 %%
 
 %imglab = segmentBySLIC(img, 'superpixel', 45, 'compactness', 10);
-%imglab = segmentBySLIC(img, 'superpixel', 2045, 'compactness', 1);
+imglab = segmentBySLIC(img, 'superpixel', 2045, 'compactness', 1);
+
+%%
 imglab = watershed(1-mat2gray(img));
 
 %%
@@ -78,11 +80,52 @@ implot(imgmask)
 
 %%
 
-imgf = filterBM(img)
+imgf = filterBM(repmat(mat2gray(img),1,1,3), 'sigma', 10);
+imgf = imgf(:,:,1);
+
+figure(4); clf;
+implottiling({img; mat2gray(imgf)})
+
+%%
+clc
+imgf2 = filterSphere(imgf, [3,3]);
+
+
+figure(5); clf;
+implottiling({mat2gray(img); mat2gray(imgf2)})
 
 %%
 
-imglab = watershed(1-mat2gray(img));
+%%
+
+ds= [2, 3,4, 5,6, 7, 9]
+
+for i = 1:length(ds)
+   clc
+   imgf2 = filterDisk(imgf, ds(i) * [1,1]);
+   imgf2 = imgf - imgf2;
+   imgfs{i} = mat2gray(imgf2);
+end
+
+imge =mat2gray(imgf)+mat2gray(imgfs{end});
+%imge = imge - min(imge(:));
+imge = imge - 0.5;
+imge(imge<0) = 0;
+
+imgse = imextendedmax(imge, 0.1);
+
+
+% figure(5); clf;
+% hist(imge(:), 256);
+
+figure(6); clf;
+implottiling({mat2gray(img), imoverlaylabel(mat2gray(imge), imgse), imgfs{:}}', 'tiling', [4,2])
+
+
+%%
+
+%imglab = watershed(1-mat2gray(imgf(:,:,1)));
+imglab = segmentBySLIC(img, 'superpixel', 2045, 'compactness', 5);
 imglab = immask(imglab, imgmask);
 
 figure(2); clf

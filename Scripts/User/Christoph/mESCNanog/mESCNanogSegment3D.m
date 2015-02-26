@@ -33,7 +33,8 @@ tiling = [5,8];
  %%
  
  
- imgfm = immask(imgf, imgmask);
+
+ 
  
  %%
  imgfmm = filterMedian(imgfm, [5,5,3]);
@@ -44,19 +45,15 @@ tiling = [5,8];
  %%
  
 imggrad = zeros(size(imgfm));
- for z = 1:size(imgfmm,3)
-  imggrad(:,:,z) = imgradient(imgfmm(:,:,z));
+ for z = 1:size(imgfm,3)
+  imggrad(:,:,z) = imgradient(imgfm(:,:,z));
  end
  
  imggrad = mat2gray(imclip(imggrad, 0, 25));
  
  
 %%
-if verbose
-    figure(15); clf
-    set(gcf, 'Name', ['Time: ', num2str(time), ' Mask']);
-    implottiling(imggrad(:,:,10:19), 'tiling', tiling);
-end
+
   
  %%
  
@@ -146,12 +143,7 @@ imgf = mat2gray(imgf);
 %implottiling(imgf, 'tiling', tiling);
 
 %%
-imgmax = imextendedmax(mat2gray(imgf), 0.015);
-%stackmax = imregionalmax(stackf);
-%imgmax = immask(imgmax, imgmask);
-%
-%stackmax = imerode(stackmax, strel('disk',3));
-%stackmax = imdilate(stackmax, strel('disk',3));
+
 
 if verbose
    % figure(10)

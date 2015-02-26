@@ -1,4 +1,4 @@
-function [Xdenoised] = CVBM3D(Xnoisy, sigma, dump_information, bm3dProfile, Xorig)
+function [Xdenoised] = CVBM3D(Xnoisy, sigma, depth, dump_information, bm3dProfile, Xorig)
 %  CVBM3D denoising of RGB videos corrupted with AWGN.
 %
 %  Note: CL changed header !
@@ -102,8 +102,8 @@ if exist('Xorig', 'var') == 1,
     end
 end
 
-denoiseFrames  = min(9, NumberOfFrames);
-denoiseFramesW = min(9, NumberOfFrames);
+denoiseFrames  = min(depth, NumberOfFrames);
+denoiseFramesW = min(depth, NumberOfFrames);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%  Quality/complexity trade-off
@@ -159,8 +159,8 @@ thrToIncStep        = 8;  %% used in the HT filtering to increase the sliding st
 %%%%
 if strcmp(bm3dProfile, 'lc') == 1,
     lambda_thr3D = 2.8;
-    denoiseFrames  = min(5, NumberOfFrames);
-    denoiseFramesW = min(5, NumberOfFrames);
+    %denoiseFrames  = min(5, NumberOfFrames);
+    %denoiseFramesW = min(5, NumberOfFrames);
     N2_wiener = 4;
     N2 = 4;
     Ns = 3;

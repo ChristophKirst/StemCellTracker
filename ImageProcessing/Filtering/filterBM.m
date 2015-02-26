@@ -22,6 +22,8 @@ profle  = getParameter(param, 'profile', 'np');
 prnt    = getParameter(param, 'print', 0);
 cspace  = getParameter(param, 'colorspace', 'opp');
 ref     = getParameter(param, 'reference', 1);
+depth   = getParameter(param, 'depth', 3);
+
 if isempty(ref)
    ref = 1;
 end
@@ -36,24 +38,24 @@ switch frmt
    case 'XYC'
       [psf, img] = CBM3D(ref, img, sigma, profle, prnt, cspace);
    case 'XYZ'
-      if ref == 1
-         [psf, img] = VBM3D(img, sigma, prnt, profle);
-      else
-         [psf, img] = VBM3D(img, sigma, prnt, profle, ref);
-      end
+      %if ref == 1
+         [psf, img] = VBM3D(img, sigma, 0, depth, prnt, profle);
+      %else
+      %   [psf, img] = VBM3D(img, sigma, prnt, profle, ref);
+      %end
    case 'XYZC'
       img = imfrmtReformat(img, 'XYZC', 'XYCZ');   
-      if ref == 1
-         [psf, img] = CVBM3D(img, sigma, prnt, profle);
-      else
-         [psf, img] = CVBM3D(img, sigma, prnt, profle, ref);
-      end     
+      %if ref == 1
+         [psf, img] = CVBM3D(img, sigma, depth, prnt, profle);
+      %else
+      %   [psf, img] = CVBM3D(img, sigma, prnt, profle, ref);
+      %end     
    case 'XYCZ'
       %img = imfrmtReformat(img, 'XYZC', 'XYCZ');   
       if ref == 1
-         [psf, img] = CVBM3D(img, sigma, prnt, profle);
+         [psf, img] = CVBM3D(img, sigma, depth, prnt, profle);
       else
-         [psf, img] = CVBM3D(img, sigma, prnt, profle, ref);
+         [psf, img] = CVBM3D(img, sigma, depth, prnt, profle, ref);
       end      
       
    otherwise

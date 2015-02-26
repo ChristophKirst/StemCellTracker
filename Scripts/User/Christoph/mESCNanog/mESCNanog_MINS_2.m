@@ -22,10 +22,10 @@ tiling = [5,4];
 
 %% Data
 
-datadir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/12Aug14FGFonNanogH2BGFP-700';
+datadir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/23Oct14FGFonNanog_movie_FGF4_1/';
 %dexp = 'T<F,3>/T<F,3>.tif';
 %fulldexp = fullfile(datadir, dexp);
-fulldexp = fullfile(datadir, '12Aug14FGFonNanogH2BGFP-700_movie.lsm');
+fulldexp = fullfile(datadir, '23Oct14FGFonNanog_movie_FGF4_1.lsm');
 dns = tagExpressionToFiles(fulldexp);
 
 isd = ImageSourceBF(fulldexp);
@@ -33,8 +33,8 @@ isd.printInfo
 
 %% MINs Results
 % note: z stack here is saved as time T !
-resultdir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/12Aug14FGFonNanogH2BGFP-700/12Aug14FGFonNanogH2BGFP-700_MINS_1/';
-fexp = '12Aug14FGFonNanogH2BGFP-700_movie_channel=0001_frame=<F,4>_segmentation.tiff';
+resultdir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/23Oct14FGFonNanog_movie_FGF4_1/23Oct14FGFonNanog_movie_FGF4_1_MINS_2/';
+fexp = '23Oct14FGFonNanog_movie_FGF4_1_channel=0001_frame=<F,4>_segmentation.tiff';
 
 fullfexp = fullfile(resultdir , fexp);
 fns = tagExpressionToFiles(fullfexp)
@@ -153,7 +153,7 @@ ll = cellfun(@length, ids);
 %pos = ll == is.dataSize('F');
 
 tmax = is.cellSize('F');
-tmax = 5;
+tmax = 7;
 
 ntraj = length(traj);
 

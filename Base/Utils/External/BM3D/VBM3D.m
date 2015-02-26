@@ -1,4 +1,4 @@
-function [PSNR_FINAL_ESTIMATE, y_hat_wi] = VBM3D(Xnoisy, sigma, NumberOfFrames, dump_information, bm3dProfile, Xorig)
+function [PSNR_FINAL_ESTIMATE, y_hat_wi] = VBM3D(Xnoisy, sigma, NumberOfFrames, depth, dump_information, bm3dProfile, Xorig)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 %  Note: CK: changed header: bm3dProfile <-> Xorig
@@ -149,7 +149,8 @@ transform_2D_Wiener_name = 'dct';     %% transform used for the Wiener filt. of 
 transform_3rd_dim_name   = 'haar'; %% tranform used in the 3-rd dim, the same for HT and Wiener filt.
 
 %%%% Step 1: Hard-thresholding (HT) parameters:
-denoiseFrames       = min(9, NumberOfFrames); % number of frames in the temporalwindow (should not exceed the total number of frames 'NumberOfFrames')
+%denoiseFrames       = min(9, NumberOfFrames); % number of frames in the temporalwindow (should not exceed the total number of frames 'NumberOfFrames')
+denoiseFrames       = min(depth, NumberOfFrames); % we change time -> z slice -> where 3 slices are large
 N1                  = 8;  %% N1 x N1 is the block size used for the hard-thresholding (HT) filtering
 Nstep               = 6;  %% sliding step to process every next refernece block
 N2                  = 8;  %% maximum number of similar blocks (maximum size of the 3rd dimension of the 3D groups)
@@ -162,7 +163,9 @@ Nb                  = 2;  %% number of blocks to follow in each next frame, used
 beta                = 2.0; %% the beta parameter of the 2D Kaiser window used in the reconstruction
 
 %%%% Step 2: Wiener filtering parameters:
-denoiseFramesW      = min(9, NumberOfFrames);
+%denoiseFramesW      = min(9, NumberOfFrames);
+denoiseFramesW      = min(depth, NumberOfFrames);
+
 N1_wiener           = 7;
 Nstep_wiener        = 4;
 N2_wiener           = 8;
@@ -188,8 +191,9 @@ if strcmp(bm3dProfile, 'lc') == 1,
     lambda_thr3D = 2.8;
     smallLN   = 2;
     smallLNW  = 2;
-    denoiseFrames  = min(5, NumberOfFrames);
-    denoiseFramesW = min(5, NumberOfFrames);
+    %denoiseFrames  = min(5, NumberOfFrames); 
+    %denoiseFramesW = min(5, NumberOfFrames);
+    
     N2_wiener = 4;
     N2 = 4;
     Ns = 3;

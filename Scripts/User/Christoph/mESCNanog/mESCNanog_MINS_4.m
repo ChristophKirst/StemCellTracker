@@ -22,10 +22,11 @@ tiling = [5,4];
 
 %% Data
 
-datadir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/12Aug14FGFonNanogH2BGFP-700';
+clc
+datadir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/29Oct14FGFonNanogH2BGFP_FGF_1/';
 %dexp = 'T<F,3>/T<F,3>.tif';
 %fulldexp = fullfile(datadir, dexp);
-fulldexp = fullfile(datadir, '12Aug14FGFonNanogH2BGFP-700_movie.lsm');
+fulldexp = fullfile(datadir, '29Oct14FGFonNanogH2BGFP_FGF_1_movie.lsm');
 dns = tagExpressionToFiles(fulldexp);
 
 isd = ImageSourceBF(fulldexp);
@@ -33,8 +34,8 @@ isd.printInfo
 
 %% MINs Results
 % note: z stack here is saved as time T !
-resultdir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/12Aug14FGFonNanogH2BGFP-700/12Aug14FGFonNanogH2BGFP-700_MINS_1/';
-fexp = '12Aug14FGFonNanogH2BGFP-700_movie_channel=0001_frame=<F,4>_segmentation.tiff';
+resultdir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/29Oct14FGFonNanogH2BGFP_FGF_1/29Oct14FGFonNanogH2BGFP_FGF_1_movie/';
+fexp = '29Oct14FGFonNanogH2BGFP_FGF_1_movie_channel=0001_frame=<F,4>_segmentation.tiff';
 
 fullfexp = fullfile(resultdir , fexp);
 fns = tagExpressionToFiles(fullfexp)
@@ -123,20 +124,101 @@ plotMatchedTrajectories(frames, traj)
 
 %% Plot some statistics
 lt = [traj.duration];
-trajL = traj(lt == 67);
+id = (lt == 64);
 
 figure(18)
 clf
-plotMatchedTrajectories(frames, trajL)
+plotMatchedTrajectories(frames, traj(id))
 
 
 %% 
 
-figure(19); clf; hold on
-for k = 1:length(trajL)
-   i = [trajL(k).objects.intensity];
-   plot(i)
+ntraj = length(traj);
+
+cols = colorcube(ntraj);
+cols = cols(randperm(size(cols,1)),:);
+
+
+figure(24); clf; hold on
+subplot(1,2,1); hold on
+for k = find(id)
+   i = [traj(k).objects.intensity];
+   plot(i, 'Color', cols(k, :))
 end
+
+subplot(1,2,2); hold on
+for k = find(id)
+   i = [traj(k).objects.volume];
+   plot(i, 'Color', cols(k, :))
+end
+
+%%
+
+figure(7)
+rr = [traj(10).objects.r]
+plot(rr(1,:), rr(2,:))
+
+figure(8)
+rr = [traj(10).objects.r]
+plot(rr(3,:))
+
+
+%% Load Data for Analysis
+
+moviedir = fullfile(resultdir, 'tracking');
+mkdir(moviedir)
+
+outfile = fullfile(moviedir, 'T<T,3>Z<Z,2>.tiff');
+
+ids = {traj.objids};
+ll = cellfun(@length, ids);
+
+% only keep full length traj
+%pos = ll == is.dataSize('F');
+
+tmax = is.cellSize('F');
+%tmax = 7;
+
+ntraj = length(traj);
+
+cols = colorcube(ntraj);
+cols = cols(randperm(size(cols,1)),:);
+
+imgall = zeros([is.dataSize, tmax]);
+imglaball = zeros([is.dataSize, tmax]);
+
+for t = 1:tmax
+   % load data
+   imgall(:,:,t) = isd.data('T', t, 'C', 1);
+   imgseg(:,:,t) = is.data('F', t);
+   
+   
+   
+end
+   
+   
+   
+   
+   % determine color map
+   [tpos, topos, tobjs] = traj.frameSlice(t);
+   
+   %maps is [tobjs.id] -> tpos
+   colm = zeros(length(tpos), 3);
+   colm([tobjs.id], :) = cols(tpos, :);
+
+   imgmovie(:,:,:,:, t) = imoverlaylabel(mat2gray(img), impixelsurface(imgseg), false, 'color.map', colm,  'color.shuffle', 'noshuffle');
+   
+   imgwrt = imfrmtReformat(imgmovie(:,:,:,:,t), 'XYZC', 'XYCZ');
+   
+   for z = 1:size(imgwrt,4)
+      imwrite(imgwrt(:,:,:,z), tagExpressionToString(outfile, 'T', t, 'Z', z));
+   end
+end
+
+
+
+
+
 
 
 %% Plot in 5d
@@ -153,7 +235,7 @@ ll = cellfun(@length, ids);
 %pos = ll == is.dataSize('F');
 
 tmax = is.cellSize('F');
-tmax = 5;
+%tmax = 7;
 
 ntraj = length(traj);
 

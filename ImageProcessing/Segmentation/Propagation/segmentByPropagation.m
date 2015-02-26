@@ -12,7 +12,7 @@ function [segments, distances] = segmentByPropagation(image, label, mask, lambda
 %    image           instensity image to be segmented
 %    lables          starting lables
 %    mask            restrict propagation to this mask
-%    lambda          weight for spatial distances (wieght for intensity distances = 1)
+%    lambda          weight for spatial distances (weight for intensity distances = 1)
 %    ksize           width/height of box to calculate intensity differences for (1 = center pixel only)
 %    intensity_refs  intensity references ([] = use average over seeds labels, -1 use average over box of size ksize)
 %
