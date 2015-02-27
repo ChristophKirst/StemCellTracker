@@ -2,6 +2,8 @@
 %%%  Mouse Nanog visualize MINs results %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%% Initialize
+
 clear all
 clear classes
 close all
@@ -9,18 +11,19 @@ clc
 initialize
 bfinitialize
 ijinitialize
+addpath('./Interface/User/EmbryoData');
 
 verbose = true;
 
+% put path of this script here
 addpath('./Scripts/User/Christoph/mESCNanog');
-addpath('./Interface/User/EmbryoData');
 
+% initializeParallelProcessing(12) % number of processors
 
-initializeParallelProcessing(12) % number of processors
-
+%
 tiling = [5,4];
 
-%% Data
+%% Setup Data Source
 
 datadir = '/data/Science/Projects/StemCells/Experiment/Mouse/Nanog/12Aug14FGFonNanogH2BGFP-700';
 %dexp = 'T<F,3>/T<F,3>.tif';
@@ -39,14 +42,16 @@ fexp = '12Aug14FGFonNanogH2BGFP-700_movie_channel=0001_frame=<F,4>_segmentation.
 fullfexp = fullfile(resultdir , fexp);
 fns = tagExpressionToFiles(fullfexp)
 
-is = ImageSourceFiles(fullfexp);
+isMINS = ImageSourceFiles(fullfexp);
 
 
 %% Plot Data
+
+% optional
 f = 1;
 
 img = isd.data('T', f, 'C', 1);
-imgseg = is.data('F', f);
+imgseg = isMINS.data('F', f);
 
 figure(1); clf
 implottiling(imoverlaylabel(img, impixelsurface(imgseg), false), 'tiling', tiling)
@@ -55,12 +60,12 @@ implottiling(imoverlaylabel(img, impixelsurface(imgseg), false), 'tiling', tilin
 %% Plot 5D data
 
 nT = 3;
-imgmovie = zeros([is.dataSize, 3, nT]);
+imgmovie = zeros([isMINS.dataSize, 3, nT]);
 
 for t = 1:nT
    
    img = isd.data('T', t, 'C', 1);
-   imgseg = is.data('F', t);
+   imgseg = isMINS.data('F', t);
    imgmovie(:,:,:,:, t) = imoverlaylabel(img, impixelsurface(imgseg), false);
 end
 
@@ -152,7 +157,7 @@ ll = cellfun(@length, ids);
 % only keep full length traj
 %pos = ll == is.dataSize('F');
 
-tmax = is.cellSize('F');
+tmax = isMINS.cellSize('F');
 tmax = 5;
 
 ntraj = length(traj);
@@ -160,13 +165,13 @@ ntraj = length(traj);
 cols = colorcube(ntraj);
 cols = cols(randperm(size(cols,1)),:);
 
-imgmovie = zeros([is.dataSize, 3, tmax]);
+imgmovie = zeros([isMINS.dataSize, 3, tmax]);
 
 for t = 1:tmax
    
    % load data
    img = isd.data('T', t, 'C', 1);
-   imgseg = is.data('F', t);
+   imgseg = isMINS.data('F', t);
    
    % determine color map
    [tpos, topos, tobjs] = traj.frameSlice(t);

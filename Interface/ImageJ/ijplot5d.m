@@ -46,8 +46,8 @@ if wrt % use file transfer
    
    % write the data
    k = 1;
-   for z = 1:isize(3)
-      for t = 1:isize(5)
+   for t = 1:isize(5)
+      for z = 1:isize(3)
          fn = fullfile(tmpdir, [tmpfn, sprintf('Z%.3dT%.4d.tif', z, t)]);
          imwrite(squeeze(img(:,:,z,:,t)), fn);
          fnlst{k} = fn;
@@ -64,15 +64,18 @@ if wrt % use file transfer
    fclose(fid);
 
    mfn = fullfile(tmpdir, [tmpfn '_openmacro.txt']);
-   fid = fopen(lfn, 'w');
+   fid = fopen(mfn, 'w');
    fprintf(fid, 'run("Stack From List...", "open=%s");', lfn);
-   fprintf(fid, 'run("Stack to Hyperstack...", "order=xyczt(default) channels=%d slices=%d frames=%d display=Color");', isize(4), isize(3), isize(5));
+   fprintf(fid, 'run("Stack to Hyperstack...", "order=xyczt(default) channels=%d slices=%d frames=%d display=Color");', 1, isize(3), isize(5));
    fclose(fid);
 
    ip = ijpath;
    
    cmd = sprintf('cd %s; java -jar ij.jar -macro "%s" &', ip, mfn);
    system(cmd)
+   
+   %iji = ij.IJ; 
+   %iji.runMacro('Stack From List...', sprintf('open=%s', lfn))
    
    
 else    % use interface
