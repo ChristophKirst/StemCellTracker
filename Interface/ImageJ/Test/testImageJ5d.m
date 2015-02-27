@@ -21,9 +21,8 @@ ijplot5d(imgmovie, 'class', 'uint8')
 toc
 
 
-
 %% via files
-
+ 
 tic
 imgmovie = repmat(imgc, 1, 1, 1, 1, 5);
 ijplot5d(imgmovie, 'class', 'uint8', 'write', true)

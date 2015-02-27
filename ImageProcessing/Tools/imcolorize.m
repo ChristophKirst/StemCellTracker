@@ -29,7 +29,7 @@ if isempty(shuffle)
    shuffle = 'shuffle';
 end
 
-back = getParameter(param, {'color', 'background'}, []);
+back = getParameter(param, 'color.background', []);
 if isempty(back)
     opt = {'k'};
 else

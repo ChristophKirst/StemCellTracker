@@ -22,7 +22,6 @@ function ijplot5d(img, varargin)
 param = parseParameter(varargin);
 title = getParameter(param, 'title', []);
 cls   = getParameter(param, 'class', 'uint8');
-
 wrt   = getParameter(param, 'write', false);
 
 isize = size(img);
@@ -43,6 +42,8 @@ if wrt % use file transfer
    end
 
    fnlst = cell(isize(3) * isize(5));
+   
+   img = imrecast(img, cls, 'rescale', 'full');
    
    % write the data
    k = 1;
@@ -77,7 +78,17 @@ if wrt % use file transfer
    %iji = ij.IJ; 
    %iji.runMacro('Stack From List...', sprintf('open=%s', lfn))
    
+
    
+   cln = getParameter(param, 'cleanup', true);
+   if cln
+      %fprintf('opening image in ImageJ, press key to continue and delete temporary files...\n')
+      %pause
+      waitfor(msgbox('opening image in ImageJ ! press key to continue and delete temporary files..', 'ijplot5d'))
+      
+      system(['rm -r ', tmpdir]);
+   end
+
 else    % use interface
 
    
