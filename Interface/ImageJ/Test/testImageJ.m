@@ -12,7 +12,7 @@ javarmdynamicclasspath
 
 %% Compile
 
-ijcompile(1)
+compileImageJ(1)
 
 
 %% ImageJ Path
@@ -52,6 +52,10 @@ ijplot5d(imgmovie)
 
 %% ijplot5d large data
 
+ijinitialize
+
+%%
+
 img = syntheticLabeledImage([512, 512, 20], [50, 50, 4], 60);
 imgc = imcolorize(img);
 
@@ -68,4 +72,10 @@ tic
 imgmovie = repmat(imgc, 1, 1, 1, 1, 10);
 ijplot5d(imgmovie, 'class', 'uint8')
 toc
+
+
+
+
+
+
 
