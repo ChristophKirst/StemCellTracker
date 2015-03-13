@@ -31,7 +31,7 @@ if ~isempty(fs)
 end
 
 % morphological closing
-se= getParameter(param, 'strel', strel('disk', 20));
+se = getParameter(param, 'strel', strel('disk', 20));
 if isnumeric(se)
    se = strel('disk', se);
 end

@@ -31,7 +31,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
    Clipper c;
    
    //Operation
-   ClipType clipT = (ClipType) mxGetScalar(prhs[0]);
+   ClipType clipT = (ClipType) (int) mxGetScalar(prhs[0]);
 
    //PolyFillType 
    //see http://glprogramming.com/red/chapter11.html

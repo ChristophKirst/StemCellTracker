@@ -1,4 +1,4 @@
-function [ipath, varargout] = ijpath(hintpath)
+function [ipath, varargout] = ijpath(hintpath, varargin)
 %
 % [ipath, ijjar, viewer3djar] = ijpath(hintpath)
 %
@@ -103,8 +103,9 @@ if ~found
    end
 end
 
-if ~found
-    error('ijpath: cannot find ImageJ installation, try passing a path')
+if ~found 
+    warning('ijpath: cannot find ImageJ installation, try passing a path')
+    ipath = ''; 
 end
 
 if nargout > 1

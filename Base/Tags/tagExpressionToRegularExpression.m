@@ -13,8 +13,11 @@ function texpr = tagExpressionToRegularExpression(texpr)
 
 [tnames, tsplit, tinfo] = tagExpressionToTagNames(texpr);
 
+%replace \ with \\
+tsplit = strfun(@(x) strrep(x, '\', '\\'), tsplit);
 % replace . with \.
 tsplit = strfun(@(x) strrep(x, '.', '\.'), tsplit);
+
 res = repmat({''}, length(tsplit)-1, 1);
 
 for i = 1:length(tnames)

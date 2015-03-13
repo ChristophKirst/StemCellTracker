@@ -361,8 +361,8 @@
       
       function info = infoString(obj)
          info = infoString@ImageSource(obj, 'Files');
-         info = [info, '\nexpression: ', obj.fileExpression];
-         info = [info, '\nfiles     : ', var2char(obj.nFiles)];
+         info = [info, '\nexpression: ', strrep(obj.fileExpression, '\', '\\')];
+         info = [info, '\nfiles:      ', var2char(obj.nFiles)];
       end
 
    end

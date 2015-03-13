@@ -32,11 +32,11 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
    //JoinType {jtSquare, jtRound, jtMiter}
    JoinType jT = jtMiter;
-   if (nrhs > 2) jT = (JoinType) mxGetScalar(prhs[2]);
+   if (nrhs > 2) jT = (JoinType) (int) mxGetScalar(prhs[2]);
 
    //EndType {etClosedPolygon, etClosedLine, etOpenButt, etOpenSquare, etOpenRound};
    EndType eT = etClosedPolygon;
-   if (nrhs > 3) eT = (EndType) mxGetScalar(prhs[3]); 
+   if (nrhs > 3) eT = (EndType) (int) mxGetScalar(prhs[3]); 
 
 
    ClipperOffset co;
