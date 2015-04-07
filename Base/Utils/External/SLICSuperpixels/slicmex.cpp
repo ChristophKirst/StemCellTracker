@@ -336,7 +336,7 @@ void EnforceConnectivity(int* labels, int width, int height, int numSuperpixels,
 				{
 					for( c = 0; c < count; c++ )
 					{
-                        ind = yvec[c]*width+xvec[c];
+                  ind = yvec[c]*width+xvec[c];
 						nlabels[ind] = adjlabel;
 					}
 					label--;

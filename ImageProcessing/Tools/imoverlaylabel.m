@@ -30,7 +30,7 @@ switch frmt
       iol = img;
       si = size(img);
    otherwise
-      error('imoverlallabel: inappropiate image format %s', frmt);
+      error('imoverlaylabel: inappropiate image format %s', frmt);
 end
 
 iol = iol / max(iol(:));

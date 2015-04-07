@@ -1,4 +1,4 @@
-function masked = immask(image, mask)
+function img = immask(img, imgmask)
 %
 % masked = immask(image, mask)
 %
@@ -6,12 +6,18 @@ function masked = immask(image, mask)
 %      applies mask to image
 %
 % input:
-%     image    image to mask
+%     img      image to mask
 %     mask     the maks
 %
 % output:
-%    masked    masked image
+%     img    masked image
 
-masked = image .* cast(mask, 'like', image);
-
+if ndims(img) == ndims(imgmask)
+   img = img .* cast(imgmask, 'like', img);
+elseif ndims(img) == ndims(imgmask)+1
+   si = size(img);
+   si(1:length(si)-1) = 1;
+   si = num2cell(si);
+   imgmask = repmat(imgmask, si{:});
+   img = img .* cast(imgmask, 'like', img);
 end

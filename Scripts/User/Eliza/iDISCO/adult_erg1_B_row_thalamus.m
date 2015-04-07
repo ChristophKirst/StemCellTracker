@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Brain Slices %%%
+%%% Brain Slices iDISCO %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
@@ -9,186 +9,65 @@ initialize()
 bfinitialize
 initializeParallelProcessing(12)
 
-addpath('./Scripts/User/Zeeshan/BrainSlices/');
+addpath('./Scripts/User/Eliza/iDISCO/');
 
-datadir = '/data/Science/Projects/StemCells/Experiment/BrainSections/';
-dataname = 'Sample A Slide 33 SATB2 TBR1 BRN2 CTIP2';
+datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO/adult egr1 B row/150401_thalamus-2_5X-egr1_18-48-35/';
+dataname = '18-48-35_thalamus-2_5X-egr1_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
 
 verbose = false;
+
+tiling = [5,2];
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Data Source %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%is = ImageSourceBF('/data/Server/smb/upload/Brain sections/Sample B Slide 33 SATB2 CUX2 NURR1 CTIP2.lsm');
-is = ImageSourceBF([datadir  dataname '.lsm']);
-clc
+fns = tagExpressionToString([datadir dataname], 'Z', 0);
+is = ImageSourceBF(fns);
 is.printInfo
 
 %%
 
-is.setReshape('S', 'Uv', [15, 21]);
-is.setCellFormat('UV')
-is.setRange('C', 1);
-clc; is.printInfo
-
-%%
-%is.setRange('C', 1);
-%is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Inspect Data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%region = struct('U', [8:11], 'V', [9:12], 'C', 1);
-%region = struct('U', 10, 'V', 11, 'C', 1, 'X', 1:300, 'Y', 1:300);
-%region = struct('U', 10, 'V', 11, 'C', 1);
-region = struct('U', [9:10], 'V', [10:11], 'C', 1);
-
-imgs = is.cell(region);
-size(imgs);
-
 figure(1); clf
-implottiling(imgs, 'link', false)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Align
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clc
-sh = alignImages(imgs, 'alignment', 'RMS', 'overlap.max', 150);
-stmeth = 'Interpolate';
-%stmeth = 'Pyramid';
-
-img = stitchImages(imgs, sh, 'method', stmeth);
-figure(1); clf; implot(img)
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Stich Data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% nuclear marker
-is.resetRange();
-
-%region2 = {':',':'};
-region2 = {500:1900, 450:1850};
-
-imgsDAPI  = is.cell(region, 'C', 1);
-imgsBRN2  = is.cell(region, 'C', 2);
-imgsCTIP2 = is.cell(region, 'C', 3);
-imgsSATB2 = is.cell(region, 'C', 4);
-imgsTBR1  = is.cell(region, 'C', 5);
-
-nch = 4;
-
-% corect illumination and background
-
-imgsAll = {imgsSATB2, imgsCTIP2, imgsBRN2, imgsTBR1, imgsDAPI};
-
-chlabel = {'SATB2', 'CTIP2', 'BRN1', 'TBR1', 'DAPI'};
-chcols  = {[1,0,0], [0,1,0], [0,0,1], [1, 0, 1]};
-
-%%
-% figure(6); clf;
-% k = 4; l = 2;
-% img1= mat2gray(imopen(imgsAll{l}{k}, strel('disk', 30)));
-% img2= mat2gray(imopen(imgsAll{l}{k}, strel('disk', 50)));
-% img3= mat2gray(imopen(imgsAll{l}{k}, strel('disk', 150)));
-% img4= mat2gray(imclose(imgsAll{l}{k}, strel('disk', 150)));
-% implottiling({img1, img2; img3, img4})
-
-parfor i = 1:3
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 30)), imgsAll{i});
-   %imgsAll{i} = cellfunc(@(x) filterAutoContrast(x/max(x(:))), imgsAll{i});
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 150)), imgsAll{i});   
-   %imgsAll{i} = cellfunc(@(x) x - imclose(x, strel('disk', 150)), imgsAll{i});
-end
-
-
-%%
-imgsSt =cell(1,nch);
-%th = [200, 50, 100, 100];
-th = [0,0,0, 0,0];
-cl = [1500, 2000, 2000, 3000, 4000];
-
-for i = 1:nch+1
-   imgSt = stitchImages(imgsAll{i}, sh, 'method', stmeth);
-   imgSt = imgSt(region2{:});
-   
-   %imgSt = imgSt - imopen(imgSt, strel('disk', 20));
-   
-   %imgsS = filterAutoContrast(imgsS/max(imgsS(:)));
-   
-   figure(16);
-   subplot(nch+1,1,i); 
-   hist(imgSt(:), 256);
-   
-   %imgSt(imgSt < th(i)) = 0;
-   imgsSt{i} = mat2gray(imgSt);
-   %imgsSt{i} = mat2gray(imclip(imgSt, 0, cl(i)));
-   
-end
-
-figure(1); clf; colormap jet
-implottiling(imgsSt', 'titles', chlabel)
-
-%%
-
-weights = [2, 2, 1, 1];
-imgsWs = cellfunc(@(x,y) x * y, imgsSt(1:nch), num2cell(weights));
-
-imgC = zeros([size(imgsWs{1}), 3]);
-for i = 1:nch
-   for c = 1:3
-      imgC(:,:,c) = imgC(:,:,c) + chcols{i}(c) * imgsWs{i};
-   end
-end
-    
-%imgC = imclip(imgC, 0, 2500);
-imgC = imgC / max(imgC(:));
-imgC = filterAutoContrast(imgC);
-
-figure(2)
-implot(imgC)
-
+implottiling(is.data('Z', 1:10), 'tiling', tiling)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Filter Image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%imgBM = filterBM(imgC, 'profile', 'np', 'sigma', 30);
+zI = 1:10;
+nZ = length(zI);
 
-imgBM = filterBM(imgC, 'profile', 'np', 'sigma', 15);
-figure(3); clf;
-implottiling({imgC; imgBM})
+si = is.dataSize;
+%img = zeros([si(1:2), nZ]);
 
-%%
-% 
-% imgsM = {imgBM(:,:,1), imgBM(:,:,2), imgBM(:,:,3)};
-% imgCm = cellfunc(@(x) filterMedian(x, 5), imgsM);
-% imgCm = cat(3, imgCm{:});
-% figure(3);
-% implottiling({imgC; imgCm})
+subreg = {1400:1800, 1400:1800, zI};
+img = zeros(cellfun(@length, subreg));
 
-%imgBM = imgBM(300:500, 400:600, :);
+parfor z = zI
+   imgraw(:,:,z) = is.data('Z', z, 'X', subreg{1}, 'Y', subreg{2});
+   img(:,:,z) = imgraw(:,:,z) - imopen(imgraw(:,:,z), strel('disk', 30));
+   img(:,:,z) = img(:,:,z) - imopen(img(:,:,z), strel('disk', 200));  
+end
 
-clc
-imgCf = imgBM;
+if verbose
+   figure(1); clf
+   implottiling(imgraw, 'tiling', tiling);
+   figure(2); clf
+   implottiling(img, 'tiling', tiling)
+end
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Mask
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-imgI = imgCf(:,:,1) + imgCf(:,:,2) + imgCf(:,:,3);
-imgI = imgI - imopen(imgI, strel('disk', 30));
-imgI = mat2gray(imgI);
+if verbose
+   figure(10); clf
+   hist(img(:), 256)
+end
 
-%imgmask = img > 0.125;
-%imgmask = img > 0.25;
-imgmask = imgI > 0.025;
-%imgmask = imopen(imgmask, strel('disk', 3));
-%imgmask = postProcessSegments(bwlabeln(imgmask), 'volume.min', 50) > 0;
+imgmask = img > 1200;
 
 %get rid of blod vessels
 % figure(7); clf; 
@@ -198,31 +77,151 @@ imgmask = imgI > 0.025;
 % end
 % implot(imclose(imgsSt{5}> 0.9, strel('disk', 5)))
 
-imgmask = and(imgmask, ~imclose(imgsSt{5} > 0.9, strel('disk', 5)));
+%imgmask = and(imgmask, ~imclose(mat2gray(imgsSt{4}) > 0.975, strel('disk', 5)));
+%imgmask = and(imgmask, ~imclose(mat2gray(imgI) > 0.975, strel('disk', 5)));
+imgmask = imopen(imgmask, strel('disk', 3));
+
 
 if verbose
-   %max(img(:))
    
    figure(21); clf;
+   colormap jet
    set(gcf, 'Name', ['Masking'])
-   implottiling({imgI;  imgmask})
+   implottiling(imoverlaylabel(mat2gray(img), imgmask, true), 'tiling', tiling)
+    
+   %imgSeg = immask(imgCf, imgmask); 
+   %figure(22); clf;
+   %implottiling({imgCf; imgSeg})
 end
-  
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% SLIC Segmentation
+%% Detect Maxima
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% number of pixels: typical cell 9x9
-npxl = fix(1.1 * numel(imgI) / (8*8))
-
-%segment
-imgS = segmentBySLIC(imgCf, 'superpixel', npxl, 'compactness', 10);
+imgf = filterSphere(img, [10,10,4]);
 
 if verbose
-   imgSp = impixelsurface(imgS);
-   figure(5); clf;
-   implot(imoverlaylabel(imgCf, imgSp, false));
+   figure(3); clf
+   implottiling(imgf, 'tiling', tiling)
 end
+
+%%
+
+%imgf = filterSphere(imgf, 4);
+%imgf = filterDisk(imgf, 8, 1, 1, -1);
+imgf = filterDoG(img, [7,7,4]);
+imgf = mat2gray(imgf);
+imgmax = imextendedmax(imgf, 0.01);   
+%imgImax = imregionalmax(imgIf);
+imgmax = immask(imgmax, imgmask);
+
+imgmax = bwulterode(imgmax, 'euclidean', 26);
+imgmax = imdilate(imgmax, fspecial3('disk', [3,3,3])>0);
+
+if verbose
+   figure(3); clf
+   implottiling(imgf, 'tiling', tiling)
+end
+
+
+if verbose
+   figure(6); clf
+   implottiling(imoverlay(imgf, imgmax), 'tiling', tiling);
+   figure(7); clf
+   colormap jet
+   implottiling(imoverlaylabel(mat2gray(img), bwlabeln(imgmax), false), 'tiling', tiling);
+end
+
+
+%%
+
+[segments, distances] = seedPropagation(img, bwlabeln(imgmax), imgmask,  'lambda', 10, 'cutoff.difference', 50);
+
+
+%%
+
+segmentByPropagation(img, bwlabeln(imgmax), imgmask,  'lambda', 0, 'cutoff.difference', 50);
+
+%%
+size(segments)
+size(distances)
+
+
+figure(15); clf;
+   colormap jet
+    implottiling(imoverlaylabel(img, impixelsurface(segments), false), 'tiling', tiling)
+   
+    
+    %%
+  
+figure(16); clf;
+   colormap jet
+    implottiling(imoverlaylabel(distances, impixelsurface(segments), false), 'tiling', tiling)  
+   
+    
+    %%
+    
+    save(['/home/ckirst/Desktop/save.mat'])
+    
+  %%
+  
+  figure(16); clf;
+  implot(segments)
+    
+%% Watershed
+
+imgWs = imimposemin(iminvert(img), imgmax);
+imgWs = watershed(imgWs);
+imgWs = immask(imgWs, imgmask);
+imgWs = imlabelseparate(imgWs);
+
+
+if verbose
+   %figure(7); clf;
+   %implot(imgWs)
+
+   %imglab = bwlabel(imgWs);
+
+   figure(8); clf;
+   implottiling(imoverlaylabel(img, impixelsurface(imgWs), false), 'tiling', tiling)
+end
+   
+imgS = imgWs;      
+
+
+
+
+
+%% Seed Propagation
+
+
+
+
+%% Postprocess
+
+imgSP = postProcessSegments(imgS, imgIf, 'intensity.median.min', 0.025, 'volume.min', 15, 'fillholes', false);
+imgSP = imrelabel(imgSP);
+
+if verbose
+   imgSp1 = impixelsurface(imgSP);
+   imgSp1 = imoverlaylabel(imgCf, imgSp1, false);
+   figure(5); clf;
+   implot(imgSp1);
+end
+
+imglab = imgSP;
+
+
+
+
+
+
+
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Postprocess

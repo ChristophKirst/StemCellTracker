@@ -32,10 +32,10 @@ using namespace std;
 #define INTENSITY_REF_IN   prhs[5]
 
 /* Output Arguments */
-#define LABELS_OUT        plhs[0]
-#define DISTANCES_OUT     plhs[1]
-#define DIFF_COUNT_OUT    plhs[2]
-#define POP_COUNT_OUT     plhs[3]
+#define LABELS_OUT         plhs[0]
+#define DISTANCES_OUT      plhs[1]
+#define DIFF_COUNT_OUT     plhs[2]
+#define POP_COUNT_OUT      plhs[3]
 
 #define IJ(i,j,k) ((j)*mn + (i)*m + (k))
 
@@ -301,13 +301,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     if (! mxIsLogical(MASK_IN)) {
       mexErrMsgTxt("Third argument must be a logical array.");
     }
-
-    /* Create matrices for the return arguments */    
-    
-    LABELS_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL); 
-    DISTANCES_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL);
-    DIFF_COUNT_OUT = mxCreateDoubleScalar(0);
-    POP_COUNT_OUT = mxCreateDoubleScalar(0);
     
     /* Assign pointers to the various parameters */ 
     labels_in = mxGetPr(LABELS_IN);
@@ -322,7 +315,16 @@ void mexFunction( int nlhs, mxArray *plhs[],
     radius = (int) (*dptr);
     //dptr = mxGetPr(RADIUS_CENTER_IN);
     //radius_center = (int) (*dptr);
+
     
+    
+    /* Create matrices for the return arguments */    
+    
+    LABELS_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL); 
+    DISTANCES_OUT = mxCreateNumericArray(ndim, size, mxDOUBLE_CLASS, mxREAL);
+    DIFF_COUNT_OUT = mxCreateDoubleScalar(0);
+    POP_COUNT_OUT = mxCreateDoubleScalar(0);
+ 
     labels_out = mxGetPr(LABELS_OUT);
     dists = mxGetPr(DISTANCES_OUT);
     difference_count = mxGetPr(DIFF_COUNT_OUT);

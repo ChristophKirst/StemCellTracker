@@ -1,16 +1,16 @@
-function [segments, distances] = seedPropagation(image, label, mask, param)
+function [segments, distances] = seedPropagation(image, label, mask, varargin)
 %
 % [segments, distances] = segmentByPropagation(label, image, param)
 %
 % description: 
-%    propageates a labeled image and stops propagation if distance measure reaches a cutoff
+%    propagates a labeled image and stops propagation if distance measure reaches a cutoff
 %    this routine is usefull for propagation of a seeds to prevent oversegmentation
 %
 % input:
 %    image      instensity image to be segmented
 %    lables     starting lables
-%    mask       (optional) restrict propagation to this mask
 %    param      (optional) parameter struct with entries
+%               .mask              restrict propagation to this mask
 %               .lambda            interpolation between spatial distances and inensity distance (0 = intensity distance only)
 %               .cutoff.difference if the difference measure exceeds this value propgation to the pixel is stopped
 %               .averaging.ksize   size of averaging for calculation of the intensity differences (1 = local pixel only)
@@ -21,16 +21,16 @@ function [segments, distances] = seedPropagation(image, label, mask, param)
 %    distances  (optional) distances to initial seeds
 %
 
+
 if (nargin < 3 || isempty(mask))
    mask = ones(size(image));
 end
-if nargin < 4
-   param = [];
-end
 
-if isstruct(mask) 
-   param = mask;
+if isstruct(mask) || ischar(mask)
+   param = parseParameter(mask, varargin{:});
    mask = ones(size(image));
+else
+   param = parseParameter(varargin);
 end
 mask = mask > 0;
 
@@ -38,7 +38,6 @@ lambda            = getParameter(param, 'lambda', 0);
 cutoff_difference = getParameter(param, 'cutoff.difference', Inf);
 averaging_ksize   = getParameter(param, 'averaging.ksize', 1);
 intensity_refs    = getParameter(param, 'intensity', []);
-
 
 radius = round(averaging_ksize(1) - 1) /2;
 labels = imlabel(label); 

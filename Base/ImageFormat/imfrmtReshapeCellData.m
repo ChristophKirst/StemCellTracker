@@ -3,7 +3,7 @@ function outData = imfrmtReshapeCellData(inCellData, inDataFrmt, inCellFrmt, out
 % outData = imfrmtReshapeCellData(inData, inDataFrmt,  inCellFrmt, outDataFromat, outCellFrmt, reshapeFrom, reshapeTo, reshapeSize)
 %
 % description: 
-%     reshapescellas well as 
+%     reshapes cell as well as 
 %
 % input:
 %     data        input data or cell

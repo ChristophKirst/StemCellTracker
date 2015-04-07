@@ -1,6 +1,6 @@
-function out = imclip(image, cmin, cmax)
+function out = imclip(img, cmin, cmax)
 %
-% out = imclip(image, min, max)
+% out = imclip(img, cmin, cmax)
 %
 % description:
 %     clips the intensities in the image to lie within [min,max]
@@ -28,13 +28,13 @@ elseif nargin == 2
 end
 
 if isempty(cmin)
-   cmin = min(image(:));
+   cmin = min(img(:));
 end
 if isempty(cmax)
-   cmax = max(image(:));
+   cmax = max(img(:));
 end
 
-out = image;
+out = img;
 out(out>cmax) = cmax;
 out(out<cmin) = cmin;
 

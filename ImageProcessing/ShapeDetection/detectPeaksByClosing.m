@@ -37,6 +37,7 @@ if isnumeric(se)
 end
 img = imclose(img, se);
 
+{min(img(:)), max(img(:))}
 
 th = getParameter(param, 'threshold', []);
 if isempty(th)

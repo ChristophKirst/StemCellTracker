@@ -39,7 +39,7 @@ classdef ImageSource < ImageInfo
             if isa(varargin{1}, 'ImageSource') %% copy constructor
                obj = copy(varargin{1});
             elseif iscell(varargin{1})
-               obj = obj.fromData(varargin{1});
+               obj = obj.fromCell(varargin{1});
             elseif isnumeric(varargin{1})
                obj = obj.fromData(varargin{1});
             else

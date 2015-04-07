@@ -7,7 +7,7 @@ function out = imoverlay(in, mask, color, intensity, rescale)
 %    if intesnity flag is true the intensity in the new color matches the old one
 %
 % input:
-%    in        input image, 2d, 3d, gray or color in form pq, pqc, pql or pqlc
+%    in        input image, 2d, 3d, gray or color
 %    mask      mask where pixels should be changed
 %    intensity (optional) make masked pixels intensity the one of the old pixels (false)
 %    rescale   (optional) rescale original image intensitites (true)
@@ -126,7 +126,7 @@ else  % intensity == false
 end
 
 
-% combine colors to pqlc format
+% combine colors
 if dim == 2
    out = cat(3, out_red, out_green, out_blue);
 else

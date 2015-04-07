@@ -1,5 +1,5 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% Brain Slices %%%
+%%% Brain Slices iDISCO %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 clear all
@@ -9,10 +9,10 @@ initialize()
 bfinitialize
 initializeParallelProcessing(12)
 
-addpath('./Scripts/User/Zeeshan/BrainSlices/');
+addpath('./Scripts/User/Eliza/BrainSlices/');
 
 datadir = '/data/Science/Projects/StemCells/Experiment/BrainSections/';
-dataname = 'Sample E Slide 58 PAX6 TBR2 BRN2 Nestin';
+dataname = 'Sample A Slide 33 SATB2 TBR1 BRN2 CTIP2';
 
 verbose = false;
 
@@ -27,14 +27,14 @@ is.printInfo
 
 %%
 
-is.setReshape('S', 'Uv', [16, 21]);
+is.setReshape('S', 'Uv', [15, 21]);
 is.setCellFormat('UV')
 is.setRange('C', 1);
 clc; is.printInfo
 
 %%
-is.setRange('C', 1);
-is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
+%is.setRange('C', 1);
+%is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -44,7 +44,7 @@ is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
 %region = struct('U', [8:11], 'V', [9:12], 'C', 1);
 %region = struct('U', 10, 'V', 11, 'C', 1, 'X', 1:300, 'Y', 1:300);
 %region = struct('U', 10, 'V', 11, 'C', 1);
-region = struct('U', [2:7], 'V', [11:13], 'C', 1);
+region = struct('U', [9:10], 'V', [10:11], 'C', 1);
 
 imgs = is.cell(region);
 size(imgs);
@@ -71,22 +71,22 @@ figure(1); clf; implot(img)
 % nuclear marker
 is.resetRange();
 
-region2 = {':',':'};
-%region2 = {500:1900, 450:1850};
+%region2 = {':',':'};
+region2 = {500:1900, 450:1850};
 
 imgsDAPI  = is.cell(region, 'C', 1);
-imgsTBR2  = is.cell(region, 'C', 2);
-imgsPAX6 = is.cell(region, 'C', 3);
-imgsBRN2 = is.cell(region, 'C', 4);
-imgsNestin  = is.cell(region, 'C', 5);
+imgsBRN2  = is.cell(region, 'C', 2);
+imgsCTIP2 = is.cell(region, 'C', 3);
+imgsSATB2 = is.cell(region, 'C', 4);
+imgsTBR1  = is.cell(region, 'C', 5);
 
 nch = 4;
 
 % corect illumination and background
 
-imgsAll = {imgsTBR2, imgsPAX6, imgsBRN2, imgsNestin, imgsDAPI};
+imgsAll = {imgsSATB2, imgsCTIP2, imgsBRN2, imgsTBR1, imgsDAPI};
 
-chlabel = {'TBR2', 'PAX6', 'BRN2', 'Nestin', 'DAPI'};
+chlabel = {'SATB2', 'CTIP2', 'BRN1', 'TBR1', 'DAPI'};
 chcols  = {[1,0,0], [0,1,0], [0,0,1], [1, 0, 1]};
 
 %%
@@ -98,7 +98,7 @@ chcols  = {[1,0,0], [0,1,0], [0,0,1], [1, 0, 1]};
 % img4= mat2gray(imclose(imgsAll{l}{k}, strel('disk', 150)));
 % implottiling({img1, img2; img3, img4})
 
-parfor i = 1:nch
+parfor i = 1:3
    imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 30)), imgsAll{i});
    %imgsAll{i} = cellfunc(@(x) filterAutoContrast(x/max(x(:))), imgsAll{i});
    imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 150)), imgsAll{i});   
@@ -109,8 +109,8 @@ end
 %%
 imgsSt =cell(1,nch);
 %th = [200, 50, 100, 100];
-th = [900,200,200, 100];
-cl = [2000, 1000, 1100, 3000];
+th = [0,0,0, 0,0];
+cl = [1500, 2000, 2000, 3000, 4000];
 
 for i = 1:nch+1
    imgSt = stitchImages(imgsAll{i}, sh, 'method', stmeth);
@@ -123,11 +123,10 @@ for i = 1:nch+1
    figure(16);
    subplot(nch+1,1,i); 
    hist(imgSt(:), 256);
-   drawnow
    
-   imgSt(imgSt < th(i)) = 0;
-   imgSt = imclip(imgSt, 0, cl(i));
+   %imgSt(imgSt < th(i)) = 0;
    imgsSt{i} = mat2gray(imgSt);
+   %imgsSt{i} = mat2gray(imclip(imgSt, 0, cl(i)));
    
 end
 
@@ -136,9 +135,7 @@ implottiling(imgsSt', 'titles', chlabel)
 
 %%
 
-nch = 3;
-
-weights = [2, 2, 2];
+weights = [2, 2, 1, 1];
 imgsWs = cellfunc(@(x,y) x * y, imgsSt(1:nch), num2cell(weights));
 
 imgC = zeros([size(imgsWs{1}), 3]);
@@ -150,25 +147,10 @@ end
     
 %imgC = imclip(imgC, 0, 2500);
 imgC = imgC / max(imgC(:));
-%imgC = filterAutoContrast(imgC);
+imgC = filterAutoContrast(imgC);
 
 figure(2)
 implot(imgC)
-
-%%
-
-subreg= {2000:4550, 1:500, ':'};
-imgCsub = imgC(subreg{:});
-figure(4); clf
-implot(imgCsub)
-
-%% Restrict to sub regoin
-if false
-   imgC = imgCsub;
-   for i = 1: length(imgsSt)
-      imgsSt{i} = imgsSt{i}(subreg{1:2});
-   end
-end
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -179,7 +161,7 @@ end
 
 imgBM = filterBM(imgC, 'profile', 'np', 'sigma', 15);
 figure(3); clf;
-implottiling({imgC; imgBM}')
+implottiling({imgC; imgBM})
 
 %%
 % 
@@ -209,21 +191,21 @@ imgmask = imgI > 0.025;
 %imgmask = postProcessSegments(bwlabeln(imgmask), 'volume.min', 50) > 0;
 
 %get rid of blod vessels
-figure(7); clf; 
-imgsA = imgsSt{1};
+% figure(7); clf; 
+% imgsA = imgsSt{1};
 % for i = 2:length(imgsSt)
 %    imgsA= imgsA + imgsSt{i};
 % end
-implottiling({imgsSt{1}, imclose(imgsSt{3}> 0.2, strel('disk', 5))})
+% implot(imclose(imgsSt{5}> 0.9, strel('disk', 5)))
 
-imgmask = and(imgmask, ~imclose(imgsSt{3} > 0.7, strel('disk', 5)));
+imgmask = and(imgmask, ~imclose(imgsSt{5} > 0.9, strel('disk', 5)));
 
 if verbose
    %max(img(:))
    
    figure(21); clf;
    set(gcf, 'Name', ['Masking'])
-   implottiling({imgI;  imgmask}')
+   implottiling({imgI;  imgmask})
 end
   
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -257,7 +239,7 @@ hist([stats.MedianIntensity], 256)
 %hist(imgI(:), 256)
 
 %%
-imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.05, 'volume.min', 15, 'fillholes', false);
+imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.025, 'volume.min', 15, 'fillholes', false);
 
 if verbose
    imgSp1 = impixelsurface(imgSP);
@@ -282,12 +264,12 @@ imgSP2 = imlabelseparate(imgSP2);
 imgSP2 = postProcessSegments(imgSP2, imgI, 'intensity.median.min', 0.0, 'volume.min', 15, 'fillholes', false);
 %imgSP = postProcessSegments(imgSP, 'volume.min', 7, 'fillholes', false);
 imgSP2 = imrelabel(imgSP2);
-fprintf('detected: %d cells\n', max(imgSP2(:)))
+fprintf('detected: %d cells', max(imgSP2(:)))
 
 if verbose
    imgSp = impixelsurface(imgSP2);
    figure(6); clf;
-   implottiling({imgSp1; imoverlaylabel(imgCf, imgSp, false);  imoverlaylabel(imgCf, imgmask, false)}');
+   implottiling({imgSp1; imoverlaylabel(imgCf, imgSp, false);  imoverlaylabel(imgCf, imgmask, false)});
 end
 
 %%
@@ -386,7 +368,6 @@ imglabc = imdilate(imglabc, strel('disk', 2));
 %%
 h = figure(7); clf;
 subreg = {[600:900], [550:950], ':'};
-subreg = {[200:300], [150:250], ':'};
 imgCfsub = imgCf(subreg{:});
 imgCsub = imgC(subreg{:});
 imglabsub = imglabc(subreg{:});
@@ -457,7 +438,7 @@ end
 %% 
 
 figure(7); clf;
-implottiling({imgCf, imgC, imoverlaylabel(imgCf, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])});
+implottiling({imgCf, imgC, imoverlaylabel(imgCf, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
 
 
 %% Flourescence in Space
@@ -543,17 +524,17 @@ end
 
 %% Mask for non valid regoins
 
-%xp = [0.5, 44.8458, 67.84, 90.8341, 177.8834, 241.9385, 332.2726, 471.8798, 616.4144, 790.5129, 910.4109, 984.3206, 1028.6665, 1081.2245, 1166.6313, 1212.6196, 1243.8259, 1230.6864, 1252.0381, 1281.602, 1298.0264, 1312.8083, 1319.3781, 1311.1659, 1334.16, 1362.0815, 1403.1424, 1401.5, 1334.16, 1279.9596, 1253.6805, 1207.6923, 1156.7767, 1073.0123, 943.2597, 885.7743, 825.0041, 747.8095, 718.2456, 670.6149, 621.3417, 578.6383, 526.0803, 499.8013, 374.976, -1.1424, 0.5];
-%yp = [613.9508, 528.544, 502.2649, 426.7128, 361.0152, 305.1723, 239.4748, 193.4865, 173.7773, 185.2743, 203.3411, 219.7655, 247.687, 278.8933, 323.2392, 375.7972, 398.7913, 413.5733, 439.8523, 482.5557, 526.9015, 559.7503, 592.5991, 622.163, 646.7995, 663.2239, 697.7151, 76.8734, 91.6553, 103.1524, 96.5826, 101.51, 99.8675, 101.51, 96.5826, 88.3705, 67.0188, 47.3095, 52.2368, 47.3095, 17.7456, 21.0305, 16.1032, 4.6061, -5.2485, -3.6061, 613.9508];
-%imgbad = ~poly2mask(xp',yp', size(imgI,1), size(imgI,2))';
-imgbad = ~logical(zeros(size(imgI)));
+xp = [0.5, 44.8458, 67.84, 90.8341, 177.8834, 241.9385, 332.2726, 471.8798, 616.4144, 790.5129, 910.4109, 984.3206, 1028.6665, 1081.2245, 1166.6313, 1212.6196, 1243.8259, 1230.6864, 1252.0381, 1281.602, 1298.0264, 1312.8083, 1319.3781, 1311.1659, 1334.16, 1362.0815, 1403.1424, 1401.5, 1334.16, 1279.9596, 1253.6805, 1207.6923, 1156.7767, 1073.0123, 943.2597, 885.7743, 825.0041, 747.8095, 718.2456, 670.6149, 621.3417, 578.6383, 526.0803, 499.8013, 374.976, -1.1424, 0.5];
+yp = [613.9508, 528.544, 502.2649, 426.7128, 361.0152, 305.1723, 239.4748, 193.4865, 173.7773, 185.2743, 203.3411, 219.7655, 247.687, 278.8933, 323.2392, 375.7972, 398.7913, 413.5733, 439.8523, 482.5557, 526.9015, 559.7503, 592.5991, 622.163, 646.7995, 663.2239, 697.7151, 76.8734, 91.6553, 103.1524, 96.5826, 101.51, 99.8675, 101.51, 96.5826, 88.3705, 67.0188, 47.3095, 52.2368, 47.3095, 17.7456, 21.0305, 16.1032, 4.6061, -5.2485, -3.6061, 613.9508];
+
+imgbad = ~poly2mask(xp',yp', size(imgI,1), size(imgI,2))';
 
 figure(6); clf;
 implot(imgbad)
 
 %% histograms
 figure(10); clf
-for c= 1:3
+for c= 1:nch
    subplot(2,nch,c); 
    d = imgsSt{c};
    hist(d(:), 256);
@@ -567,7 +548,7 @@ end
 
 %% classify
 
-cth = {0.1, 0.2, 0.15};
+cth = {0.06, 0.1, 0.075, 0.2};
 
 clear neuroClass
 for c = 1:nch
@@ -582,7 +563,7 @@ for c = 1:nch
 
    neuroClass(c,:) = double(and([statsCh{c}.(mode)] > cth{c}, isgood));
 end
-neuroClassTotal = int32(fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:)));
+neuroClassTotal = fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:) + 8 * neuroClass(4,:))+1;
 
 neuroBaseColor = {[1,0,0], [0,1,0], [0,0,1], [1, 1,1]};
 
@@ -607,7 +588,7 @@ end
 
 figure(7); clf;
 
-implottiling({imgsSt{1:nch}; imgClass1{:}}, 'titles', [chlabel(1:nch)', chlabel(1:nch)']');
+implottiling({imgsSt{1:nch}; imgClass1{:}}', 'titles', [chlabel(1:nch), chlabel(1:nch)]);
 
 saveas(h, [datadir dataname '_Classification_Channels' '.pdf']);
 
@@ -648,9 +629,9 @@ for i = 1:ncls
    neuroClassColor{i} = col;
 end
    
-
+R = zeros(size(imgsSt{1})); G = R; B = R;
 for p = 1:length(stats);
-   nc = neuroClassColor{neuroClassTotal(p)+1};
+   nc = neuroClassColor{neuroClassTotal(p)};
    
    R(stats(p).PixelIdxList) =  nc(1);
    G(stats(p).PixelIdxList) =  nc(2);
@@ -665,7 +646,7 @@ imgClass = cat(3, R, G, B);
 
 
 h = figure(7); clf;
-implottiling({imgsSt{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
+implottiling({imgsSt{1:nch}, imgC; imgClass1{:}, imgClass}', 'titles', [chlabel(1:nch), 'merge', chlabel(1:nch), 'merge']);
 
 saveas(h, [datadir dataname '_Classification_Channels' '.pdf']);
 %saveas(h, [datadir dataname '_Classification_Image' '.pdf']);
@@ -681,7 +662,7 @@ h = figure(27)
 
 cdat = (cell2mat({[0,0,0], neuroClassColor{:}}'))
    
-scatter(xy(:,1), xy(:,2), 5, cdat(neuroClassTotal(isgood) + 2, :), 'filled');
+scatter(xy(:,1), xy(:,2), 5, cdat(neuroClassTotal(isgood) + 1, :), 'filled');
 xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
 %title(chlabel{c});
 %freezecolormap(gca)
@@ -716,7 +697,7 @@ for i = 1:ncls
       clslab{i} = 'None';
    end
    
-   nstat(i) = sum(neuroClassTotal + 1== i);
+   nstat(i) = sum(neuroClassTotal == i);
 end
 
 nc = num2cell(nstat);

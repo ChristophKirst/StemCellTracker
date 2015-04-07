@@ -28,15 +28,14 @@ isizes = cellfunc(@size, imgs);
 param = parseParameter(varargin);
 
 asize = getParameter(param, 'size', []);
-level  = getParameter(param, 'level', 3);
-blur   = getParameter(param, 'sigma', 15);
+level = getParameter(param, 'level', 3);
+blur  = getParameter(param, 'sigma', 15);
 
 if isempty(asize)
    [ashifts, asize] = absoluteShiftsAndSize(ipos, isizes);
 else
    ashifts = ipos;
 end
-
 
 % note: simultaneous fuse, for larger number of images implment sequential fusion
 % create masks for blending
@@ -77,10 +76,9 @@ for i = 1:ni
    masks{i} = masks{i} ./ masksn;
    masks{i} = imfilter(masks{i},blurh,'replicate'); 
 end
-
+% 
 % figure(6);
 % implottiling(masks);
-
 
 imgbp = cell(1,level); % the blended pyramid
 for p = 1:level
@@ -91,6 +89,7 @@ for p = 1:level
       imgbp{p} = imgbp{p} + imglp{i}{p}.* masks{i};
    end
 end
+
 img = pyrReconstruct(imgbp);
 
 end

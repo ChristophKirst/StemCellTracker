@@ -9,7 +9,7 @@ function img = stitchImages(imgs, ipos, varargin)
 %     imgs    images to be stiched
 %     ipos    image positions or shifts
 %     param   (optional) parameter structu with entries:
-%             .method 'Mean', 'Max', 'Min', 'Overwrite' ('Max')
+%             .method 'Mean', 'Max', 'Min', 'Overwrite', 'Hugin', 'Interpolate', 'Pyramid' ('Max')
 %             .size   final image size ([] = automatic, positions are interpreted as shifts and converted to absolute shifts)
 %
 % output:

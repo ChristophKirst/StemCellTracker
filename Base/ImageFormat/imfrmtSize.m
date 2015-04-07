@@ -1,6 +1,6 @@
 function si = imfrmtSize(d, frmt)
 %
-% si = imfrmtSize(d, )
+% si = imfrmtSize(d, frmt)
 %
 % description:
 %   returns size assuming a format frmt

@@ -83,6 +83,8 @@ if isa(imgs, 'Alignment')
          img = source.data(nds(i));
       end
       
+      {min(img(:)), max(img(:))}
+      
       pks{i} = detectPeaksByClosing(img, 'filtersize', fs, 'strel', se, 'threshold', th);
       %pks{i}
       

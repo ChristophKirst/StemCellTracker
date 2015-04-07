@@ -261,7 +261,7 @@ function iinfo = determineColor(~, iinfo, ~)
          case 'RGB'
             c = {'r', 'g', 'b'};
          otherwise
-            c = imcolorlist(iinfo.datasizeC);
+            c = imcolorlist(iinfo.dataSizeC);
       end
 
       iinfo.icolor = c;
