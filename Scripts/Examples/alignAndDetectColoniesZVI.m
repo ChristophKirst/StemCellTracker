@@ -92,7 +92,7 @@ end
 %%
 for s = 1:nsubalgn
    fprintf('\n\nAligning component: %g / %g\n', s, nsubalgn)
-   subalgn(s).align('alignment', 'Correlation', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
+   subalgn(s).align('alignment', 'RMS', 'overlap.max', 100, 'overlap.min', 4, 'shift.max', 140);
    if verbose && s < 20 %%&& subalgn(s).nNodes < 75
       subalgn(s).printInfo 
       figure(100+s); clf

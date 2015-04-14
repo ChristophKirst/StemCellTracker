@@ -1,4 +1,4 @@
-function pql = imspace2pixel(isize, extend, xyz)
+function xyz = imspace2pixel(isize, extend, xyz)
 %
 % xyz = impixel2space(iszie, extend, pql)
 %
@@ -6,12 +6,12 @@ function pql = imspace2pixel(isize, extend, xyz)
 %     converts pixel coordinates to spatial coordinates (no xy exchange) 
 %
 % input:
-%     isize     image pixel size [p, q, l]
+%     isize     image pixel size [x, y, z]
 %     extend    spatial extends [xmin, ymin, zmin; xmax, ymax, zmax]
 %     xyz       spatial coordinates [x; y; z]
 %
 % output:
-%     pql       pixel coordinates to convert in the form [p; q; l]
+%     xyz       pixel coordinates to convert in the form [p; q; l]
 %
 % See also: imspixel2space
 
@@ -20,6 +20,6 @@ fac = isize ./ ssize;
 xyzmin = extend(2,:);
 np = size(xyz,1);
 
-pql = round((xyz -repmat(xyzmin, np,1)).* repmat(fac, np, 1)) + 0.5;
+xyz = round((xyz -repmat(xyzmin, np,1)).* repmat(fac, np, 1)) + 0.5;
 
 end
