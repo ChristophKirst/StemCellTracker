@@ -18,6 +18,10 @@ verbose = false;
 
 tiling = [5,2];
 
+%%
+
+load('/home/ckirst//Desktop/save.mat')
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Data Source %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,7 +150,6 @@ segmentByPropagation(img, bwlabeln(imgmax), imgmask,  'lambda', 0, 'cutoff.diffe
 %%
 size(segments)
 size(distances)
-
 
 figure(15); clf;
    colormap jet
