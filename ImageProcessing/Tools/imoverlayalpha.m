@@ -12,7 +12,7 @@ function imgo = imoverlayalpha(img, imgi, varargin)
 %    alpha  (optional) alpha channel (alpha = max(imgo,3))
 %
 % output:
-%    imgo   overlayed gb image
+%    imgo   overlayed rgb image
 
 if nargin < 3
    alpha = max(imgi,[], 3);

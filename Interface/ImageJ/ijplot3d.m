@@ -11,26 +11,19 @@ function universe = ijplot3d(image, varargin)
 %               'PixelDepth'      z depth of pixel w.r.t to x,y (1)
 %               'Name'            name of image ('Figure')
 %               'Universe'        add the image to an exsiting universe
+%               'Color'           color as RGB values
 %
 % output:
 %    universe    Universe object representing the 3D viewer window
 %
 % See also: ijstart
 
-pixel_depth = 1;
-name = ['3DImage: ' datestr(now)];
-univ = [];
+param = parseParameter(varargin);
 
-for n = 1:2:length(varargin)
-   switch(lower(varargin{n}))
-      case 'pixeldepth'
-         pixel_depth = varargin{n+1};
-      case 'name'
-         name = varargin{n+1};
-      case 'universe'
-         univ = varargin{n+1};   
-   end
-end
+name = getParameter(param, 'Name',  ['3DImage: ' datestr(now)]);
+pixel_depth = getParameter(param, 'PixelDepth',  1);
+univ = getParameter(param, 'Universe',  []);
+col  = getParameter(param, 'Color', []);
 
 % convert to uint8 
 if ~isa(image, 'uint8')
@@ -61,7 +54,18 @@ if isa(univ, 'ij3d.Image3DUniverse')
 else
    universe = ij3d.Image3DUniverse();
 end
-universe.show();
+
 universe.addVoltex(imp);
+
+if ~isempty(col)
+   content = universe.getContent(name);
+   content.setColor(javax.vecmath.Color3f(col));
+end
+
+
+if ~isa(univ, 'ij3d.Image3DUniverse')
+   universe.show();
+end
+
 
 end

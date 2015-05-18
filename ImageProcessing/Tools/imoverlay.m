@@ -4,7 +4,7 @@ function out = imoverlay(in, mask, color, intensity, rescale)
 %
 % description:
 %    replace pixels in image specifed by mask with specified color
-%    if intesnity flag is true the intensity in the new color matches the old one
+%    if intensity flag is true the intensity in the new color matches the old one
 %
 % input:
 %    in        input image, 2d, 3d, gray or color

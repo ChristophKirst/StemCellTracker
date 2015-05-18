@@ -60,8 +60,8 @@ if ~iscell(imgs)
             clim = cscale(imgs);
          end
    end
-   %size(imgs)  
-   %class(imgs)
+   size(imgs)  
+   class(imgs)
 else
    if isempty(clim)
       clim = cscale(imgs);

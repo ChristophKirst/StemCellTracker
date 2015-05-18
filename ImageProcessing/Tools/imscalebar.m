@@ -224,8 +224,10 @@ end
 
             
 % DRAW SCALEBAR
+colour
+
 set(hAxes,'xlimmode','manual','ylimmode','manual');
-hg = hggroup('tag','scalebar');
+hg = hggroup('tag','scalebar', 'parent', hAxes);
 line(linepos(:,1), linepos(:,2), 'color', colour, 'linewidth', linewidth, 'parent', hg);
 line(linepos(1,1) + edir(:,1), linepos(1,2) + edir(:,2), 'color', colour, 'linewidth', linewidth, 'parent', hg);
 line(linepos(2,1) + edir(:,1), linepos(2,2) + edir(:,2), 'color', colour, 'linewidth', linewidth, 'parent', hg);
@@ -239,10 +241,11 @@ if nargout>0
 end
     
 % SETUP DELETE CALLBACK
-set(hg,'DeleteFcn',@deleteScaleBar)
+%set(hg,'DeleteFcn',@deleteScaleBar)
 
 % SETUP LISTENER TO RESET SCALEBAR ON CHANGE OF AXES LIMITS
-hL(1) = addlistener(hAxes,'YLim','PostSet',@(src,event) resetScaleBar(src,event,hg));
+%hL(1) = addlistener(hAxes,'YLim','PostSet',@(src,event) resetScaleBar(src,event,hg));
+hL = 1;
 
 % SET USERDATA
 

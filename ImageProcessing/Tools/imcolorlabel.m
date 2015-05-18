@@ -177,7 +177,7 @@ end
 
 % DRAW SCALEBAR
 set(hAxes,'xlimmode','manual','ylimmode','manual');
-hg = hggroup('tag','colorlabel');
+hg = hggroup('tag','colorlabel', 'parent', hAxes);
 
 text(anchor(1), anchor(2), 0, txt, 'verticalalignment',textalgn{1},'horizontalalignment',textalgn{2}, 'fontweight', fontweight, 'parent', hg);
 
@@ -186,10 +186,11 @@ if nargout>0
 end
     
 % SETUP DELETE CALLBACK
-set(hg,'DeleteFcn',@deleteColorLabel)
+%set(hg,'DeleteFcn',@deleteColorLabel)
 
 % SETUP LISTENER TO RESET SCALEBAR ON CHANGE OF AXES LIMITS
-hL(1) = addlistener(hAxes,'YLim','PostSet',@(src,event) resetColorLabel(src,event,hg));
+%hL(1) = addlistener(hAxes,'YLim','PostSet',@(src,event) resetColorLabel(src,event,hg));
+hL= 1;
 
 % SET USERDATA
 
