@@ -11,14 +11,12 @@ initializeParallelProcessing(12)
 
 addpath('./Scripts/User/Eliza/iDISCO/');
 
-datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_05/';
-%dataname = 'brain_1/150507_sag-0_8X-autofluo_17-15-29/17-15-29_sag-0_8X-autofluo_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
-dataname = 'brain_1/150507_sag-0_8X-cfos_17-26-02/17-26-02_sag-0_8X-autofluo_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
-
+datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO/adult egr1 B row/150401_thalamus-2_5X-egr1_18-48-35/';
+dataname = '18-48-35_thalamus-2_5X-egr1_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
 
 verbose = false;
 
-tiling = [5,3];
+tiling = [5,2];
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -29,65 +27,72 @@ fns = tagExpressionToString([datadir dataname], 'Z', 0);
 is = ImageSourceBF(fns);
 is.printInfo
 
-%% Inspecpt
+%% test data
 
-data = is.data('Z',1684);
-data = imclip(mat2gray(data), 0, 0.05);
+ns = 200;
+imgtest = zeros(100, 100, 30);
+imgtest(randi([1, size(imgtest,1)], ns,1), randi([1, size(imgtest,2)], ns,1), randi([1, size(imgtest,3)], ns,1)]
 
-figure(5); clf;
-imcolormap('gray')
-implottiling(mat2gray(data),'tiling', [1,1])
+%%
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Specify Optional Subregion %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-subregion = struct('Z', 1670:1690, 'X', 1400:1600, 'Y', 1400:1500)
-%clear subregion;
-
+figure(1); clf
+implottiling(is.data('Z', 1:10), 'tiling', tiling)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Work on Chunks %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-chunkSizeZ = 30;
+chunkSizeZ = 50;
 chunkOverlapZ = 10;
 
-if ~isempty(subregion) 
-   sizeZ = is.dataSize('Z');
-else
-   sizeZ = length(subregion.('Z'))
-end
+%sizeZ = is.dataSize('Z');
+sizeZ = 200;
 
-iHi = chunkSizeZ;
-iLo = 1;
-chunkN = 1;
+chunkN = ceil((sizeZ - 2 * (chunkSizeZ - chunkOverlapZ)) / (chunkSizeZ - 2* chunkOverlapZ)) + 2;
 
-
-
-
+k = 1;
 clear chunkSeparate
-clear chunkBorder
-clear chunkIds
+clear chunkIntervals
 chunkSeparate{1} = 1;
-
-chunkIds{chunkN} = [iLo:iHi];
-chunkBorder{chunkN} = [iLo,iHi];
-chunkSeparate{chunkN+1}  = min(iLo + chunkSizeZ - chunkOverlapZ/2, sizeZ);
-
-while (iHi < sizeZ)
-   iLo = iHi - chunkOverlapZ;
-   iHi = min(iLo + chunkSizeZ, sizeZ);
-   chunkIds{chunkN} = [iLo:iHi];
-   chunkBorder{chunkN} = [iLo,iHi];
-   chunkSeparate{chunkN+1}  = min(iLo + chunkSizeZ - chunkOverlapZ/2, sizeZ);
-   chunkN = chunkN + 1;
+for i = 1:chunkN
+   chunkIntervals{i} = [k; min(k + chunkSizeZ, sizeZ) ];
+   chunkSeparate{i+1}  = min(k + chunkSizeZ/2, sizeZ);
+   k = k + chunkSizeZ - chunkOverlapZ/2;
 end
 
-%var2char(chunkBorder)
-%var2char(chunkSeparate)
+var2char(chunkIntervals)
+var2char(chunkSeparate)
+
+
+
+%% combine points
+
+
+% shift peaks to original coordinates
+pts = cellfun(@(x,y) x + repmat(y(:), 1, size(x,2)), pts, shifts, 'UniformOutput', false);
+
+% cut at half the overlap
+
+for i = 1:chunkN
+    
+   % removes all points in specified area
+   pksSelect = and(pks(:,3) >= chunkSeparate{i}, pks(:,3) < chunkSeparate{i+1}
+   
+   
+   chunkSeparate{ pks(:,3) <= , pks <= p2), 1)) = [];
+end
+   
+   
+      pks = pts{1};
+      for i = 2:numel(pts)
+         % clean area
+         pks = cleanPoints(pks, shifts{i} + 1, shifts{i} + isizes{i});
+         pks = [pks, pts{i}]; %#ok<AGROW>
+      end     
+      
+
+
+
 
 
 
@@ -95,28 +100,19 @@ end
 %% Filter Image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-zI = 1671:1685;
+zI = 1:10;
 nZ = length(zI);
 
 si = is.dataSize;
 %img = zeros([si(1:2), nZ]);
 
-subreg = {1600:1900, 2560- 1300:1600, zI};
+subreg = {1400:1800, 1400:1800, zI};
 img = zeros(cellfun(@length, subreg));
-imgraw = img;
 
-parfor zi = 1:length(zI)
-   z = zI(zi);
-   imgraw(:,:,zi) = is.data('Z', z, 'X', subreg{1}, 'Y', subreg{2});
-   img(:,:,zi) = imgraw(:,:,zi);
-end
-
-%%
-img = imclip(mat2gray(imgraw), 0, 0.15);
-
-parfor zi = 1:length(zI)
-   img(:,:,zi) = img(:,:,zi) - imopen(img(:,:,zi), strel('disk', 30));
-   img(:,:,zi) = img(:,:,zi) - imopen(img(:,:,zi), strel('disk', 200));  
+parfor z = zI
+   imgraw(:,:,z) = is.data('Z', z, 'X', subreg{1}, 'Y', subreg{2});
+   img(:,:,z) = imgraw(:,:,z) - imopen(imgraw(:,:,z), strel('disk', 30));
+   img(:,:,z) = img(:,:,z) - imopen(img(:,:,z), strel('disk', 200));  
 end
 
 if verbose
@@ -136,7 +132,7 @@ if verbose
    hist(img(:), 256)
 end
 
-imgmask = img > 0;
+imgmask = img > 1200;
 
 %get rid of blod vessels
 % figure(7); clf; 
@@ -156,7 +152,7 @@ if verbose
    figure(21); clf;
    colormap jet
    set(gcf, 'Name', ['Masking'])
-   implottiling(imoverlaylabel(mat2gray(img), imgmask, false), 'tiling', tiling)
+   implottiling(imoverlaylabel(mat2gray(img), imgmask, true), 'tiling', tiling)
     
    %imgSeg = immask(imgCf, imgmask); 
    %figure(22); clf;
@@ -168,7 +164,7 @@ end
 %% Detect Maxima
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-imgf = filterSphere(img, [6,6,8]);
+imgf = filterSphere(img, [10,10,4]);
 
 if verbose
    figure(3); clf
@@ -202,14 +198,10 @@ if verbose
    implottiling(imoverlaylabel(mat2gray(img), bwlabeln(imgmax), false), 'tiling', tiling);
 end
 
-%% center point of seeds
-
-
-
 
 %%
 
-%[segments, distances] = seedPropagation(img, bwlabeln(imgmax), imgmask,  'lambda', 10, 'cutoff.difference', 50);
+[segments, distances] = seedPropagation(img, bwlabeln(imgmax), imgmask,  'lambda', 10, 'cutoff.difference', 50);
 
 
 %%
@@ -263,34 +255,7 @@ end
 imgS = imgWs;      
 
 
-%%
 
-
-%% combine points
-
-
-% shift peaks to original coordinates
-pts = cellfun(@(x,y) x + repmat(y(:), 1, size(x,2)), pts, shifts, 'UniformOutput', false);
-
-% cut at half the overlap
-
-for i = 1:chunkN
-    
-   % removes all points in specified area
-   pksSelect = and(pks(:,3) >= chunkSeparate{i}, pks(:,3) < chunkSeparate{i+1}
-   
-   
-   chunkSeparate{ pks(:,3) <= , pks <= p2), 1)) = [];
-end
-   
-   
-      pks = pts{1};
-      for i = 2:numel(pts)
-         % clean area
-         pks = cleanPoints(pks, shifts{i} + 1, shifts{i} + isizes{i});
-         pks = [pks, pts{i}]; %#ok<AGROW>
-      end     
-      
 
 
 %% Seed Propagation

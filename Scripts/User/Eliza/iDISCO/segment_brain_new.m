@@ -9,6 +9,13 @@ initialize()
 bfinitialize
 initializeParallelProcessing(12)
 
+
+% make hdf5 8 work
+setenv('HDF5_DISABLE_VERSION_CHECK', '2')
+
+% make cmtk work
+setenv('PATH', [getenv('PATH') ':' '/home/ckirst/Programs/cmtk-3.2.3/build/bin/'])
+
 addpath('./Scripts/User/Eliza/iDISCO/');
 
 datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_05/';
@@ -188,6 +195,8 @@ imgmax = immask(imgmax, imgmask);
 imgmax = bwulterode(imgmax, 'euclidean', 26);
 imgmax = imdilate(imgmax, fspecial3('disk', [3,3,3])>0);
 
+imglab = bwlabeln(imgmax);
+
 if verbose
    figure(3); clf
    implottiling(imgf, 'tiling', tiling)
@@ -195,15 +204,66 @@ end
 
 
 if verbose
-   figure(6); clf
+   figMax = figure(6); clf
    implottiling(imoverlay(imgf, imgmax), 'tiling', tiling);
-   figure(7); clf
+   figSeg = figure(7); clf
    colormap jet
-   implottiling(imoverlaylabel(mat2gray(img), bwlabeln(imgmax), false), 'tiling', tiling);
+   implottiling(imoverlaylabel(mat2gray(img), imglab, false), 'tiling', tiling);
 end
+
+
 
 %% center point of seeds
 
+stats = imstatistics(imglab, {'Centroid'})
+pointsSegmentation = [stats.Centroid];
+
+size(pointsSegmentation)
+
+%% Join Points from Chunks
+
+% todo
+
+%% Map Points with cmtk transfrom
+
+resolutionXform = 4;
+
+basedir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_05/';
+xform = fullfile(basedir, 'warp.xform');
+
+fnIn= fullfile(basedir, 'input.list');
+fnOut = fullfile(basedir, 'output.list');
+
+% Map points to resolution used for alignment
+
+pointsXform = pointsSegmentation / resolutionXform;
+
+% Write as CSV
+
+writeSSV(fnIn, pointsXform')
+
+%% Map points via cmtk
+
+cmd = ['cmtk streamxform ', xform, ' < ',  fnIn, ' > ', fnOut];
+
+system(cmd)
+
+pointsXform2 = dlmread(fnOut);
+
+% Map points to original resolution
+
+pointsXform2 = dlmread(fnOut)' * resolutionXform
+
+%% 
+
+fig3 = figure(11); clf
+hold on
+scatter(pointsSegmentation(1,:)', pointsSegmentation(2,:)', pointsSegmentation(3,:)')
+scatter(pointsXform2(1,:)', pointsXform2(2,:)', pointsXform2(3,:)', 'MarkerEdgeColor', 'r')
+
+
+
+saveas(fig3, fullfile(basedir, 'A_B_segmentation_overlay.pdf'))
 
 
 

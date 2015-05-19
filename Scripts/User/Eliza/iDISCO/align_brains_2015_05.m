@@ -17,8 +17,8 @@ setenv('PATH', [getenv('PATH') ':' '/home/ckirst/Programs/cmtk-3.2.3/build/bin/'
 
 %%
 basedir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_05/';
-fname1 = fullfile(basedir, 'brain 1/autofluo.h5');
-fname2 = fullfile(basedir, 'brain 2/autofluo.h5');
+fname1 = fullfile(basedir, 'brain_1/autofluo.h5');
+fname2 = fullfile(basedir, 'brain_2/autofluo.h5');
 
 if ~isfile(fname1)
    fprintf('file: %s does not exists!', fname1);
@@ -95,7 +95,7 @@ wname = fullfile(basedir, 'warp.xform');
 
 cmd = ['cmtk warp -o ', wname, ' --grid-spacing 100 --fast --jacobian-weight 1e-6 --refine 4 --verbose-level 9 --adaptive-fix-thresh 0.3 ', nrrdname1, ' ', nrrdname2];
 
-cmd = ['cmtk warp -o ', wname, ' --grid-spacing 100 --fast --jacobian-weight 1e-6 --refine 4 --verbose-level 9 ', nrrdname1, ' ', nrrdname2];
+cmd = ['cmtk warp -o ', wname, ' --grid-spacing 100 --exploration 40 --fast --jacobian-weight 0 --energy-weight 1e-6 --refine 4 --verbose-level 9 ', nrrdname1, ' ', nrrdname2];
 
 
 
