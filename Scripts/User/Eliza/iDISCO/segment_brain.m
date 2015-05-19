@@ -18,6 +18,7 @@ verbose = false;
 
 tiling = [5,2];
 
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Data Source %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -26,10 +27,39 @@ fns = tagExpressionToString([datadir dataname], 'Z', 0);
 is = ImageSourceBF(fns);
 is.printInfo
 
+%% test data
+
+ns = 200;
+imgtest = zeros(100, 100, 30);
+imgtest(randi([1, size(imgtest,1)], ns,1), randi([1, size(imgtest,2)], ns,1), randi([1, size(imgtest,3)], ns,1)]
+
 %%
 
 figure(1); clf
 implottiling(is.data('Z', 1:10), 'tiling', tiling)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Work on Chunks %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+chunkSizeZ = 30;
+chunkOverlapZ = 6;
+
+sizeZ = is.dataSize('Z');
+
+chunkN = ceil((sizeZ - 2 * (chunkSizeZ - chunkOverlapZ)) / (chunkSizeZ - 2 * chunkOverlapZ)) + 2;
+
+k = 1;
+for i = 1:chunkN
+   chunkIntervals{i} = [k; min(k + chunkSizeZ, sizeZ) ];
+   k = k + chunkSizeZ - chunkOverlapZ;
+end
+
+
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Filter Image
