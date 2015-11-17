@@ -15,7 +15,7 @@ function img = correctFromBackgroudAndFlatField(img, bkg, flt, varargin)
 %    bkg     estimated background image 
 %
 % note: 
-%    Reference: Fundamentals of Light Microscopy and Elextronic Imaging, p 421
+%    Reference: Fundamentals of Light Microscopy and Electronic Imaging, p 421
 % 
 % See also: backgroundFromMin
 

@@ -14,16 +14,16 @@ function [img, ctr] = syntheticConfocalData()
 % == ncells+1 and denotes all overlaps of ellipse. Note graphics at end.
 %
 
-rad0 = 10; % radius of sphere, grid units integer+>0
+rad0 = 2; % radius of sphere, grid units integer+>0
 dmin = 20;  % min allowed center to center distance of spheres
 % dmin = max(dmin, 2*rad0);
-slab = [256, 256, 48];     % 3D mesh for data
+% slab = [256, 256, 48];     % 3D mesh for data
 
-slab = [128, 128, 27];     % 3D mesh for data
+slab = [160, 180, 40];     % 3D mesh for data
 
 slab_r = [slab(1:2), slab(3) - 2*rad0];  % slab dims for centers of cells
 volfrac = 0.50;     % approximate vol fraction for spheres, may not be reachable with random addition of pts
-ncell0 = round( volfrac*prod(slab)/(pi*dmin^3/6) );
+ncell0 = 400; % round( volfrac*prod(slab)/(pi*dmin^3/6) );
 scl = [1.3,1, 0.8];   % affine scale change applied to r, vol preserving
 scl = scl/prod(scl)^(1/3);
 
