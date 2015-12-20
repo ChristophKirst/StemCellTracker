@@ -18,10 +18,9 @@ setenv('PATH', [getenv('PATH') ':' '/home/ckirst/Programs/cmtk-3.2.3/build/bin/'
 
 addpath('./Scripts/User/Eliza/iDISCO/');
 
-datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_05/';
+datadir = '/home/ckirst/Science/Projects/BrainActivityMap/iDISCO_2015_06/';
 %dataname = 'brain_1/150507_sag-0_8X-autofluo_17-15-29/17-15-29_sag-0_8X-autofluo_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
 dataname = 'brain_1/150507_sag-0_8X-cfos_17-26-02/17-26-02_sag-0_8X-autofluo_UltraII_C00_xyz-Table Z<Z,4>.ome.tif';
-
 
 verbose = false;
 
@@ -36,7 +35,7 @@ fns = tagExpressionToString([datadir dataname], 'Z', 0);
 is = ImageSourceBF(fns);
 is.printInfo
 
-%% Inspect
+%% Inspecpt
 
 data = is.data('Z',1684);
 data = imclip(mat2gray(data), 0, 0.05);

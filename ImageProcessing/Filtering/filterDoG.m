@@ -1,6 +1,6 @@
 function out = filterDoG(image, varargin)
 %
-% out = filterDoG(img, ksize, sigma_in, sigma_out, padding)
+% out = filterDoG(img, varargin)
 %
 % description:
 %    apply a difference of Gaussians filter with inner and outer radius radius_in and radius_out

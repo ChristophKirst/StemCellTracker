@@ -4,7 +4,7 @@ function [shifts, pairs] = alignImages(imgs, varargin)
 %
 % desciption:
 %    infers shifts of images in cell array imgs to make them align
-%    the fucntion is a wrapper that distributes the tasks to the indibvidual align and optimization methods
+%    the fucntion is a wrapper that distributes the tasks to the individual align and optimization methods
 % 
 % input:
 %    imgs    images or ImageSource class, if pairs parameter is not given the images are taken to 
