@@ -20,7 +20,6 @@ verbose = false;
 %% Data Source %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%is = ImageSourceBF('/data/Server/smb/upload/Brain sections/Sample B Slide 33 SATB2 CUX2 NURR1 CTIP2.lsm');
 is = ImageSourceBF([datadir  dataname '.lsm']);
 clc
 is.printInfo
@@ -33,8 +32,8 @@ is.setRange('C', 1);
 clc; is.printInfo
 
 %%
-is.setRange('C', 1);
-is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
+%is.setRange('C', 1);
+%is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,10 +83,11 @@ nch = 5;
 
 % corect illumination and background
 
-imgsAll = {imgsSATB2, imgsCTIP2, imgsTBR1, imgsNURR1, imgsDAPI};
+imgsAllRaw = {imgsSATB2, imgsCTIP2, imgsTBR1, imgsNURR1, imgsDAPI};
 
 chlabel = {'SATB2', 'CTIP2', 'TBR1', 'NURR1', 'DAPI'};
 
+chcols  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
 
 %%
 % figure(6); clf;
@@ -98,18 +98,22 @@ chlabel = {'SATB2', 'CTIP2', 'TBR1', 'NURR1', 'DAPI'};
 % img4= mat2gray(imclose(imgsAll{l}{k}, strel('disk', 150)));
 % implottiling({img1, img2; img3, img4})
 
+
+thrs = 0 * [0, 720, 430, 0, 600];
+
 parfor i = 1:nch
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 30)), imgsAll{i});
+   imgsAll{i} = cellfunc(@(x) (x > thrs(i)) .* x,  imgsAllRaw{i});
+   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 50)), imgsAll{i});   
+   %imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 20)), imgsAll{i});
    %imgsAll{i} = cellfunc(@(x) filterAutoContrast(x/max(x(:))), imgsAll{i});
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 150)), imgsAll{i});   
+   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgsAll{i});   
    %imgsAll{i} = cellfunc(@(x) x - imclose(x, strel('disk', 150)), imgsAll{i});
 end
 
-
 %%
-imgsSt =cell(1,nch);
+imgsSt = cell(1,nch);
 %th = [200, 50, 100, 100];
-th = [0,0,0, 0,0];
+%th = [0,0,0, 0,0];
 %cl = [2000, 1500, 2500, 3000, 2500];
 
 for i = 1:nch
@@ -145,7 +149,7 @@ imgsWs = cellfunc(@(x,y) x * y, imgsSt(1:nch), num2cell(weights));
 imgC = zeros([size(imgsWs{1}), 3]);
 for i = 1:nch
    for c = 1:3
-      imgC(:,:,c) = imgC(:,:,c) + chcols{i}(c) * (imgsWs{i} - imopen(imgsWs{i}, strel('disk', 10)));
+      imgC(:,:,c) = imgC(:,:,c) + chcols{i}(c) * (imgsWs{i}); % - imopen(imgsWs{i}, strel('disk', 10)));
    end
 end
     
@@ -157,16 +161,17 @@ figure(2)
 implot(imgC)
 
 
-%%
-imgCsub = imgC(550:2000, 1:300, :);
-figure(4); clf
-implot(imgCsub)
-
 %% Restrict to sub regoin
-if false
+sub = true;
+
+if sub
+    imgCsub = imgC(550:2000, 100:400, :);
+    figure(4); clf
+    implot(imgCsub)
+    
    imgC = imgCsub;
    for i = 1: length(imgsSt)
-      imgsSt{i} = imgsSt{i}(550:2000, 1:300);
+      imgsSt{i} = imgsSt{i}(550:2000, 100:400);
    end
 end
 
@@ -178,33 +183,33 @@ end
 
 
 %%
-% imgBM = filterBM(imgC, 'profile', 'np', 'sigma', 9);
-% figure(3); clf;
-% implottiling({imgC; imgBM}')
+imgBM = filterBM(imgC, 'profile', 'np', 'sigma', 9);
+figure(3); clf;
+implottiling({imgC; imgBM}')
 
-%% DoG filter
+imgCf = imgBM;
+
+%% DoG filter + Cell Detection
 
 %imgBMI = sum(imgBM, 3);
 %imgI = imgBM(:,:,3);
-imgI = imgC(:,:,3);
+imgI = imgCf(:,:,3) + imgCf(:,:,1) + imgCf(:,:,2);
 
-%imgf = filterDoG(imgI, 10) .* imgI;
-imgf = filterSphere(imgI, 3);
+imgf = filterDoG(imgI, 8); % .* imgI;
+%imgf = filterSphere(imgI, 4);
+%imgf = filterDisk(imgI,12,1);
 %imgF = imgBMI;
 
-figure(3); clf;
-implottiling({imgC, imgsSt{5}; imgBM,  imgf}')
-
-%%
 
 imgf2 = imgf; % - imopen(imgf, strel('disk', 1));
 
-imgmax = imextendedmax(mat2gray(imgf2), 0.05);
+imgmax = imextendedmax(mat2gray(imgf2), 0.02);
 %imglab = bwlabeln(imgmax);
 
 if verbose 
-   figure(31); clf
-   implottiling({imoverlay( imgf2, imgmax), imoverlay(imgC, imgmax)}')
+   figure(31); clf   
+   implottiling({imgC, imgsSt{5}; imgI,  imgf;
+                 imoverlay( imgf2, imgmax), imoverlay(imgC, imgmax); 100 * imgI, 100 * imgsSt{5}}')
 end
 
 
@@ -215,30 +220,22 @@ end
 %imgm =  imgsSt{5} - imopen(imgsSt{5} , strel('disk', 10));
 imgm = imgI;
 
-imgmaskLo = imgm > 0.07;
-
-%imgmask = imopen(imgmask, strel('disk', 3));
+imgmaskLo = imgm > 0.2;
+imgmask = imopen(imgmask, strel('disk', 3));
 imgmaskLo = postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 50) > 0;
 
 %get rid of blod vessels
-figure(7); clf; 
-implottiling({imgsSt{5},imgmaskLo}')
-
-
-imgmaskHi = imclose(imgsSt{5} > 0.75, strel('disk', 5));
+imgmaskHi = imgsSt{5} > 0.75;
+%imgmaskHi = imclose(imgmaskHi, strel('disk', 5));
 imgmaskHi = postProcessSegments(bwlabeln(imgmaskHi), 'volume.min', 500) > 0;
 
-figure(7); clf; 
-implottiling({imgsSt{5},imgmaskHi}')
-
-imgmask = and(imgmaskLo, ~imgmaskHi);
-
 if verbose
-   %max(img(:))
-   
+   %max(img(:))   
    figure(21); clf;
    set(gcf, 'Name', ['Masking'])
-   implottiling({imgm;  imgmask}')
+   implottiling({imgsSt{5},imgmaskLo; 
+                 imgsSt{5},imgmaskHi;
+                 imgm,  imgmask}')
 end
 
 
@@ -249,7 +246,7 @@ imgWs = imimposemin(iminvert(imgf2), imgmax);
 imgWs = watershed(imgWs);
 imgWs = immask(imgWs, imgmask);
 imgWs = imlabelseparate(imgWs);
-imgWs = postProcessSegments(bwlabeln(imgWs), 'volume.min', 50);
+imgWs = postProcessSegments(bwlabeln(imgWs), 'volume.min', 20);
 
 if verbose
    %figure(7); clf;
@@ -279,7 +276,7 @@ hist([stats.MedianIntensity], 256)
 %hist(imgI(:), 256)
 
 %%
-imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.1, 'volume.min', 15, 'fillholes', false);
+imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.15, 'volume.min', 15, 'fillholes', false);
 
 if verbose
    imgSp1 = impixelsurface(imgSP);
@@ -288,29 +285,31 @@ if verbose
    implot(imgSp1);
 end
 
+fprintf('detected: %d cells\n', max(imgSP(:)))
+
 %%
 
-imgSP2 = immask(imgSP, imgmask);
-imgSP2 = imlabelapplybw(imgSP2, @(x) imopen(x, strel('disk', 2)));
-imgSP2 = imlabelseparate(imgSP2);
+imgSP2 = imgSP;
+
+%imgSP2 = immask(imgSP, imgmask);
+%imgSP2 = imlabelapplybw(imgSP2, @(x) imopen(x, strel('disk', 2)));
+%imgSP2 = imlabelseparate(imgSP2);
 
 % stats = imstatistics(imgSP, {'MinIntensity'}, imgI);
 % figure(7); clf; 
 % hist([stats.MinIntensity], 56)
 %hist(imgI(:), 256)(imgsSt{4}
 
-%%
-
-imgSP2 = postProcessSegments(imgSP2, imgI, 'intensity.median.min', 0.0, 'volume.min', 15, 'fillholes', false);
+%imgSP2 = postProcessSegments(imgSP2, imgI, 'intensity.median.min', 0.0, 'volume.min', 15, 'fillholes', false);
 %imgSP = postProcessSegments(imgSP, 'volume.min', 7, 'fillholes', false);
-imgSP2 = imrelabel(imgSP2);
+%imgSP2 = imrelabel(imgSP2);
 fprintf('detected: %d cells', max(imgSP2(:)))
 
-if verbose
-   imgSp = impixelsurface(imgSP2);
-   figure(6); clf;
-   implottiling({imgSp1; imoverlaylabel(imgCf, imgSp, false);  imoverlaylabel(imgCf, imgmask, false)});
-end
+% if verbose
+%    imgSp = impixelsurface(imgSP2);
+%    figure(6); clf;
+%    implottiling({imoverlaylabel(imgC, imgSp, false)});
+% end
 
 %%
 
@@ -368,7 +367,7 @@ if verbose
    for c = 1:nch
       statsCh{c} = imstatistics(imgSPP, statsF, mode,  imgsSt{c});
       
-      imsubplot(nch, 1, c)
+      imsubplot(1, nch, c)
       imgch = zeros(size(imgSPP));
       for i = 1:length(statsF)
          imgch(statsF(i).PixelIdxList) = statsCh{c}(i).(mode);
@@ -396,98 +395,57 @@ for c = 1:nch
 end
   
 
-%%
+%% Create Cell Center Mask
 %imglabc = imlabelapplybw(imglab, @bwulterode);
 cc = fix([stats.Centroid]);
 imglabc = zeros(size(imglab));
 ind = imsub2ind(size(imglab), cc');
-imglabc(ind) = 1;
+imglabc(ind) = 1:length(ind);
 imglabc = imdilate(imglabc, strel('disk', 2));
 
+if verbose
+    figure(78); clf;
+    implottiling({imglabc})
+end
 
-%%
+
+%% Plot Detected Cells
 h = figure(7); clf;
-subreg = {[600:900], [550:950], ':'};
-subreg = {[200:300], [150:250], ':'};
+%subreg = {[600:900], [550:950], ':'};
+%subreg = {[200:300], [150:250], ':'};
 subreg = {':', ':', ':'};
 imgCfsub = imgCf(subreg{:});
 imgCsub = imgC(subreg{:});
 imglabsub = imglabc(subreg{:});
 
-implot(imoverlaylabel(imgCsub, imglabsub > 0,false, 'color.map', [[0,0,0]; 0.2*[1,1,1]]));
+implot(imoverlaylabel(imgCsub, imglabsub > 0, false, 'color.map', [[0,0,0]; 0.2*[1,0,0]]));
 axis off
 xlabel([]); ylabel([])
 
 %saveas(h, [datadir, dataname, '_Segmentation_Seeds.pdf'])
 
-h = figure(8); clf;
-imgCsub = imgC(subreg{:});
-
-implottiling({imgCsub; imgCsub});
-axis off
-xlabel([]); ylabel([])
-
-%saveas(h, [datadir, dataname, '_Segmentation_Segments.pdf'])
-
-%% 
-h = figure(9); clf;
-imgCsub = imgCf(subreg{:});
-
-implot(imgCsub);
-axis off
-xlabel([]); ylabel([])
-
-%saveas(h, [datadir, dataname, '_Segmentation_Filtered.pdf'])
-
-
-%%
-h = figure(10); clf;
-imgCsub = imgCf(subreg{:});
-
-implot(imgCsub);
-axis off
-xlabel([]); ylabel([])
-
-%saveas(h, [datadir, dataname, '_Segmentation_Raw.pdf'])
-
 %%
 h = figure(11); clf;
 
 %implot(filterAutoContrast(imgCf));
-implot(imgCf);
+implot(imgC);
 axis off
 xlabel([]); ylabel([])
 
 %saveas(h, [datadir, dataname, '_Raw.pdf'])
 
 
-%% Individual channels
-
-for c = 1:3
-
-   h = figure(11+c); clf;
-
-   %implot(filterAutoContrast(imgCf));
-   imgCfc = imgCf;
-   imgCfc(:,:,setdiff([1,2,3], c)) = 0;
-   implot(imgCfc);
-   axis off
-   xlabel([]); ylabel([])
-
-   %saveas(h, [datadir, dataname, '_Raw_' lab{c} '.pdf'])
-end
-
 %% 
 
 figure(7); clf;
-implottiling({imgCf, imgC, imoverlaylabel(imgCf, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
+implottiling({imgC, imoverlaylabel(imgC, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])});
 
 
 %% Flourescence in Space
 
 xy = [stats.Centroid]';
-cm = {'r', 'g', 'b', 'm'};
-cl = [0.5, 0.6, 0.4, 0.4];
+cm = {'r', 'g', 'y', 'm', 'b'};
+cl = 1 * [0.1, 0.6, 0.5, 0.5, 0.6];
 %ct = [0.110, 0.0, 0.100]
 
 figure(21); clf;
@@ -503,7 +461,7 @@ for c = 1:nch
    %imcolormap(cm{c});
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
-   xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
+   %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
    title(chlabel{c});
    %freezecolormap(gca)
    
