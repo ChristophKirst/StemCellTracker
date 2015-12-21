@@ -3,7 +3,7 @@ function imglab = detectROIsFromResampledImage(img, scale, varargin)
 % imglab = detectROIsFromResampledImage(img, param)
 %
 % descritption:
-%     finds shapes in an resmapled image using morphological closing and thresholding
+%     finds shapes in an resampled image using morphological closing and thresholding
 %     rescales rois to full scale assuming the resampling scale
 %
 % input:

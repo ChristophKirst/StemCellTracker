@@ -3,7 +3,7 @@ function [pks, img] = detectPeaksByHmax(img, varargin)
 % pks = detectPeaksByHmax(img, varargin)
 %
 % description:
-%    find peaks in image usin the specified parameter
+%    find peaks in image using the specified parameter
 %
 % input:
 %   img     image

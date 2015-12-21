@@ -5,7 +5,7 @@ function [roi, pks] = detectROIsByPeakVolume(imgs, varargin)
 % roi = detectROIsByPeakVolume(isalgn, param)
 %
 % descritption:
-%     finds shapes in an image img by detecting peaks and determining theri alpha volumes.
+%     finds shapes in an image img by detecting peaks and determining their alpha volumes.
 %
 % input:
 %    img    image as numeric array
