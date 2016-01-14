@@ -16,6 +16,8 @@ datadir = '/home/ckirst/Science/Projects/StemCells/Experiment/BrainSections_2015
 
 dataname = 'PCW10 Sample G CTIP2 SATB2 TBR1 NURR1';
 
+datafield = ' 1';
+
 verbose = true;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -150,7 +152,7 @@ end
 
 %% Save preporcessing state
 
-savefile = [datadir  dataname '_1.mat'];
+savefile = [datadir, dataname, datafield, '.mat'];
 %save(savefile)
 %load(savefile)
 
@@ -432,6 +434,11 @@ if verbose
    end
 end
 
+%% Save Image Preporcessing Result
+
+savefile = [datadir, dataname, datafield, '_ImageProcessing.mat'];
+save(savefile)
+%load(savefile)
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -478,12 +485,12 @@ if verbose > 1
    axis off
    xlabel([]); ylabel([])
 
-   %saveas(h, [datadir, dataname, '_Segmentation_Seeds.pdf'])
+   %saveas(h, [datadir, dataname, datafield, '_Segmentation_Seeds.pdf'])
 end
 
 %% Raw Image Data Color Plot
 
-if verbose >1 
+if verbose
    h = figure(11); clf;
 
    %implot(filterAutoContrast(imgCf));
@@ -491,15 +498,17 @@ if verbose >1
    axis off
    xlabel([]); ylabel([])
 
-   %saveas(h, [datadir, dataname, '_Raw.pdf'])
+   saveas(h, [datadir, dataname, datafield, '_Raw.pdf'])
 end
 
 
 %% 
 
 if verbose
-   figure(7); clf;
+   h = figure(7); clf;
    implottiling({imgC, imoverlaylabel(imgC, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
+   
+   saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
 end
 
 
@@ -536,7 +545,7 @@ for c = 1:nch
    %title(chlabel{c}); 
    %colorbar('Ticks', [])
    
-   %saveas(h, [datadir dataname '_Quantification_' lab{c} '.pdf']);
+   %saveas(h, [datadir dataname datafield '_Quantification_' lab{c} '.pdf']);
 end
 
 
@@ -555,8 +564,16 @@ end
 
 xy = [stats.Centroid]';
 
-figure(21); clf;
+ha = figure(21); clf;
 set(gcf, 'Name', 'Normalized Expression')
+
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 30 20];
+fig.PaperPositionMode = 'manual';
+set(gcf, 'papersize', [30,20]);
+
+
 for c = 1:nch
    fi = [statsChN{c}.(mode)]';
    
@@ -576,23 +593,23 @@ for c = 1:nch
    %imcolormap(cm{c});
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
-   %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
+   xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
    title(chlabel{c});
    %freezecolormap(gca)
    
    subplot(3,nch,c)
    implot(imgsStRaw{c})
-   
-   
+      
    %h = figure(22); clf
    %colormap jet
    %scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
    %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
    %title(chlabel{c}); 
    %colorbar('Ticks', [])
-   %saveas(h, [datadir dataname '_Quantification_' lab{c} '.pdf']);
+   %saveas(h, [datadir dataname datafield '_Quantification_' lab{c} '.pdf']);
 end
 
+saveas(ha, [datadir dataname datafield '_Quantification_Normalized.pdf']);
 
 %% Flourescence Expression
 
@@ -632,7 +649,7 @@ if verbose > 1
       xlim([0,1]); ylim([0,1]);
       xlabel(chlabel{pairs{n}(1)}); ylabel(chlabel{pairs{n}(2)});
 
-      %saveas(h, [datadir dataname '_Quantification_Scatter_' chlabel{pairs{n}(1)} ,'_' chlabel{pairs{n}(2)} '.pdf']);
+      %saveas(h, [datadir dataname datafield '_Quantification_Scatter_' chlabel{pairs{n}(1)} ,'_' chlabel{pairs{n}(2)} '.pdf']);
       %freezecolormap(gca)
    end
 end
@@ -718,11 +735,17 @@ for c = 1:nch
 end
 
 
-figure(7); clf;
+h = figure(7); clf;
 implottiling({imgsSt{1:nch}; imgClass1{:}}, 'titles', [chlabel(1:nch)', chlabel(1:nch)']');
 set(gcf, 'Name', 'Classifications');
 
-%saveas(h, [datadir dataname '_Classifica(imgsSt{4}tion_Channels' '.pdf']);
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 8 30];
+fig.PaperPositionMode = 'manual';
+set(gcf, 'papersize', [8,30]);
+
+saveas(h, [datadir dataname datafield '_Classification' '.pdf']);
 
 
 %%
@@ -780,8 +803,8 @@ imgClass = cat(3, R, G, B);
 h = figure(7); clf;
 implottiling({imgsStRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
 
-%saveas(h, [datadir dataname '_Classification_Channels' '.pdf']);
-%saveas(h, [datadir dataname '_Classification_Image' '.pdf']);
+%saveas(h, [datadir dataname datafield '_Classification_Channels' '.pdf']);
+%saveas(h, [datadir dataname datafield '_Classification_Image' '.pdf']);
 
 
 %% Class in Space
@@ -801,7 +824,7 @@ xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
 
 pbaspect([1,1,1])
 
-%saveas(h, [datadir dataname '_Quantification_Space.pdf']);
+saveas(h, [datadir dataname datafield '_Quantification_Space.pdf']);
 
 
 
@@ -837,7 +860,7 @@ tb = table(nc{:}, 'VariableNames', clslab)
 
 
 %% save numbers
-%writetable(tb, [datadir dataname '_Counts.txt'])
+writetable(tb, [datadir dataname datafield '_Counts.txt'])
 
 
 %% hist
@@ -858,7 +881,8 @@ xlabetxt = strrep(clslab(ord), '_', '+');
 n = length(clslab);
 ypos = -max(ylim)/50;
 text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35,'FontSize',15)
-%saveas(h, [datadir dataname '_Classification_Statistics' '.pdf']);
+
+saveas(h, [datadir dataname datafield '_Classification_Statistics' '.pdf']);
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -903,7 +927,7 @@ if verbose
    end
    hold off
    
-   saveas(h, [datadir dataname '_Annotation' '.pdf']);
+   saveas(h, [datadir dataname datafield '_Annotation' '.pdf']);
 end
 
 
@@ -928,7 +952,6 @@ end
 
 drel = dinner ./ (dinner + douter);
 
-
 % non normalized
 if verbose
    h  = figure(200); clf;
@@ -937,9 +960,17 @@ if verbose
       subplot(1,nch-1,c)
       plot(drel, dat, ['.' cm{c}])
       title(chlabel{c})
+      xlabel('rel. position')
+      ylabel('intensity [AU]')
    end
    
-   saveas(h, [datadir dataname '_RelativePosition_vs_Expression' '.pdf']);
+   fig = gcf;
+   fig.PaperUnits = 'inches';
+   fig.PaperPosition = [0 0 20 8];
+   fig.PaperPositionMode = 'manual';
+   set(gcf, 'papersize', [20,8]);
+   
+   saveas(h, [datadir dataname datafield '_RelativePosition_vs_Expression' '.pdf']);
 end
 
 %%
@@ -950,9 +981,17 @@ if verbose
       subplot(1,nch-1,c)
       plot(drel, dat, ['.' cm{c}])
       title(chlabel{c})
+      xlabel('rel. position')
+      ylabel('intensity [AU]')
    end
    
-   saveas(h, [datadir dataname '_RelativePosition_vs_Expression_DAPINormalized' '.pdf']);
+   fig = gcf;
+   fig.PaperUnits = 'inches';
+   fig.PaperPosition = [0 0 20 8];
+   fig.PaperPositionMode = 'manual';
+   set(gcf, 'papersize', [20,8]);
+   
+   saveas(h, [datadir dataname datafield '_RelativePosition_vs_Expression_DAPINormalized' '.pdf']);
 end
 
 
@@ -960,8 +999,21 @@ end
 
 %% Save the Statistics to File
 
-statsfile = [datadir dataname '_statistics' '.mat'];
-save(statsfile, 'stats', 'statsCh', 'neuroClass', 'lineshires', 'dinner', 'douter');
+statsfile = [datadir dataname datafield '_statistics' '.mat'];
+%save(statsfile, 'chlabel', 'stats', 'statsCh', 'statsChN',  'neuroClass', 'lineshires', 'dinner', 'douter');
+%load(statsfile)
+
+%% Save For Mathematica
+
+centers = [stats.Centroid];
+
+intensities = zeros(length(statsCh), size(centers,2));
+intensities_normalized = zeros(length(statsCh), size(centers,2));
+for c = 1:length(statsCh)
+   intensities(c, :) = [statsCh{c}.MedianIntensity];
+   intensities_normalized(c, :) = [statsChN{c}.MedianIntensity];
+end
 
 
-
+statsfilemathematica = [datadir dataname datafield '_statistics_mathematica' '.mat'];
+save(statsfilemathematica, '-v6', 'chlabel', 'centers', 'dinner', 'douter', 'lineshires', 'intensities', 'intensities_normalized', 'neuroClass');

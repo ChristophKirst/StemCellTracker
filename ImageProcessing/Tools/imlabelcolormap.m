@@ -49,7 +49,7 @@ end
 
 
 if isempty(cdata)
-   cdata = 1:nlabel;
+   cdata = 1:int64(nlabel);
 elseif nlabel ~= length(cdata)
    error('imlabelcolormap: inconsistent color data size!')
 end
@@ -69,7 +69,7 @@ else
 end
 
 if ischar(cmap)
-   cmap
+   %cmap
    cmap = imcolormap(cmap, nlabel);
 end
 

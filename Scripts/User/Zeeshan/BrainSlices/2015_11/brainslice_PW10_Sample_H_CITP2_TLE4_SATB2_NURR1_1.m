@@ -14,7 +14,9 @@ addpath('./Scripts/User/Zeeshan/BrainSlices/2015_11');
 %datadir = '/data/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
 datadir = '/home/ckirst/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
 
-dataname = 'PCW10 Sample G CTIP2 SATB2 TBR1 NURR1';
+dataname = 'PCW10 Sample H CTIP2 TLE4 SATB2 NURR1';
+
+datafield = ' 1';
 
 verbose = true;
 
@@ -28,14 +30,14 @@ is.printInfo
 
 %%
 
-is.setReshape('S', 'Uv', [8, 17]);
+is.setReshape('S', 'Uv', [7, 16]);
 is.setCellFormat('UV')
 is.setRange('C', 1);
 clc; is.printInfo
 
 %%
-%is.setRange('C', 1);
-%is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
+is.setRange('C', 1);
+is.plotPreviewStiched('overlap', 102, 'scale', 0.1);
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -45,12 +47,12 @@ clc; is.printInfo
 %region = struct('U', [8:11], 'V', [9:12], 'C', 1);
 %region = struct('U', 10, 'V', 11, 'C', 1, 'X', 1:300, 'Y', 1:300);
 %region = struct('U', 10, 'V', 11, 'C', 1);
-region = struct('U', 6:7, 'V', 12:13, 'C', 1);
+region = struct('U', 5:7, 'V', 10:15, 'C', 1);
 
 imgs = is.cell(region);
 size(imgs)
 
-if verbose > 1
+if verbose 
    figure(1); clf
    implottiling(imgs, 'link', false)
 end
@@ -63,7 +65,7 @@ sh = alignImages(imgs, 'alignment', 'RMS', 'overlap.max', 150);
 stmeth = 'Interpolate';
 %stmeth = 'Pyramid';
 
-if verbose > 1
+if verbose 
    img = stitchImages(imgs, sh, 'method', stmeth);
    figure(1); clf; implot(img)
 end
@@ -79,14 +81,14 @@ is.resetRange();
 nch = 5;
 
 imgsDAPI  = is.cell(region, 'C', 1);
-imgsTBR1  = is.cell(region, 'C', 2);
+imgsTLE4  = is.cell(region, 'C', 2);
 imgsSATB2 = is.cell(region, 'C', 3);
 imgsCTIP2 = is.cell(region, 'C', 4);
-imgsNURR1  = is.cell(region, 'C', 5);
+imgsNURR1 = is.cell(region, 'C', 5);
 
-imgsAllRaw = {imgsSATB2, imgsCTIP2, imgsTBR1, imgsNURR1, imgsDAPI};
+imgsAllRaw = {imgsSATB2, imgsCTIP2, imgsTLE4, imgsNURR1, imgsDAPI};
 
-chlabel = {'SATB2', 'CTIP2', 'TBR1', 'NURR1', 'DAPI'};
+chlabel = {'SATB2', 'CTIP2', 'TLE4', 'NURR1', 'DAPI'};
 
 chcols  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
 cm      = {'r',      'g',    'y',     'm',       'b'};
@@ -118,14 +120,14 @@ parfor i = 1:nch
 end
 
 %%
+
 imgsSt = cell(1,nch);
 imgsStRaw = cell(1,nch);
 
 for i = 1:nch
    imgsStRaw{i} = stitchImages(imgsAllRaw{i}, sh, 'method', stmeth);
    imgsStRaw{i} = mat2gray(imgsStRaw{i});
-   
-   
+      
    imgSt = stitchImages(imgsAll{i}, sh, 'method', stmeth);
    
    %imgSt = imgSt - imopen(imgSt, strel('disk', 20));
@@ -139,7 +141,6 @@ for i = 1:nch
    
    imgsSt{i} = mat2gray(imgSt);
    %imgsSt{i} = mat2gray(imclip(imgSt, 0, cl(i)));
-   
 end
 
 if verbose
@@ -150,9 +151,9 @@ end
 
 %% Save preporcessing state
 
-savefile = [datadir  dataname '_1.mat'];
+savefile = [datadir, dataname, datafield, '.mat'];
 %save(savefile)
-%load(savefile)
+load(savefile)
 
 %%
 
@@ -183,8 +184,8 @@ if verbose
 end
 
 %% Restrict to sub regoin
-sub = false;
-subregion = {550:2000, 100:400};
+sub = true;
+subregion = {750:2750, 550:5350};
 
 if sub
    imgCsub = imgC(subregion{1}, subregion{2}, :);
@@ -221,14 +222,14 @@ imgmaskLo = postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 15, 'fillhole
 %implottiling({255*(postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 10, 'fillholes', false)>0); 2*(bwlabeln(imgmaskLo)); 255*imgmaskLo}')
 
 %get rid of blod vessels
-imgmaskHi1 = imgsStRaw{4} > 0.9;
+imgmaskHi1 = imgsStRaw{4} > 0.6;
 imgmaskHi1 = imdilate(imgmaskHi1, strel('disk', 3));
 imgmaskHi1 = postProcessSegments(bwlabeln(imgmaskHi1), 'volume.min', 100, 'fillholes', false) > 0;
 imgmaskHi1 = not(imgmaskHi1);
 
-imgmaskHi2 = imgsStRaw{1} > 0.2;
+imgmaskHi2 = imgsStRaw{1} > 0.5;
 imgmaskHi2 = imdilate(imgmaskHi2, strel('disk', 3));
-imgmaskHi2 = postProcessSegments(bwlabeln(imgmaskHi2), 'volume.min', 100, 'fillholes', false) > 0;
+%imgmaskHi2 = postProcessSegments(bwlabeln(imgmaskHi2), 'volume.min', 100, 'fillholes', false) > 0;
 imgmaskHi2 = not(imgmaskHi2);
 
 imgmaskHi = and(imgmaskHi1, imgmaskHi2);
@@ -241,11 +242,11 @@ if verbose
    %max(img(:))   
    figure(21); clf;
    set(gcf, 'Name', 'Masking')
-   implottiling({imgsSt{5},imgmaskLo; 
+   implottiling({imgsStRaw{5},imgmaskLo; 
                  imgsStRaw{4},imgmaskHi1;
                  imgsStRaw{1},imgmaskHi2;
                  mat2gray(imgm),  imgmask
-                 }', 'titles', {'I', 'Lo', 'I','Hi','I', 'Mask'})
+                 }, 'titles', {'I', 'Lo', 'I','Hi','I', 'Mask'})
 end
 
 
@@ -262,7 +263,7 @@ imgI = imgC(:,:,3);
 if verbose > 1
    figure(3); clf;
    set(gcf, 'Name', 'BM')
-   implottiling({imgC; imgBM; imgBM(:,:,3); mat2gray(sum(imgBM,3)); mat2gray(imgI)}')
+   implottiling({imgC; mat2gray(sum(imgBM,3)); mat2gray(imgI)}')
 end
 
 
@@ -275,18 +276,18 @@ end
 disk = strel('disk',3);
 disk = disk.getnhood;
 %imgV = 1 ./ filterStd(imgI, disk) .* imgI ;
-imgV = imgI - 3 * filterStd(imgI, disk);
+imgV = imgI - 1 * filterStd(imgI, disk);
 %imgV(imgV > 100) = 100;
 
 if verbose
    figure(31); clf 
    set(gcf, 'Name', 'Variance')
-   implottiling({imgC, mat2gray(imgV), mat2gray(filterDoG(imgV, 5)),  mat2gray(imgI)});
+   implottiling({imgC, mat2gray(imgV), mat2gray(filterDoG(imgV, 5)),  mat2gray(imgI)}');
 end
 
 %%
-imgf = imgV;
-%imgf = filterDoG(imgV, 8); % .* imgI;
+%imgf = imgV;
+imgf = filterDoG(imgV, 8); % .* imgI;
 %imgf = filterSphere(imgV, 4);
 %imgf = filterDisk(imgI,12,1);
 %imgF = imgBMI;
@@ -303,7 +304,7 @@ if verbose
    set(gcf, 'Name', 'Maxima')
    %implottiling({imgC, imgsSt{5}; imgI,  imgf;
    %              imoverlay(mat2gray(imgf2), imgmax), imoverlay(imgC, imgmax); 10 * imgI, 100 * imgsSt{5}}')
-   implottiling({imoverlay(mat2gray(imgf2), imgmax), imoverlay(imgC, imgmax)})
+   implottiling({imoverlay(mat2gray(imgf2), imgmax), imoverlay(imgC, imgmax)}')
 end
 
 
@@ -362,7 +363,7 @@ end
 
 %% Remove weak cells
 
-imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.25, 'volume.min', 15, 'fillholes', false);
+imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.1, 'volume.min', 15, 'fillholes', false);
 
 if verbose > 1
    imgSp1 = impixelsurface(imgSP);
@@ -432,7 +433,18 @@ if verbose
    end
 end
 
+%% Save Image Preporcessing Result
 
+savefile = [datadir, dataname, datafield, '_ImageProcessing.mat'];
+%save(savefile)
+load(savefile)
+
+
+%%
+
+savefile = [datadir, dataname, datafield, '_Results.mat'];
+%save(savefile)
+load(savefile)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Statistics 
@@ -444,7 +456,8 @@ mode = 'MedianIntensity';
 
 clear statsCh
 for c = 1:nch
-   statsCh{c} = imstatistics(imglab, stats, mode,  imgsStRaw{c});
+   %statsCh{c} = imstatistics(imglab, stats, mode,  imgsStRaw{c});
+   statsCh{c} = imstatistics(imglab, stats, mode,  imgsSt{c});
 end
   
 
@@ -478,12 +491,12 @@ if verbose > 1
    axis off
    xlabel([]); ylabel([])
 
-   %saveas(h, [datadir, dataname, '_Segmentation_Seeds.pdf'])
+   %saveas(h, [datadir, dataname, datafield, '_Segmentation_Seeds.pdf'])
 end
 
 %% Raw Image Data Color Plot
 
-if verbose >1 
+if verbose
    h = figure(11); clf;
 
    %implot(filterAutoContrast(imgCf));
@@ -491,15 +504,17 @@ if verbose >1
    axis off
    xlabel([]); ylabel([])
 
-   %saveas(h, [datadir, dataname, '_Raw.pdf'])
+   saveas(h, [datadir, dataname, datafield, '_Raw.pdf'])
 end
 
 
 %% 
 
 if verbose
-   figure(7); clf;
-   implottiling({imgC, imoverlaylabel(imgC, imglabc> 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
+   h = figure(7); clf;
+   implottiling({imgC, imoverlaylabel(imgC, imglabc > 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
+   
+   saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
 end
 
 
@@ -536,7 +551,7 @@ for c = 1:nch
    %title(chlabel{c}); 
    %colorbar('Ticks', [])
    
-   %saveas(h, [datadir dataname '_Quantification_' lab{c} '.pdf']);
+   %saveas(h, [datadir dataname datafield '_Quantification_' lab{c} '.pdf']);
 end
 
 
@@ -555,8 +570,16 @@ end
 
 xy = [stats.Centroid]';
 
-figure(21); clf;
+ha = figure(21); clf;
 set(gcf, 'Name', 'Normalized Expression')
+
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 30 20];
+fig.PaperPositionMode = 'manual';
+set(gcf, 'papersize', [30,20]);
+
+
 for c = 1:nch
    fi = [statsChN{c}.(mode)]';
    
@@ -576,23 +599,23 @@ for c = 1:nch
    %imcolormap(cm{c});
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
-   %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
+   xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
    title(chlabel{c});
    %freezecolormap(gca)
    
    subplot(3,nch,c)
    implot(imgsStRaw{c})
-   
-   
+      
    %h = figure(22); clf
    %colormap jet
    %scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
    %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
    %title(chlabel{c}); 
    %colorbar('Ticks', [])
-   %saveas(h, [datadir dataname '_Quantification_' lab{c} '.pdf']);
+   %saveas(h, [datadir dataname datafield '_Quantification_' lab{c} '.pdf']);
 end
 
+%saveas(ha, [datadir dataname datafield '_Quantification_Normalized.pdf']);
 
 %% Flourescence Expression
 
@@ -632,7 +655,7 @@ if verbose > 1
       xlim([0,1]); ylim([0,1]);
       xlabel(chlabel{pairs{n}(1)}); ylabel(chlabel{pairs{n}(2)});
 
-      %saveas(h, [datadir dataname '_Quantification_Scatter_' chlabel{pairs{n}(1)} ,'_' chlabel{pairs{n}(2)} '.pdf']);
+      %saveas(h, [datadir dataname datafield '_Quantification_Scatter_' chlabel{pairs{n}(1)} ,'_' chlabel{pairs{n}(2)} '.pdf']);
       %freezecolormap(gca)
    end
 end
@@ -644,18 +667,41 @@ end
 %% Classify Cells
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% Mask for non valid regoins
+%% Mask for ROIs
 
-%xp = [0.5, 44.8458, 67.84, 90.8341, 177.8834, 241.9385, 332.2726, 471.8798, 616.4144, 790.5129, 910.4109, 984.3206, 1028.6665, 1081.2245, 1166.6313, 1212.6196, 1243.8259, 1230.6864, 1252.0381, 1281.602, 1298.0264, 1312.8083, 1319.3781, 1311.1659, 1334.16, 1362.0815, 1403.1424, 1401.5, 1334.16, 1279.9596, 1253.6805, 1207.6923, 1156.7767, 1073.0123, 943.2597, 885.7743, 825.0041, 747.8095, 718.2456, 670.6149, 621.3417, 578.6383, 526.0803, 499.8013, 374.976, -1.1424, 0.5];
-%yp = [613.9508, 528.544, 502.2649, 426.7128, 361.0152, 305.1723, 239.4748, 193.4865, 173.7773, 185.2743, 203.3411, 219.7655, 247.687, 278.8933, 323.2392, 375.7972, 398.7913, 413.5733, 439.8523, 482.5557, 526.9015, 559.7503, 592.5991, 622.163, 646.7995, 663.2239, 697.7151, 76.8734, 91.6553, 103.1524, 96.5826, 101.51, 99.8675, 101.51, 96.5826, 88.3705, 67.0188, 47.3095, 52.2368, 47.3095, 17.7456, 21.0305, 16.1032, 4.6061, -5.2485, -3.6061, 613.9508];
-%imgbad = ~poly2mask(xp',yp', size(imgI,1), size(imgI,2))';
-imgbad = ~logical(zeros(size(imgI)));
+%h  = figure(300); clf;
+%implot(imgsStRaw{4});
+%
+%p = impoly
+%impoly(gca, xy)
+%%
 
-if verbose > 1
+nx = size(imgC,1);
+ny = size(imgC,2);
+
+%xy  = [699.92088607595 1369.45632911392;732.346202531646 678.391772151899;716.133544303798 341.979113924051;509.422151898735 202.144936708861;343.242405063291 262.942405063292;233.806962025317 495.999367088608;162.876582278481 718.923417721519;162.876582278481 881.050000000001;136.531012658228 1067.49556962025;211.514556962025 1120.18670886076;185.168987341772 1207.32974683544;126.398101265823 1389.72215189873;294.604430379747 1489.0246835443;545.900632911392 1493.07784810127;665.468987341772 1472.81202531646];
+%imggood = poly2mask(xy(:,2), xy(:,1), size(imgI,1), size(imgI,2));
+imggood = ~logical(zeros(nx,ny));
+
+if verbose 
    figure(6); clf;
    set(gcf, 'Name', 'Bad Image Region');
-   implot(imgbad)
+   implot(imggood)
 end
+
+
+xy = fix([stats.Centroid]);
+xy(1,xy(1,:) > nx) = nx; xy(1,xy(1,:) < 1) = 1;
+xy(2,xy(2,:) > ny) = ny; xy(2,xy(2,:) < 1) = 1;
+   
+isgood = zeros(1, size(xy,2));
+for i = 1:size(xy, 2)
+   isgood(i) = imggood(xy(1,i), xy(2,i));
+end
+isgood = isgood > 0;
+
+fprintf('%d / %d cells in ROI\n', sum(isgood), size(xy,2))
+ 
 
 %% histograms
 
@@ -669,30 +715,23 @@ for c= 1:nch
    title(['Raw ', chlabel{c}])
    
    subplot(3, nch, c+nch);
-   hist([statsCh{c}.(mode)], 256)
+   dat = [statsCh{c}.(mode)];
+   hist(dat(isgood), 256)
    title(chlabel{c})
    
    subplot(3, nch, c+2*nch); 
-   hist([statsChN{c}.(mode)], 256)
+   dat = [statsChN{c}.(mode)];
+   hist(dat(isgood), 256)
    title(['Normalized ' chlabel{c}])
    
 end
 
 %% Classify
 
-cth = {0.4, 0.5, 0.35, 3, 0};
+cth = {0.2, 0.4, 0.5, 0.5, 0};
 
-clear neuroClass
+neuroClass = zeros(nch, length(isgood));
 for c = 1:nch
-   xy = fix([statsCh{c}.Centroid]);
-   xy(1,xy(1,:) > size(imgI,1)) = size(imgI,1); xy(1,xy(1,:) < 1) = 1;
-   xy(2,xy(2,:) > size(imgI,2)) = size(imgI,2); xy(2,xy(2,:) < 1) = 1;
-   
-   isgood = zeros(1, size(xy,2));
-   for i = 1:size(xy, 2)
-      isgood(i) = imgbad(xy(1,i), xy(2,i));
-   end
-
    neuroClass(c,:) = double(and([statsChN{c}.(mode)] > cth{c}, isgood));
 end
 neuroClassTotal = int32(fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:) + 8 * neuroClass(4,:)));
@@ -718,11 +757,21 @@ for c = 1:nch
 end
 
 
-figure(7); clf;
-implottiling({imgsSt{1:nch}; imgClass1{:}}, 'titles', [chlabel(1:nch)', chlabel(1:nch)']');
+h = figure(7); clf;
+implottiling({imgsStRaw{1:nch}; imgClass1{:}}, 'titles', [chlabel(1:nch)', chlabel(1:nch)']');
 set(gcf, 'Name', 'Classifications');
 
-%saveas(h, [datadir dataname '_Classifica(imgsSt{4}tion_Channels' '.pdf']);
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 8 30];
+fig.PaperPositionMode = 'manual';
+set(gcf, 'papersize', [8,30]);
+
+%saveas(h, [datadir dataname datafield '_Classification' '.pdf']);
+
+
+%%
+
 
 
 %%
@@ -762,6 +811,7 @@ for i = 1:ncls
 end
    
 
+%%
 for p = 1:length(stats);
    nc = neuroClassColor{neuroClassTotal(p)+1};
    
@@ -780,8 +830,8 @@ imgClass = cat(3, R, G, B);
 h = figure(7); clf;
 implottiling({imgsStRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
 
-%saveas(h, [datadir dataname '_Classification_Channels' '.pdf']);
-%saveas(h, [datadir dataname '_Classification_Image' '.pdf']);
+%saveas(h, [datadir dataname datafield '_Classification_Channels' '.pdf']);
+%saveas(h, [datadir dataname datafield '_Classification_Image' '.pdf']);
 
 
 %% Class in Space
@@ -801,7 +851,7 @@ xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
 
 pbaspect([1,1,1])
 
-%saveas(h, [datadir dataname '_Quantification_Space.pdf']);
+%saveas(h, [datadir dataname datafield '_Quantification_Space.pdf']);
 
 
 
@@ -837,7 +887,7 @@ tb = table(nc{:}, 'VariableNames', clslab)
 
 
 %% save numbers
-%writetable(tb, [datadir dataname '_Counts.txt'])
+writetable(tb, [datadir dataname datafield '_Counts.txt'])
 
 
 %% hist
@@ -858,7 +908,11 @@ xlabetxt = strrep(clslab(ord), '_', '+');
 n = length(clslab);
 ypos = -max(ylim)/50;
 text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35,'FontSize',15)
-%saveas(h, [datadir dataname '_Classification_Statistics' '.pdf']);
+
+saveas(h, [datadir dataname datafield '_Classification_Statistics' '.pdf']);
+
+
+
 
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -866,27 +920,28 @@ text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %
-%figure(101); clf
+figure(101); clf
 %implot(imgsStRaw{5})
 %
 %figure(100); clf
-%implot(imgC)
-%p  = impoly
+implot(permute(imgC,[2,1,3]));
 
 %%
-outer = [1889.73607594937 2043.61329113924;1902.6917721519 1963.28797468355;1889.73607594937 1857.05126582279;1897.50949367089 1807.81962025317;1884.55379746836 1737.85886075949;1876.78037974684 1722.31202531646;1879.37151898734 1649.76012658228;1876.78037974684 1587.57278481013;1871.59810126582 1561.66139240506;1861.2335443038 1489.10949367089;1856.05126582279 1411.3753164557;1845.68670886076 1307.72974683544;1843.09556962025 1258.49810126582;1856.05126582279 1134.12341772152;1861.2335443038 1043.4335443038;1900.10063291139 929.423417721519;1920.82974683544 856.871518987342;1936.37658227848 763.590506329114;1944.15 696.220886075949;1938.96772151899 634.033544303798;1954.51455696203 574.437341772152;1954.51455696203 525.205696202532;1964.87911392405 434.51582278481;1959.69683544304 356.78164556962;1972.65253164557 268.682911392405;1995.97278481013 154.672784810126;2008.92848101266 66.5740506329112;2016.70189873418 -0.795569620253445];
-cortexU = [1835.32215189874 2046.20443037975;1848.27784810127 1999.56392405063;1858.64240506329 1952.92341772152;1863.8246835443 1916.64746835443;1861.2335443038 1867.41582278481;1858.64240506329 1802.63734177215;1848.27784810127 1743.04113924051;1843.09556962025 1678.26265822785;1837.91329113924 1644.57784810127;1848.27784810127 1597.93734177215;1832.73101265823 1538.34113924051;1824.95759493671 1486.51835443038;1822.3664556962 1450.24240506329;1817.18417721519 1377.69050632911;1806.81962025317 1320.68544303798;1804.22848101266 1268.86265822785;1814.59303797468 1211.85759493671;1812.00189873418 1162.62594936709;1819.7753164557 1123.75886075949;1822.3664556962 1095.25632911392;1819.7753164557 1074.52721518987;1832.73101265823 1012.33987341772;1835.32215189874 986.428481012658;1845.68670886076 947.561392405064;1871.59810126582 867.236075949367;1894.91835443038 807.639873417722;1910.46518987342 719.541139240506;1913.05632911392 659.944936708861;1915.64746835443 608.122151898734;1923.42088607595 558.890506329114;1918.23860759494 517.432278481013;1926.01202531646 452.653797468354;1931.19430379747 398.239873417722;1926.01202531646 359.372784810127;1928.60316455696 302.367721518987;1936.37658227848 260.909493670886;1946.74113924051 214.268987341772;1946.74113924051 180.58417721519;1954.51455696203 144.308227848101;1957.10569620253 118.396835443038;1964.87911392405 84.7120253164558;1970.06139240506 32.8892405063289;1977.83481012658 1.79556962025299];
-cortexL = [1607.30189873418 2051.38670886076;1594.34620253165 1958.10569620253;1594.34620253165 1885.55379746836;1586.57278481013 1787.09050632911;1576.2082278481 1709.35632911392;1563.25253164557 1662.71582278481;1576.2082278481 1644.57784810127;1573.6170886076 1546.11455696203;1552.88797468354 1478.74493670886;1552.88797468354 1442.46898734177;1560.66139240506 1413.9664556962;1542.52341772152 1377.69050632911;1545.11455696203 1310.32088607595;1550.29683544304 1235.17784810127;1532.15886075949 1134.12341772152;1534.75 1061.57151898734;1532.15886075949 983.837341772152;1539.93227848101 913.876582278481;1526.97658227848 856.871518987342;1547.70569620253 758.408227848101;1555.47911392405 641.806962025317;1563.25253164557 577.028481012658;1560.66139240506 481.156329113924;1552.88797468354 359.372784810127;1545.11455696203 266.091772151899;1545.11455696203 154.672784810126;1545.11455696203 71.756329113924;1545.11455696203 9.56898734177184;1545.11455696203 -0.795569620253445];
-inner = [1029.47784810127 2043.61329113924;990.610759493671 1971.06139240506;946.561392405063 1898.50949367089;912.876582278481 1779.3170886076;884.374050632912 1665.30696202532;858.462658227848 1527.97658227848;819.595569620253 1401.01075949367;809.231012658228 1261.08924050633;757.408227848101 1123.75886075949;718.541139240506 981.246202531646;692.629746835443 864.644936708861;653.762658227848 716.95;656.353797468354 600.348734177215;648.580379746835 535.570253164557;633.033544303797 475.974050632911;604.531012658228 349.008227848101;570.846202531646 242.771518987342;537.161392405063 89.8943037974682;519.023417721519 -0.795569620253445];
-vz = [1218.63101265823 2048.79556962025;1169.39936708861 1950.33227848101;1112.39430379747 1792.27278481013;1086.48291139241 1693.80949367089;1068.34493670886 1608.30189873418;1050.20696202532 1483.92721518987;1026.88670886076 1382.87278481013;1019.11329113924 1299.95632911392;959.517088607595 1131.53227848101;925.832278481013 1009.74873417722;876.600632911393 890.556329113924;879.191772151899 789.501898734178;855.871518987342 696.220886075949;827.368987341772 589.98417721519;809.231012658228 494.112025316456;796.275316455696 400.831012658228;780.728481012658 294.594303797468;749.634810126582 123.57911392405;734.087974683544 4.38670886075943];
 
-lines = {inner, outer, vz cortexL, cortexU};
+p  = impoly
 
-% hold on
-% for l = 1:length(lines)
-%    diff(lines{l})
-%    plot(lines{l}(:,1), lines{l}(:,2), 'w', 'LineWidth',2)
-% end
+%%
+inner = [-1.76890359168283 113.858695652174;116.214083175803 136.547731568998;216.04584120983 177.387996219281;302.264177693761 181.925803402646;402.095935727788 191.001417769376;501.927693761814 195.539224952741;606.297258979206 222.76606805293;751.507088846881 249.992911153119;892.179111531191 290.833175803402;973.859640831758 340.749054820415;1019.23771266541 358.900283553875;1105.45604914934 367.975897920604;1227.97684310019 390.664933837429;1341.42202268431 408.816162570888;1445.7915879017 436.043005671077;1550.16115311909 458.732041587901;1690.8331758034 472.345463137996;1786.12712665406 490.496691871455;1858.7320415879 522.261342155009;1935.8747637051 531.336956521739;2013.01748582231 544.950378071833;2090.16020793951 540.412570888469;2208.143194707 531.336956521739;2285.2859168242 526.799149338374;2425.95793950851 517.723534971644;2575.70557655955 531.336956521739;2739.06663516068 535.874763705104;2829.82277882798 549.488185255198;2911.50330812855 554.025992438563;3038.56190926276 563.101606805293;3165.62051039698 576.715028355387;3251.83884688091 590.328449905482;3328.98156899811 613.017485822306;3401.58648393195 640.244328922495;3528.64508506616 690.160207939508;3651.16587901701 717.387051039697;3714.69517958412 740.076086956522;3796.37570888469 762.765122873346;3900.74527410208 821.756616257089;4005.11483931947 848.983459357278;4086.79536862004 871.672495274102;4182.0893194707 907.974952741021;4263.76984877127 948.815217391304;4331.83695652174 980.579867674858;4386.29064272212 1025.95793950851;4431.66871455577 1071.33601134215;4490.66020793951 1112.17627599244;4567.80293005671 1116.7140831758;4708.47495274102 1143.94092627599;4812.84451795841 1175.70557655955];
+outer = [-1.76890359168283 1611.33506616257;138.903119092627 1638.56190926276;220.583648393194 1643.09971644613;284.112948960302 1647.63752362949;379.406899810964 1661.25094517958;452.011814744801 1652.17533081285;538.230151228733 1656.71313799622;633.524102079395 1656.71313799622;719.742438563327 1647.63752362949;805.960775047259 1652.17533081285;869.490075614367 1638.56190926276;923.943761814745 1620.4106805293;960.246219281664 1634.0241020794;1055.54017013233 1634.0241020794;1096.38043478261 1638.56190926276;1178.06096408318 1611.33506616257;1291.5061436673 1602.25945179584;1355.0354442344 1602.25945179584;1373.18667296786 1593.18383742911;1427.64035916824 1597.72164461248;1532.00992438563 1584.10822306238;1609.15264650284 1565.95699432892;1672.68194706994 1538.73015122873;1772.51370510397 1516.04111531191;1872.345463138 1506.96550094518;1963.10160680529 1511.50330812854;2022.09310018904 1506.96550094518;2099.23582230624 1488.81427221172;2171.84073724008 1484.27646502836;2244.44565217391 1470.66304347826;2321.58837429112 1457.04962192817;2376.04206049149 1457.04962192817;2457.72258979206 1443.43620037807;2525.78969754253 1434.36058601134;2607.4702268431 1429.82277882798;2711.83979206049 1425.28497164461;2798.05812854442 1416.20935727788;2902.42769376182 1407.13374291115;2997.72164461248 1402.59593572779;3052.17533081286 1420.74716446125;3111.1668241966 1438.89839319471;3188.3095463138 1447.97400756144;3306.29253308129 1443.43620037807;3378.89744801512 1457.04962192817;3442.42674858223 1466.1252362949;3537.72069943289 1479.73865784499;3619.40122873346 1502.42769376182;3669.31710775047 1493.35207939509;3732.84640831758 1506.96550094518;3787.30009451796 1547.80576559546;3864.44281663516 1588.64603024575;3918.89650283554 1606.79725897921;3986.96361058601 1615.87287334594;4055.03071833649 1638.56190926276;4114.02221172023 1652.17533081285;4159.40028355388 1674.86436672968;4213.85396975425 1706.62901701323;4277.38327032136 1733.85586011342;4340.91257088847 1756.54489603025;4404.44187145558 1779.23393194707;4445.28213610586 1788.3095463138;4508.81143667297 1815.53638941399;4563.26512287335 1820.07419659735;4608.643194707 1847.30103969754;4631.33223062382 1856.37665406427;4694.86153119093 1856.37665406427;4767.46644612476 1860.91446124764;4808.30671077505 1865.452268431];
+cortexU = outer;
+vz = [-1.76890359168283 363.43809073724;116.214083175803 390.664933837429;225.121455576559 404.278355387523;275.037334593572 399.740548204159;352.180056710775 408.816162570888;447.474007561436 426.967391304348;529.154536862004 440.580812854442;583.608223062382 431.505198487713;656.213137996219 440.580812854442;710.666824196597 449.656427221172;783.271739130435 490.496691871455;864.952268431002 490.496691871455;969.321833648393 522.261342155009;1032.8511342155 554.025992438563;1146.29631379962 576.715028355387;1282.43052930057 599.404064272212;1364.11105860113 617.555293005671;1473.01843100189 635.70652173913;1545.62334593573 653.85775047259;1631.84168241966 662.933364839319;1722.59782608696 694.698015122873;1831.50519848771 712.849243856333;1890.49669187146 731.000472589792;1990.32844990548 740.076086956522;2081.08459357278 749.151701323251;2194.5297731569 721.924858223062;2280.74810964083 708.311436672968;2389.65548204159 708.311436672968;2457.72258979206 721.924858223062;2530.3275047259 740.076086956522;2612.00803402647 721.924858223062;2689.15075614367 721.924858223062;2793.52032136106 726.462665406427;2884.27646502836 735.538279773157;2961.41918714556 740.076086956522;3038.56190926276 749.151701323251;3188.3095463138 771.840737240075;3269.99007561437 803.605387523629;3347.13279773157 821.756616257089;3415.19990548204 835.370037807183;3496.88043478261 858.059073724007;3560.40973534972 871.672495274102;3633.01465028356 898.899338374291;3732.84640831758 935.20179584121;3850.82939508507 966.966446124764;3937.047731569 989.655482041588;4014.1904536862 1035.03355387524;4073.18194706994 1062.26039697543;4186.62712665407 1116.7140831758;4263.76984877127 1157.55434782609;4327.29914933838 1193.85680529301;4395.36625708885 1248.31049149338;4454.35775047259 1289.15075614367;4522.42485822306 1311.83979206049;4595.0297731569 1325.45321361059;4685.7859168242 1339.06663516068;4772.00425330813 1352.68005671078;4808.30671077505 1361.7556710775];
+cortexL = [-1.76890359168283 1180.24338374291;75.3738185255195 1189.31899810964;193.356805293005 1193.85680529301;275.037334593572 1202.93241965974;470.163043478261 1221.08364839319;556.381379962193 1225.62145557656;683.439981096408 1234.69706994329;842.263232514178 1239.23487712665;910.33034026465 1243.77268431002;1023.77551984877 1248.31049149338;1105.45604914934 1248.31049149338;1182.59877126654 1252.84829867675;1264.27930056711 1261.92391304348;1382.26228733459 1266.46172022684;1463.94281663516 1270.99952741021;1581.92580340265 1252.84829867675;1704.4465973535 1239.23487712665;1858.7320415879 1202.93241965974;2044.78213610586 1175.70557655955;2144.61389413989 1157.55434782609;2285.2859168242 1134.86531190926;2403.26890359168 1121.25189035917;2503.10066162571 1121.25189035917;2621.0836483932 1107.63846880907;2698.2263705104 1107.63846880907;2811.67155009452 1107.63846880907;2911.50330812855 1107.63846880907;2988.64603024575 1125.78969754253;3065.78875236295 1134.86531190926;3138.39366729679 1143.94092627599;3224.61200378072 1148.47873345936;3306.29253308129 1166.62996219282;3433.3511342155 1184.78119092628;3560.40973534972 1202.93241965974;3637.55245746692 1221.08364839319;3737.38421550095 1252.84829867675;3814.52693761815 1275.53733459357;3932.50992438563 1339.06663516068;4009.65264650284 1361.7556710775;4109.48440453686 1393.52032136106;4173.01370510397 1425.28497164461;4227.46739130435 1475.20085066163;4286.45888468809 1506.96550094518;4363.60160680529 1534.19234404537;4440.7443289225 1565.95699432892;4526.96266540643 1588.64603024575;4595.0297731569 1638.56190926276;4649.48345935728 1652.17533081285;4735.70179584121 1674.86436672968;4781.07986767486 1693.01559546314;4808.30671077505 1706.62901701323];
+
+lines = {inner, vz, cortexL, cortexU, outer};
+
+for l = 1:length(lines)
+   lines{l} = lines{l}(:,[2,1]);
+end
 
 nlines = length(lines);
 lineshires = cell(1, nlines);
@@ -903,7 +958,7 @@ if verbose
    end
    hold off
    
-   saveas(h, [datadir dataname '_Annotation' '.pdf']);
+   saveas(h, [datadir dataname datafield '_Annotation' '.pdf']);
 end
 
 
@@ -928,7 +983,6 @@ end
 
 drel = dinner ./ (dinner + douter);
 
-
 % non normalized
 if verbose
    h  = figure(200); clf;
@@ -937,9 +991,17 @@ if verbose
       subplot(1,nch-1,c)
       plot(drel, dat, ['.' cm{c}])
       title(chlabel{c})
+      xlabel('rel. position')
+      ylabel('intensity [AU]')
    end
    
-   saveas(h, [datadir dataname '_RelativePosition_vs_Expression' '.pdf']);
+   fig = gcf;
+   fig.PaperUnits = 'inches';
+   fig.PaperPosition = [0 0 20 8];
+   fig.PaperPositionMode = 'manual';
+   set(gcf, 'papersize', [20,8]);
+   
+   saveas(h, [datadir dataname datafield '_RelativePosition_vs_Expression' '.pdf']);
 end
 
 %%
@@ -950,9 +1012,17 @@ if verbose
       subplot(1,nch-1,c)
       plot(drel, dat, ['.' cm{c}])
       title(chlabel{c})
+      xlabel('rel. position')
+      ylabel('intensity [AU]')
    end
    
-   saveas(h, [datadir dataname '_RelativePosition_vs_Expression_DAPINormalized' '.pdf']);
+   fig = gcf;
+   fig.PaperUnits = 'inches';
+   fig.PaperPosition = [0 0 20 8];
+   fig.PaperPositionMode = 'manual';
+   set(gcf, 'papersize', [20,8]);
+   
+   saveas(h, [datadir dataname datafield '_RelativePosition_vs_Expression_DAPINormalized' '.pdf']);
 end
 
 
@@ -960,8 +1030,21 @@ end
 
 %% Save the Statistics to File
 
-statsfile = [datadir dataname '_statistics' '.mat'];
-save(statsfile, 'stats', 'statsCh', 'neuroClass', 'lineshires', 'dinner', 'douter');
+statsfile = [datadir dataname datafield '_statistics' '.mat'];
+save(statsfile, 'chlabel', 'stats', 'statsCh', 'statsChN',  'neuroClass', 'lineshires', 'dinner', 'douter');
+%load(statsfile)
+
+%% Save For Mathematica
+
+centers = [stats.Centroid];
+
+intensities = zeros(length(statsCh), size(centers,2));
+intensities_normalized = zeros(length(statsCh), size(centers,2));
+for c = 1:length(statsCh)
+   intensities(c, :) = [statsCh{c}.MedianIntensity];
+   intensities_normalized(c, :) = [statsChN{c}.MedianIntensity];
+end
 
 
-
+statsfilemathematica = [datadir dataname datafield '_statistics_mathematica' '.mat'];
+save(statsfilemathematica, '-v6', 'chlabel', 'centers', 'dinner', 'douter', 'lineshires', 'intensities', 'intensities_normalized', 'neuroClass');
