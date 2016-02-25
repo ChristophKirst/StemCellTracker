@@ -11,8 +11,9 @@ bfinitialize
 
 addpath('./Scripts/User/Zeeshan/BrainSlices/2015_11');
 
-%datadir = '/data/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
-datadir = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
+datadir = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/BrainSections/';
+savedir   = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/BrainSections/Analysis/2016_02/Data/'
+resultdir = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/BrainSections/Analysis/2016_02/';
 
 dataname = 'DAPT D90 CTIP2 SATB2 TBR1 NURR1';
 
@@ -88,97 +89,78 @@ imgsSATB2 = is.cell('C', 3);
 imgsCTIP2 = is.cell('C', 4);
 imgsNURR1 = is.cell('C', 5);
 
-imgsAllRaw = {imgsSATB2, imgsCTIP2, imgsTBR1, imgsNURR1, imgsDAPI};
+nch = 4;
+for i = 1:nch
+    imgsRaw{i}  = is.cell(region, 'C', i);
+end
+
+imgsAllRaw = {imgsRaw{3}, imgsRaw{4}, imgsRaw{2}, imgs{5}, imgs{1}};
 
 
-chlabel = {'CTIP2', 'TBR1', 'SATB2', 'NURR1', 'DAPI'};
 
-chcols  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
-cm      = {'r',      'g',    'y',     'm',       'b'};
-
-%% Test Preprocessing
-% 
-% for i  = [4]
-%    imgsAll{i} = imgsAllRaw{i}(1:2);
-%    imgsAll{i} = cellfunc(@(x) filterMedian(x, 3), imgsAll{i});
-%    imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 75)), imgsAll{i});   
-%    imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgsAll{i});   
-% end
-%    
-% figure(12); clf;
-% implottiling({imgsAllRaw{i}{1:2}; imgsAll{i}{:}})
+channellabel = {'CTIP2', 'TBR1', 'SATB2', 'NURR1', 'DAPI'};
+channelcolors  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
 
 %% Preprocess
 
+imgs = cell(1,nch);
 parfor i = 1:nch
-   imgsAll{i} = imgsAllRaw{i};
+   imgs{i} = imgsRaw{i};
    %thrs = 0 * [0, 720, 430, 0, 600];
-   %imgsAll{i} = cellfunc(@(x) (x > thrs(i)) .* x,  imgsAll{i});
-   %imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 100)), imgsAll{i});   
-   %imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgsAll{i});   
-   %imgsAll{i} = cellfunc(@(x) filterAutoContrast(x/max(x(:))), imgsAll{i});
-   imgsAll{i} = cellfunc(@(x) filterMedian(x, 3), imgsAll{i});
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 75)), imgsAll{i});   
-   imgsAll{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgsAll{i});   
+   %imgs{i} = cellfunc(@(x) (x > thrs(i)) .* x,  imgsAll{i});
+   %imgs{i} = cellfunc(@(x) x - imopen(x, strel('disk', 100)), imgs{i});   
+   %imgs{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgs{i});   
+   %imgs{i} = cellfunc(@(x) filterAutoContrast(x/max(x(:))), imgs{i});
+   imgs{i} = cellfunc(@(x) filterMedian(x, 3), imgs{i});
+   imgs{i} = cellfunc(@(x) x - imopen(x, strel('disk', 75)), imgs{i});   
+   imgs{i} = cellfunc(@(x) x - imopen(x, strel('disk', 10)), imgs{i});   
 end
 
 %%
-imgsSt = cell(1,nch);
-imgsStRaw = cell(1,nch);
+img = cell(1,nch);
+imgRaw = cell(1,nch);
 
 for i = 1:nch
-   imgsSt{i} = mat2gray(imgsAll{i}{1});
-   imgsStRaw{i} = mat2gray(imgsAllRaw{i}{1});
+   img{i} = mat2gray(imgs{i}{1});
+   imgRaw{i} = mat2gray(imgsRaw{i}{1});
+   
+   %img{i} = img{i} - imopen(img{i}, strel('disk', 20));
+   %img{i} = filterAutoContrast(img{i}/max(img{i}(:)));
+   
+   if verbose
+      figure(16);
+      set(gcf, 'Name', 'Preprocessed Data')
+      subplot(nch+1,1,i); 
+      hist(img{i}(:), 256);
+      title(channellabel{i});
+   end
+   
+   img{i} = mat2gray(img{i});
+   %img{i} = mat2gray(imclip(img{i}, 0, clip(i)));
+end
+
+if verbose
+   figure(1); clf; colormap jet
+   set(gcf, 'Name', 'Stitched and Preprocessed Data')
+   implottiling({img{:}; imgRaw{:}}', 'titles', {channellabel{:}, channellabel{:}})
 end
 
 
-% imgsSt = cell(1,nch);
-% imgsStRaw = cell(1,nch);
-% 
-% for i = 1:nch
-%    imgsStRaw{i} = stitchImages(imgsAllRaw{i}, sh, 'method', stmeth);
-%    imgsStRaw{i} = mat2gray(imgsStRaw{i});
-%       
-%    imgSt = stitchImages(imgsAll{i}, sh, 'method', stmeth);
-%    
-%    %imgSt = imgSt - imopen(imgSt, strel('disk', 20));
-%    %imgsS = filterAutoContrast(imgsS/max(imgsS(:)));
-%    
-%    if verbose
-%       figure(16);
-%       subplot(nch+1,1,i); 
-%       hist(imgSt(:), 256);
-%    end
-%    
-%    imgsSt{i} = mat2gray(imgSt);
-%    %imgsSt{i} = mat2gray(imclip(imgSt, 0, cl(i)));
-% end
-% 
-% if verbose
-%    figure(1); clf; colormap jet
-%    set(gcf, 'Name', 'Stitched and Preprocessed Data')
-%    implottiling({imgsSt{:}; imgsStRaw{:}}', 'titles', {chlabel{:}, chlabel{:}})
-% end
 
-%% Save preporcessing state
-
-savefile = [datadir, dataname, datafield, '.mat'];
-%save(savefile)
-load(savefile)
-
-%%
+%% Color and Overall Intensity Image
 
 nch = 5;
 
 weights = [0.5, 0.5, 0.5, 0, 1]; % exclude NURR1 as it is fuzzy
-chcols  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
+weightsfull = 2*[0.5, 0.5, 0.5, 0.3, 0.5]; %exclude DAPI
 
-imgsWs = cellfunc(@(x,y) x * y, imgsSt(1:nch), num2cell(weights));
+imgC = zeros([size(img{1}), 3]);
+imgCfull = zeros([size(img{1}), 3]);
 
-imgC = zeros([size(imgsWs{1}), 3]);
 for i = 1:nch
    for c = 1:3
-      imgC(:,:,c) = imgC(:,:,c) + chcols{i}(c) * (imgsWs{i}); % - imopen(imgsWs{i}, strel('disk', 10)));
+      imgC(:,:,c) = imgC(:,:,c) + channelcolors{i}(c) * weights(i) * img{i}; % - imopen(imgsWs{i}, strel('disk', 10)));
+      imgCfull(:,:,c) = imgCfull(:,:,c) + channelcolors{i}(c) * weightsfull(i) * img{i}; 
    end
 end
     
@@ -186,13 +168,26 @@ end
 imgC = imgC / max(imgC(:));
 imgC = filterAutoContrast(imgC);
 
+%imgCfull = imgCfull / max(imgCfull(:));
+imgCfull = filterAutoContrast(imgCfull);
+
 imgI = sum(imgC,3);
 
 if verbose
    figure(2); clf;
-   set(gcf, 'Name', 'Data')
-   implottiling({imgC, imgsSt{5}, imgI}', 'titles' , {'color','DAPI','intensity'});
+   set(gcf, 'Name', 'Image Data')
+   implottiling({imgC, imgCfull, img{5}, imgI}, 'titles' , {'color', 'color full', 'DAPI','intensity'});
 end
+
+%% Save preporcessing state
+
+close all
+clear('imgs', 'imgsRaw', 'i', 'c')
+
+%%
+savefile = [savedir, dataname, datafield, '_Raw.mat'];
+save(savefile)
+%load(savefile)
 
 %% Restrict to sub regoin
 sub = false;
@@ -208,32 +203,35 @@ if sub
    end
     
    imgC = imgCsub;
-   for i = 1: length(imgsSt)
-      imgsSt{i} = imgsSt{i}(subregion{:});
-      imgsStRaw{i} = imgsStRaw{i}(subregion{:});
+   for i = 1: length(img)
+      img{i} = img{i}(subregion{:});
+      imgRaw{i} = imgRaw{i}(subregion{:});
    end
 end
-
-
-%%
-
-if verbose
-    figure(16); clf;
-    set(gcf, 'Name', 'Data');
-    implottiling({imgsSt{:}; imgsStRaw{:}}', 'titles', {chlabel{:}, chlabel{:}})
-end
+clear('imgCsub')
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Mask
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if verbose
+  for i = 1:nch
+    figure(16);
+    set(gcf, 'Name', 'Preprocessed Data')
+    subplot(nch+1,1,i); 
+    hist(img{i}(:), 256);
+    title(channellabel{i});
+  end
+end
+
+%%
+
 %figure(1); clf; colormap jet
 %implottiling(imgsSt, 'titles', chlabel)
 
 %imgm =  imgsSt{5} - imopen(imgsSt{5} , strel('disk', 10));
-imgM = imgsSt{1}+ imgsSt{2};
-imgMRaw = imgsStRaw{1}+ imgsStRaw{2};
-
+imgM = img{1}+ img{2};
+imgMRaw = imgRaw{1}+ imgRaw{2};
 
 if verbose
     figure(12); clf;
@@ -243,11 +241,11 @@ if verbose
     title('imgM');
     
     subplot(1,4,2);
-    hist(imgsStRaw{5}(:), 256)
+    hist(imgRaw{5}(:), 256)
     title('DAPI Raw');
     
     subplot(1,4,3);
-    hist(imgsSt{5}(:), 256)
+    hist(img{5}(:), 256)
     title('DAPI');
     
     subplot(1,4,4);
@@ -256,9 +254,10 @@ if verbose
 end
     
 %%
-
-figure(15); clf
-implottiling({imgsSt{5}, imopen(imgsSt{5}, strel('disk', 5)); mat2gray(imgsSt{1}+imgsSt{2}), mat2gray(imgsStRaw{1} + imgsStRaw{2})}, 'titles', {'DAPI', 'open'; 'imgM', 'imgMRaw'})
+if verbose 
+    figure(15); clf
+    implottiling({img{nch}, imopen(img{nch}, strel('disk', 5)); mat2gray(img{1}+img{2}), mat2gray(imgRaw{1} + imgRaw{2})}, 'titles', {'DAPI', 'open'; 'imgM', 'imgMRaw'})
+end
 
 %%
 
@@ -275,7 +274,7 @@ if verbose
    figure(21); clf;
    set(gcf, 'Name', 'Masking')
    implottiling({mat2gray(imgM),  imgmask;
-                 imgsSt{5}, imgsStRaw{5}
+                 img{nch}, imgRaw{nch}
                  }, 'titles', {'imgm', 'Mask'})
 end
 
@@ -288,12 +287,12 @@ end
 %imgI  = sum(imgBM,3);
 %imgI = imgC(:,:,3);
 %imgI  = imgC(:,:,1) + imgC(:,:,2);
-imgI = imgsSt{1}+ imgsSt{2};
+imgI = img{1}+ img{2};
 
 if verbose
    figure(3); clf;
    set(gcf, 'Name', 'BM')
-   implottiling({imgC; imgsSt{5}; mat2gray(sum(imgC,3)); mat2gray(imgI)})
+   implottiling({imgC; img{nch}; mat2gray(sum(imgC,3)); mat2gray(imgI)})
 end
 
 
@@ -377,7 +376,7 @@ imgS = imgWs;
 
 mode = 'MeanIntensity';
 
-stats = imstatistics(imgS, {mode, 'Volume'}, immask(imgsSt{5}, imgmask));
+stats = imstatistics(imgS, {mode, 'Volume'}, immask(img{5}, imgmask));
 
 if verbose
    figure(7); clf;
@@ -395,12 +394,12 @@ end
 
 %% Remove weak cells
 
-[imgSP, stats] = postProcessSegments(imgS, imgsStRaw{5}, 'intensity.mean.min', 0.1, 'volume.min', 30, 'volume.max', 220, 'fillholes', false);
+[imgSP, stats] = postProcessSegments(imgS, imgRaw{5}, 'intensity.mean.min', 0.1, 'volume.min', 30, 'volume.max', 220, 'fillholes', false);
 
 if verbose
    imgsurf = impixelsurface(imgSP);
    figure(5); clf;
-   implottiling({imoverlaylabel(imgC, imgsurf, false), imoverlaylabel(imgsSt{5}, imgsurf, false)}');
+   implottiling({imoverlaylabel(imgC, imgsurf, false), imoverlaylabel(img{5}, imgsurf, false)}');
 end
 
 fprintf('watershed    : %d cells\n', max(imgS(:)))
@@ -424,7 +423,7 @@ imglabc = imdilate(imglabc, strel('disk', 4));
 
 if verbose
     h = figure(78); clf;
-    implottiling({imoverlaylabel(imgsSt{5}, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
+    implottiling({imoverlaylabel(img{5}, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
                   imoverlaylabel(imgC, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]])}');
               
     %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
@@ -437,7 +436,7 @@ imglabcSurf = impixelsurface(imglabc);
 if verbose
     h = figure(78); clf;
     set(gcf, 'Name', 'Cell Centers')
-    implottiling({imoverlaylabel(imgsSt{5}, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
+    implottiling({imoverlaylabel(img{5}, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
                   imoverlaylabel(imgC, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]])});
               
     %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
@@ -448,7 +447,13 @@ statsSurf = imstatistics(imglabcSurf, {'PixelIdxList'});
 
 %% Save Image Preporcessing Result
 
-savefile = [datadir, dataname, datafield, '_ImageProcessing.mat'];
+
+close all
+clear('imgV', 'imgm', 'imgsurf', 'imglabcSurf', 'imgf', 'imgf2', 'imgS', 'imgSP', 'imgWs', 'disk', 'i', 'imgmax', 'centers')
+
+%%
+
+savefile = [savedir, dataname, datafield, '_ImageProcessing.mat'];
 save(savefile)
 %load(savefile)
 
@@ -469,8 +474,8 @@ mode = 'MeanIntensity';
 
 clear statsCh
 parfor c = 1:nch
-   statsChRaw{c} = imstatistics(imglabc, mode,  imgsStRaw{c});
-   statsCh{c} = imstatistics(imglabc, stats, mode,  imgsSt{c});
+   statsChRaw{c} = imstatistics(imglabc, mode,  imgRaw{c});
+   statsCh{c} = imstatistics(imglabc, stats, mode,  img{c});
 end
 
 clear statsChN
@@ -490,7 +495,7 @@ end
 
 % image sets to measure on -> some might have bad background -> used background reomed image for those
 
-imgsStMeasure = {imgsStRaw{1}, imgsStRaw{2}, imgsStRaw{3}, imgsSt{4}, imgsStRaw{5}};
+imgsStMeasure = {imgRaw{1}, imgRaw{2}, imgRaw{3}, img{4}, imgRaw{5}};
 statsMeasure = {statsChRaw{1}, statsChRaw{2}, statsChRaw{3}, statsCh{4}, statsChRaw{5}};
 
 
@@ -522,7 +527,7 @@ if verbose
        %scatter(xy(:,1), xy(:,2), 30, cdat, 'filled');
        colormap jet
        scatter(xy(:,1), xy(:,2), 20, fi, 'filled');
-       title(chlabel{c});
+       title(channellabel{c});
     end
 end
 
@@ -568,7 +573,7 @@ for c = 1:nch
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
    xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
-   title(['M ' chlabel{c}]);
+   title(['M ' channellabel{c}]);
    %freezecolormap(gca)
    
    subplot(3,nch,c)
@@ -582,7 +587,7 @@ for c = 1:nch
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
    xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
-   title(['R ' chlabel{c}]);
+   title(['R ' channellabel{c}]);
    
    %h = figure(22); clf
    %colormap jet
@@ -620,7 +625,7 @@ for n = 1:np
    scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 100, .5, 'r+', [jet(256); repmat([0.5,0,0],1000,1)] );
    %scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 75, 1, 'r+', [flipud(gray(256)); repmat([0,0,0], 400,1)] );
    %xlim([0,1]); ylim([0,1]);
-   xlabel(chlabel{pairs{n}(1)}); ylabel(chlabel{pairs{n}(2)});
+   xlabel(channellabel{pairs{n}(1)}); ylabel(channellabel{pairs{n}(2)});
    %freezecolormap(gca)
 end
 set(gcf, 'Name', 'Normalized Expression')
@@ -632,7 +637,7 @@ if verbose > 1
       %scatter(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 10, 'b', 'filled');
       scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)});
       xlim([0,1]); ylim([0,1]);
-      xlabel(chlabel{pairs{n}(1)}); ylabel(chlabel{pairs{n}(2)});
+      xlabel(channellabel{pairs{n}(1)}); ylabel(channellabel{pairs{n}(2)});
 
       %saveas(h, [datadir dataname datafield '_Quantification_Scatter_' chlabel{pairs{n}(1)} ,'_' chlabel{pairs{n}(2)} '.pdf']);
       %freezecolormap(gca)
@@ -693,22 +698,22 @@ for c= 1:nch
    %implot(imgsStRaw{c})
    dat = [statsChRaw{c}.(mode)];
    hist(dat(isgood), 256)
-   title(['Raw ' chlabel{c}])
+   title(['Raw ' channellabel{c}])
    
    subplot(4, nch, c+nch);
    dat = [statsChRawN{c}.(mode)];
    hist(dat(isgood), 256)
-   title(['Raw Norm. ' chlabel{c}])
+   title(['Raw Norm. ' channellabel{c}])
    
    subplot(4, nch, c+2*nch); 
    dat = [statsCh{c}.(mode)];
    hist(dat(isgood), 256)
-   title(['Corr ' chlabel{c}])
+   title(['Corr ' channellabel{c}])
    
    subplot(4, nch, c+3*nch); 
    dat = [statsChN{c}.(mode)];
    hist(dat(isgood), 256)
-   title(['Corr Norm.' chlabel{c}])
+   title(['Corr Norm.' channellabel{c}])
    
 end
 
@@ -745,7 +750,7 @@ if verbose
        end
        imgClass1{c} = cat(3, R, G, B);
 
-       R = imgsStRaw{c}; G = R; B = R;
+       R = imgRaw{c}; G = R; B = R;
        for i = 1:length(stats);
           if neuroClass(c,i) > 0
              R(statsSurf(i).PixelIdxList) =  neuroColor1{i}(1);
@@ -762,7 +767,7 @@ if verbose
 
 
     h = figure(7); clf;
-    implottiling({imgClassRaw{:}; imgClass1{:}}', 'titles', [chlabel(1:nch)', chlabel(1:nch)']);
+    implottiling({imgClassRaw{:}; imgClass1{:}}', 'titles', [channellabel(1:nch)', channellabel(1:nch)']);
     set(gcf, 'Name', 'Classifications');
 
     fig = gcf;
@@ -779,7 +784,7 @@ end
 %%
 
 cc = num2cell(sum(neuroClass, 2));
-tb = table(cc{:}, 'VariableNames', chlabel)
+tb = table(cc{:}, 'VariableNames', channellabel)
 
 writetable(tb, [datadir dataname datafield '_Class_Count.txt'])
 
@@ -822,7 +827,7 @@ if verbose
        neuroClassColor{i} = col;
     end
 
-    R = imgsStRaw{c}; G = R; B = R;
+    R = imgRaw{c}; G = R; B = R;
     for p = 1:length(stats);
        nc = neuroClassColor{neuroClassTotal(p)+1};
 
@@ -839,7 +844,7 @@ if verbose
 
 
     h = figure(7); clf;
-    implottiling({imgsStRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
+    implottiling({imgRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[channellabel(1:nch)'; {'merge'}], [channellabel(1:nch)'; {'merge'}]]');
 
     %saveas(h, [datadir dataname datafield '_Classification_Channels' '.pdf']);
     %saveas(h, [datadir dataname datafield '_Classification_Image' '.pdf']);
@@ -925,7 +930,7 @@ for i = 1:ncls
    clslab{i} = '';
    for c = 1:nch
       if id{c} == '1'
-         clslab{i} = [clslab{i}, '_', chlabel{c}];
+         clslab{i} = [clslab{i}, '_', channellabel{c}];
       end
    end
    clslab{i} = clslab{i}(2:end);

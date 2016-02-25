@@ -195,8 +195,9 @@ implot(imgCfull)
 %%
 
 sub = true;
-subregion = {430:6500, 2100:3300};
+%subregion = {430:6500, 2100:3300};
 %subregion = {700:5200, ':'};
+subregion = {':', ':'};
 
 if sub
    imgCsub = imgC(subregion{1}, subregion{2}, :);
