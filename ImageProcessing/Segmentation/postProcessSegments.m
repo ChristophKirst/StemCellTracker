@@ -50,6 +50,9 @@ intensity_max = getParameter(param, {'intensity', 'max'}, Inf);
 intensity_median_min = getParameter(param, 'intensity.median.min', -Inf);
 intensity_median_max = getParameter(param, 'intensity.median.max', Inf);
 
+intensity_mean_min = getParameter(param, 'intensity.mean.min', -Inf);
+intensity_mean_max = getParameter(param, 'intensity.mean.max', Inf);
+
 boundaries = getParameter(param, {'boundaries'}, false);
 fillholes  = getParameter(param, {'fillholes'}, true);
 relabel    = getParameter(param, {'relabel'}, true);
@@ -75,6 +78,13 @@ if intensity_median_min > -Inf || intensity_median_max < Inf
       error('postProcessSegments: intensity img expected');
    end
    statnames{end+1} = 'MedianIntensity';
+   statnames{end+1} = 'PixelIdxList';
+end
+if intensity_mean_min > -Inf || intensity_mean_max < Inf
+   if isempty(img)
+      error('postProcessSegments: intensity img expected');
+   end
+   statnames{end+1} = 'MeanIntensity';
    statnames{end+1} = 'PixelIdxList';
 end
 
@@ -127,6 +137,18 @@ if intensity_median_min > -Inf || intensity_median_max < Inf
    end
 end
 
+if intensity_mean_min > -Inf || intensity_mean_max < Inf
+      
+   idx = find([stats.MeanIntensity] < intensity_mean_min);
+   for i = idx
+      imgpost(stats(i).PixelIdxList) = 0;  
+   end
+   idx = find([stats.MeanIntensity] > intensity_mean_max);
+   for i = idx
+      imgpost(stats(i).PixelIdxList) = 0;  
+   end
+end
+
 
 
 % fill possible holes in each slice
@@ -154,9 +176,9 @@ if relabel
    % todo: optimize using previous stats results !
    if nargout > 1
      if isempty(img)
-        stats = imstatistics(imgpost, statnames{:});
+        stats = imstatistics(imgpost, statnames);
      else
-        stats = imstatistics(imgpost, statnames{:}, img);
+        stats = imstatistics(imgpost, statnames, img);
      end
    end
 

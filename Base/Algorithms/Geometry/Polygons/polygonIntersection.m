@@ -3,7 +3,7 @@ function [pol, varargout] = polygonIntersection(pol, polint, varargin)
 % pol = polygonIntersection(pol, polclip) 
 %
 % description: 
-%     calculates union between polygons
+%     calculates intersection between polygons
 % 
 % input:
 %     pol     polygon as cell of oriented paths, each path is 2xn array of coords

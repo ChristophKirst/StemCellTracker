@@ -1,4 +1,4 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% Brain Slices %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -12,7 +12,7 @@ bfinitialize
 addpath('./Scripts/User/Zeeshan/BrainSlices/2015_11');
 
 %datadir = '/data/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
-datadir = '/home/ckirst/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
+datadir = '/home/ckirst/Data/Science/Projects/StemCells/Experiment/BrainSections_2015_11/';
 
 dataname = 'CHIR DAPT D90 CTIP2 SATB2 TBR1 NURR1_2015_11_18__00_25_35';
 
@@ -90,7 +90,8 @@ imgsNURR1 = is.cell('C', 5);
 
 imgsAllRaw = {imgsSATB2, imgsCTIP2, imgsTBR1, imgsNURR1, imgsDAPI};
 
-chlabel = {'SATB2', 'CTIP2', 'TBR1', 'NURR1', 'DAPI'};
+
+chlabel = {'CTIP2', 'TBR1', 'SATB2', 'NURR1', 'DAPI'};
 
 chcols  = {[1,0,0], [0,1,0], [1,1,0], [1, 0, 1], [0,0,1]};
 cm      = {'r',      'g',    'y',     'm',       'b'};
@@ -194,8 +195,9 @@ if verbose
 end
 
 %% Restrict to sub regoin
-sub = true;
-subregion = {1:2500, 1:2500};
+sub = false;
+%subregion = {1:500, 1:500};
+%subregion = {1:1000, 1:1000};
 
 if sub
    imgCsub = imgC(subregion{1}, subregion{2}, :);
@@ -213,6 +215,14 @@ if sub
 end
 
 
+%%
+
+if verbose
+    figure(16); clf;
+    set(gcf, 'Name', 'Data');
+    implottiling({imgsSt{:}; imgsStRaw{:}}', 'titles', {chlabel{:}, chlabel{:}})
+end
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Mask
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -221,45 +231,53 @@ end
 %implottiling(imgsSt, 'titles', chlabel)
 
 %imgm =  imgsSt{5} - imopen(imgsSt{5} , strel('disk', 10));
-imgm = imgC(:,:,1)+ imgC(:,:,2);
+imgM = imgsSt{1}+ imgsSt{2};
+imgMRaw = imgsStRaw{1}+ imgsStRaw{2};
 
-imgmaskLo = imgm > 0.1;
+
+if verbose
+    figure(12); clf;
+    set(gcf, 'Name', 'Histograms')
+    subplot(1,4,1);
+    hist(imgM(:), 256)
+    title('imgM');
+    
+    subplot(1,4,2);
+    hist(imgsStRaw{5}(:), 256)
+    title('DAPI Raw');
+    
+    subplot(1,4,3);
+    hist(imgsSt{5}(:), 256)
+    title('DAPI');
+    
+    subplot(1,4,4);
+    hist(imgMRaw(:), 256)
+    title('imgMRaw');
+end
+    
+%%
+
+figure(15); clf
+implottiling({imgsSt{5}, imopen(imgsSt{5}, strel('disk', 5)); mat2gray(imgsSt{1}+imgsSt{2}), mat2gray(imgsStRaw{1} + imgsStRaw{2})}, 'titles', {'DAPI', 'open'; 'imgM', 'imgMRaw'})
+
+%%
+
+%imgmaskLo = imgMRaw > 0.05;
+imgmaskLo = imgM > 0.05;
 imgmaskLo = imopen(imgmaskLo, strel('disk', 2));
 %imgmaskLo = postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 15, 'fillholes', false) > 0;
 
-
-%figure(66); clf;
-%implottiling({255*(postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 10, 'fillholes', false)>0); 2*(bwlabeln(imgmaskLo)); 255*imgmaskLo}')
-
-%get rid of blod vessels
-imgmaskHi1 = imgsSt{5} > 1.9;
-%imgmaskHi1 = imdilate(imgmaskHi1, strel('disk', 3));
-%imgmaskHi1 = postProcessSegments(bwlabeln(imgmaskHi1), 'volume.max', 200, 'fillholes', false) > 0;
-imgmaskHi1 = not(imgmaskHi1);
-
-imgmaskHi2 = imgsSt{5} > 3; %0.7;
-imgmaskHi2 = imclose(imgmaskHi2, strel('disk', 2));
-%imgmaskHi2 = postProcessSegments(bwlabeln(imgmaskHi2), 'volume.min', 5, 'fillholes', false) > 0;
-imgmaskHi2 = not(imgmaskHi2);
-
-imgmaskHi = and(imgmaskHi1, imgmaskHi2);
-
-imgmask = and(imgmaskLo, imgmaskHi);
-imgmask = imopen(imgmask, strel('disk', 2));
+imgmask = imopen(imgmaskLo, strel('disk', 2));
 %imgmask = postProcessSegments(bwlabeln(imgmask), 'volume.min', 15, 'fillholes', false) > 0;
 
 if verbose
    %max(img(:))   
    figure(21); clf;
    set(gcf, 'Name', 'Masking')
-   implottiling({imgsSt{5},imgmaskLo; 
-                 imgsSt{4},imgmaskHi1;
-                 imgsStRaw{5},imgmaskHi2;
-                 mat2gray(imgm),  imgmask
-                 }, 'titles', {'I', 'Lo', 'I','Hi','I', 'Mask'})
+   implottiling({mat2gray(imgM),  imgmask;
+                 imgsSt{5}, imgsStRaw{5}
+                 }, 'titles', {'imgm', 'Mask'})
 end
-
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Cell Centers
@@ -269,7 +287,8 @@ end
 %imgCf = imgBM;
 %imgI  = sum(imgBM,3);
 %imgI = imgC(:,:,3);
-imgI  = imgC(:,:,1) + imgC(:,:,2);
+%imgI  = imgC(:,:,1) + imgC(:,:,2);
+imgI = imgsSt{1}+ imgsSt{2};
 
 if verbose
    figure(3); clf;
@@ -287,7 +306,7 @@ end
 disk = strel('disk',3);
 disk = disk.getnhood;
 %imgV = 1 ./ filterStd(imgI, disk) .* imgI ;
-imgV = imgI - 1 * filterStd(imgI, disk);
+imgV = imgI - 1.5 * filterStd(imgI, disk);
 %imgV(imgV > 100) = 100;
 
 if verbose
@@ -306,7 +325,7 @@ imgf = filterDoG(imgV, 8); % .* imgI;
 
 imgf2 = imgf; % - imopen(imgf, strel('disk', 1));
 
-imgmax = imextendedmax(mat2gray(imgf2), 0.025);
+imgmax = imextendedmax(mat2gray(imgf2), 0.01);
 %imgmax  = immask(imgmax, imgmask);
 %imglab = bwlabeln(imgmax);
 
@@ -330,7 +349,7 @@ end
 % Watershed
 
 %imgWs = imimposemin(iminvert(imgf), imgmax);
-imgWs = imimposemin(iminvert(imgI), imgmax);
+imgWs = imimposemin(iminvert(imgMRaw), imgmax);
 imgWs = watershed(imgWs);
 imgWs = immask(imgWs, imgmask);
 imgWs = imlabelseparate(imgWs);
@@ -345,7 +364,7 @@ if verbose
    figure(8); clf;
    set(gcf, 'Name', 'Cells from Watershed')
    imgsurf = impixelsurface(imgWs);
-   implottiling({imoverlaylabel(imgsSt{5}, imgsurf, false);imoverlaylabel(imgC, imgsurf, false)})
+   implottiling({ imoverlay(imgC, imgmax); imoverlaylabel(imgM, imgsurf, false);imoverlaylabel(imgC, imgsurf, false)})
    
 end
    
@@ -353,251 +372,189 @@ imgS = imgWs;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Postprocess
+%% Filter Cells
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-clc
-max(imgS(:))
+mode = 'MeanIntensity';
 
-imgSP = imgS;
-
-mode = 'MedianIntensity';
-
-stats = imstatistics(imgSP, {mode}, imgI);
+stats = imstatistics(imgS, {mode, 'Volume'}, immask(imgsSt{5}, imgmask));
 
 if verbose
-   figure(7); clf; 
-   hist([stats.(mode)], 256)
-   set(gcf, 'Name', mode)
+   figure(7); clf;
+   subplot(1,2,1)
+   hist([stats.(mode)], 128)
+   title(mode)
+   set(gcf, 'Name', 'WS Stats')
+
+   subplot(1,2,2);
+   hist([stats.('Volume')], 128)
+   title('Volume')
+   
    %hist(imgI(:), 256)
 end
 
 %% Remove weak cells
 
-imgSP = imgS;
-%imgSP = postProcessSegments(imgS, imgI, 'intensity.median.min', 0.1, 'volume.min', 15, 'fillholes', false);
+[imgSP, stats] = postProcessSegments(imgS, imgsStRaw{5}, 'intensity.mean.min', 0.1, 'volume.min', 30, 'volume.max', 220, 'fillholes', false);
 
-if verbose > 1
-   imgSp1 = impixelsurface(imgSP);
-   imgSp1 = imoverlaylabel(imgC, imgSp1, false);
+if verbose
+   imgsurf = impixelsurface(imgSP);
    figure(5); clf;
-   implot(imgSp1);
+   implottiling({imoverlaylabel(imgC, imgsurf, false), imoverlaylabel(imgsSt{5}, imgsurf, false)}');
 end
 
 fprintf('watershed    : %d cells\n', max(imgS(:)))
 fprintf('postprocessed: %d cells\n', max(imgSP(:)))
 
-%% Remove weak DAPI Cells
+imglab = imrelabel(imgSP);
 
 
-%statsDAPI = imstatistics(imgSP, {mode},  imgsSt{5});
+%% Cell Center Label 
 
-if verbose > 1
-   figure(6); clf;
-   hist([statsDAPI.(mode)], 256)
-   title('DAPI intensity')
+%imglabc = imlabelapplybw(imglab, @bwulterode);
+
+stats = imstatistics(imglab, stats, {'Centroid', 'PixelIdxList'});
+
+centers = fix([stats.Centroid]);
+
+imglabc = zeros(size(imglab));
+ind = imsub2ind(size(imglab), centers');
+imglabc(ind) = 1:length(ind);
+imglabc = imdilate(imglabc, strel('disk', 4));
+
+if verbose
+    h = figure(78); clf;
+    implottiling({imoverlaylabel(imgsSt{5}, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
+                  imoverlaylabel(imgC, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]])}');
+              
+    %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
 end
 
-%%
-imgSP2 = postProcessSegments(imgSP, imgsSt{5}, 'intensity.median.min', 0.08);
+%% Cell Outline
 
-if verbose > 1
-   imgSp2 = impixelsurface(imgSP2);
-   imgSp2 = imoverlaylabel(imgC, imgSp2, false);
-   figure(5); clf;
-   implot(imgSp2);
+imglabcSurf = impixelsurface(imglabc);
+
+if verbose
+    h = figure(78); clf;
+    set(gcf, 'Name', 'Cell Centers')
+    implottiling({imoverlaylabel(imgsSt{5}, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
+                  imoverlaylabel(imgC, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]])});
+              
+    %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
 end
 
-fprintf('postprocessed : %d cells\n', max(imgSP(:)))
-fprintf('dapi corrected: %d cells\n', max(imgSP2(:)))
+statsSurf = imstatistics(imglabcSurf, {'PixelIdxList'});
 
-%statsDAPI = imstatistics(imgSP2, {mode},  imgsSt{5});
-%figure(6); clf;
-%hist([statsDAPI.(mode)], 256)
-%title('DAPI intensity')
-
-
-%% Plot Results
-
-imglab = imgSP2;
-fprintf('final: %d cells\n', max(imglab(:)))
-
-%%
-if verbose 
-   
-   
-   statsF = imstatistics(imglab, {'PixelIdxList', 'Centroid'});
-   % mode = 'MedianIntensity';
-
-   figure(7); clf; 
-   for c = 1:nch
-      statsCh{c} = imstatistics(imglab, statsF, mode, imgsSt{c});
-      
-      imsubplot(1, nch, c)
-      imgch = zeros(size(imglab));
-      for i = 1:length(statsF)
-         imgch(statsF(i).PixelIdxList) = statsCh{c}(i).(mode);
-      end
-      implot(imgch);
-      %imcolormap(cm(c));
-      title(chlabel{c});
-      drawnow
-   end
-end
 
 %% Save Image Preporcessing Result
 
 savefile = [datadir, dataname, datafield, '_ImageProcessing.mat'];
-save(savefile)
-%load(savefile)
-
-
-%%
-
-%savefile = [datadir, dataname, datafield, '_Results.mat'];
 %save(savefile)
-%load(savefile)
+load(savefile)
+
+
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Statistics 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-stats = imstatistics(imglab, {'PixelIdxList', 'Centroid'});
+stats = imstatistics(imglabc, {'PixelIdxList', 'Centroid'});
 
-mode = 'MedianIntensity';
+%% Intensities
+
+%mode = 'MedianIntensity';
+mode = 'MeanIntensity';
 
 clear statsCh
-for c = 1:nch
-   %statsCh{c} = imstatistics(imglab, stats, mode,  imgsStRaw{c});
-   statsCh{c} = imstatistics(imglab, stats, mode,  imgsSt{c});
+parfor c = 1:nch
+   statsChRaw{c} = imstatistics(imglabc, mode,  imgsStRaw{c});
+   statsCh{c} = imstatistics(imglabc, stats, mode,  imgsSt{c});
 end
-  
-
-%% Cell Center Image 
-
-%imglabc = imlabelapplybw(imglab, @bwulterode);
-cc = fix([stats.Centroid]);
-imglabc = zeros(size(imglab));
-ind = imsub2ind(size(imglab), cc');
-imglabc(ind) = 1:length(ind);
-imglabc = imdilate(imglabc, strel('disk', 2));
-
-if verbose > 1
-    figure(78); clf;
-    implottiling({imglabc})
-end
-
-
-%% Plot Detected Cells
-
-if verbose > 1 
-   h = figure(7); clf;
-   %subreg = {[600:900], [550:950], ':'};
-   %subreg = {[200:300], [150:250], ':'};
-   subreg = {':', ':', ':'};
-   imgCfsub = imgCf(subreg{:});
-   imgCsub = imgC(subreg{:});
-   imglabsub = imglabc(subreg{:});
-
-   implot(imoverlaylabel(imgCsub, imglabsub > 0, false, 'color.map', [[0,0,0]; 0.5*[1,0,0]]));
-   axis off
-   xlabel([]); ylabel([])
-
-   %saveas(h, [datadir, dataname, datafield, '_Segmentation_Seeds.pdf'])
-end
-
-%% Raw Image Data Color Plot
-
-if verbose
-   h = figure(11); clf;
-
-   %implot(filterAutoContrast(imgCf));
-   implot(imgC);
-   axis off
-   xlabel([]); ylabel([])
-
-   saveas(h, [datadir, dataname, datafield, '_Raw.pdf'])
-end
-
-
-%% 
-
-if verbose
-   h = figure(7); clf;
-   implottiling({imgC, imoverlaylabel(imgC, imglabc > 0,false, 'color.map', [[0,0,0]; [1,0,0]])}');
-   
-   saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
-end
-
-
-%% Flourescence in Space
-
-xy = [stats.Centroid]';
-cl = 100 * [0.1, 0.6, 0.5, 0.5, 0.6];
-%ct = [0.110, 0.0, 0.100]
-
-figure(21); clf;
-for c = 1:nch
-   fi = [statsCh{c}.(mode)]';
-   fi = imclip(fi, 0, cl(c));
-   
-   figure(21);
-   subplot(2,nch,c+nch);
-   hist(fi, 256)
-   h = findobj(gca,'Type','patch');
-   h.FaceColor = 'k';
-   %h.EdgeColor = 'w';
-   
-   subplot(2,nch,c);
-   %imcolormap(cm{c});
-   colormap jet
-   scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
-   %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
-   title(chlabel{c});
-   %freezecolormap(gca)
-   
-   %h = figure(22); clf
-   %colormap jet
-   %scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
-   %xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
-   %title(chlabel{c}); 
-   %colorbar('Ticks', [])
-   
-   %saveas(h, [datadir dataname datafield '_Quantification_' lab{c} '.pdf']);
-end
-
-
-%% Normalized Intensities - Flourescence in Space
 
 clear statsChN
-for c = 1:nch
+parfor c = 1:nch
    statsChN{c} = statsCh{c};
+   statsChRawN{c} = statsChRaw{c};
    if c < 5
       for i = 1:length(statsCh{c})
          statsChN{c}(i).(mode) = statsCh{c}(i).(mode) / statsCh{5}(i).(mode);
+         statsChRawN{c}(i).(mode) = statsChRaw{c}(i).(mode) / statsChRaw{5}(i).(mode);
       end
    end
 end
 
 
+%% Measurements
+
+% image sets to measure on -> some might have bad background -> used background reomed image for those
+
+imgsStMeasure = {imgsStRaw{1}, imgsStRaw{2}, imgsStRaw{3}, imgsSt{4}, imgsStRaw{5}};
+statsMeasure = {statsChRaw{1}, statsChRaw{2}, statsChRaw{3}, statsCh{4}, statsChRaw{5}};
+
+
+%% Scatter Plot Colored Expression
+
+if verbose 
+    clip = 0.85;
+
+    cols  = {[0,1,0], [0,0,1], [1,0,1], [1,0,0], [0,0,1]};
+    %cols  = {0 * [0,1,0], [-1,-1,0],0* [0.75,0,0.25], [0,-1,-1] + 0* [0.25, 0.25, 0.25], [0,0,1]};
+ 
+    xy = [stats.Centroid]';
+    ncells = size(xy,1);
+
+    %cdat = ones(ncells, 3);
+    
+    figure(79); clf;
+    set(gcf, 'Name', 'Separate Expressions')
+    for c = 1:nch-1
+        cdat = zeros(ncells,3);
+       fi = [statsMeasure{c}.(mode)]';
+       fis = sort(fi);
+       ncs = length(fis);
+       fith = int64(clip * ncs);
+       fi = imclip(fi, 0, fis(fith)) / fis(fith);
+       cdat = cdat + fi * cols{c};
+       
+       subplot(2,2,c)
+       %scatter(xy(:,1), xy(:,2), 30, cdat, 'filled');
+       colormap jet
+       scatter(xy(:,1), xy(:,2), 20, fi, 'filled');
+       title(chlabel{c});
+    end
+end
+
+%%
+
+fig = gcf;
+fig.PaperUnits = 'inches';
+fig.PaperPosition = [0 0 20  20/ 1.5656 * 4];
+fig.PaperPositionMode = 'manual';
+set(gcf, 'papersize', [20, 20/ 1.5656 * 4]);
+
+saveas(fig, [datadir dataname datafield '_Quantification.png']);
+
+
+%% Expression in Space - Separate Channels
+
 xy = [stats.Centroid]';
 
 ha = figure(21); clf;
-set(gcf, 'Name', 'Normalized Expression')
-
+set(gcf, 'Name', 'Scatter Expressions')
 fig = gcf;
 fig.PaperUnits = 'inches';
 fig.PaperPosition = [0 0 30 20];
 fig.PaperPositionMode = 'manual';
 set(gcf, 'papersize', [30,20]);
 
-
 for c = 1:nch
-   fi = [statsChN{c}.(mode)]';
+   fi = [statsMeasure{c}.(mode)]';
    
    fis = sort(fi);
    ncs = length(fis);
-   p90 = int64(0.9 * ncs);
+   p90 = int64(0.95 * ncs);
    fi = imclip(fi, 0, fis(p90));
    
    figure(21);
@@ -606,18 +563,27 @@ for c = 1:nch
    bh = bar(xb,nb);
    set(bh,'facecolor','k');
    
-   
    subplot(3,nch,c+nch);
    %imcolormap(cm{c});
    colormap jet
    scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
    xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
-   title(chlabel{c});
+   title(['M ' chlabel{c}]);
    %freezecolormap(gca)
    
    subplot(3,nch,c)
-   implot(imgsStRaw{c})
-      
+   %implot(imgsStRaw{c})
+   
+   fi = [statsChRaw{c}.(mode)]';
+   fis = sort(fi);
+   ncs = length(fis);
+   p90 = int64(0.95 * ncs);
+   fi = imclip(fi, 0, fis(p90));
+   colormap jet
+   scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
+   xlim([min(xy(:,1)), max(xy(:,1))]); ylim([min(xy(:,2)), max(xy(:,2))]);
+   title(['R ' chlabel{c}]);
+   
    %h = figure(22); clf
    %colormap jet
    %scatter(xy(:,1), xy(:,2), 10, fi, 'filled');
@@ -629,15 +595,15 @@ end
 
 %saveas(ha, [datadir dataname datafield '_Quantification_Normalized.pdf']);
 
+
 %% Flourescence Expression
 
 fi = cell(1,3);
 for c = 1:nch
-   fi{c} = [statsChN{c}.(mode)]';
-   
+   fi{c} = [statsMeasure{c}.(mode)]';
    fis = sort(fi{c});
    ncs = length(fis);
-   p95 = int64(0.99 * ncs);
+   p95 = int64(0.97 * ncs);
    fi{c} = imclip(fi{c}, 0, fis(p95));
    %fi{c} = mat2gray(fi{c});
 end
@@ -651,7 +617,8 @@ for n = 1:np
    subplot(2, np/2,n)
    %fi = imclip(fi, 0, cl(c));
    %scatter(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 10, 'b', 'filled');
-   scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 50);
+   scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 100, .5, 'r+', [jet(256); repmat([0.5,0,0],1000,1)] );
+   %scattercloud(fi{pairs{n}(1)}, fi{pairs{n}(2)}, 75, 1, 'r+', [flipud(gray(256)); repmat([0,0,0], 400,1)] );
    %xlim([0,1]); ylim([0,1]);
    xlabel(chlabel{pairs{n}(1)}); ylabel(chlabel{pairs{n}(2)});
    %freezecolormap(gca)
@@ -675,8 +642,8 @@ end
 %%
 
 savefile = [datadir, dataname, datafield, '_Results.mat'];
-save(savefile)
-%load(savefile)
+%save(savefile)
+load(savefile)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Classify Cells
@@ -704,7 +671,6 @@ if verbose > 1
    implot(imggood)
 end
 
-
 xy = fix([stats.Centroid]);
 xy(1,xy(1,:) > nx) = nx; xy(1,xy(1,:) < 1) = 1;
 xy(2,xy(2,:) > ny) = ny; xy(2,xy(2,:) < 1) = 1;
@@ -723,154 +689,224 @@ fprintf('%d / %d cells in ROI\n', sum(isgood), size(xy,2))
 figure(10); clf
 set(gcf, 'Name', 'Histograms');
 for c= 1:nch
-   subplot(3,nch,c); 
-   d = imgsSt{c};
-   %hist(d(:), 256);
-   implot(imgsSt{c})
-   title(['Raw ', chlabel{c}])
+   subplot(4,nch,c); 
+   %implot(imgsStRaw{c})
+   dat = [statsChRaw{c}.(mode)];
+   hist(dat(isgood), 256)
+   title(['Raw ' chlabel{c}])
    
-   subplot(3, nch, c+nch);
+   subplot(4, nch, c+nch);
+   dat = [statsChRawN{c}.(mode)];
+   hist(dat(isgood), 256)
+   title(['Raw Norm. ' chlabel{c}])
+   
+   subplot(4, nch, c+2*nch); 
    dat = [statsCh{c}.(mode)];
    hist(dat(isgood), 256)
-   title(chlabel{c})
+   title(['Corr ' chlabel{c}])
    
-   subplot(3, nch, c+2*nch); 
+   subplot(4, nch, c+3*nch); 
    dat = [statsChN{c}.(mode)];
    hist(dat(isgood), 256)
-   title(['Normalized ' chlabel{c}])
+   title(['Corr Norm.' chlabel{c}])
    
 end
 
-   %% Classify
+%% Classify
 
-cth = {0.25, 0.1, 1, 1, 0};
+%cth = {0.16, 0.35, 0.18, 0.18, 0}; % measured
+cth = {0.15, 0.1, 0.175, 0.1, 0}; % measured
+neuroBaseColor = {[1,0,0], [0,1,0], [1,1,0], [1,0,1],[0,0,1]};
 
 neuroClass = zeros(nch, length(isgood));
 for c = 1:nch
-   neuroClass(c,:) = double(and([statsChN{c}.(mode)] > cth{c}, isgood));
+   neuroClass(c,:) = double(and([statsMeasure{c}.(mode)] > cth{c}, isgood));
 end
 neuroClassTotal = int32(fix(neuroClass(1,:) + 2 * neuroClass(2,:) + 4 * neuroClass(3,:) + 8 * neuroClass(4,:)));
 
-neuroBaseColor = {[1,0,0], [0,1,0], [1,1,0], [1,0,1],[0,0,1]};
+if verbose
+    %imgClass1 = cell(1,nch);
+    imgClass1 = cell(1,2);
+    for c = 1:nch
+       neuroColor1 = {[0,0,0], neuroBaseColor{c}};
+       neuroColor1 = neuroColor1(neuroClass(c,:)+1);
 
-%%
-imgClass1 = cell(1,nch);
-for c = 1:nch
-   neuroColor1 = {[0,0,0], neuroBaseColor{c}};
-   neuroColor1 = neuroColor1(neuroClass(c,:)+1);
-   
-   R = imgsSt{c}; G = R; B = R;
-   for i = 1:length(stats);
-      if neuroClass(c,i) > 0
-         R(stats(i).PixelIdxList) =  neuroColor1{i}(1);
-         G(stats(i).PixelIdxList) =  neuroColor1{i}(2);
-         B(stats(i).PixelIdxList) =  neuroColor1{i}(3);
-      end
-   end
-   imgClass1{c} = cat(3, R, G, B);
+       R = imgsStMeasure{c}; G = R; B = R;
+       for i = 1:length(stats);
+          if neuroClass(c,i) > 0
+             R(statsSurf(i).PixelIdxList) =  neuroColor1{i}(1);
+             G(statsSurf(i).PixelIdxList) =  neuroColor1{i}(2);
+             B(statsSurf(i).PixelIdxList) =  neuroColor1{i}(3);
+          else
+             R(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(1);
+             G(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(2);
+             B(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(3);
+          end
+       end
+       imgClass1{c} = cat(3, R, G, B);
+
+       R = imgsStRaw{c}; G = R; B = R;
+       for i = 1:length(stats);
+          if neuroClass(c,i) > 0
+             R(statsSurf(i).PixelIdxList) =  neuroColor1{i}(1);
+             G(statsSurf(i).PixelIdxList) =  neuroColor1{i}(2);
+             B(statsSurf(i).PixelIdxList) =  neuroColor1{i}(3);
+          else
+             R(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(1);
+             G(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(2);
+             B(statsSurf(i).PixelIdxList) =  neuroBaseColor{5}(3);
+          end
+       end
+       imgClassRaw{c} = cat(3, R, G, B);
+    end
+
+
+    h = figure(7); clf;
+    implottiling({imgClassRaw{:}; imgClass1{:}}', 'titles', [chlabel(1:nch)', chlabel(1:nch)']);
+    set(gcf, 'Name', 'Classifications');
+
+    fig = gcf;
+    fig.PaperUnits = 'inches';
+    fig.PaperPosition = [0 0 8 30];
+    fig.PaperPositionMode = 'manual';
+    set(gcf, 'papersize', [8,30]);
+
+    %saveas(h, [datadir dataname datafield '_Classification' '.pdf']);
 end
 
-clear R
-clear B
-clear G
 
 %%
-h = figure(7); clf;
-implottiling({imgsSt{1:nch}; imgClass1{:}}, 'titles', [chlabel(1:nch)', chlabel(1:nch)']');
-set(gcf, 'Name', 'Classifications');
+
+cc = num2cell(sum(neuroClass, 2));
+tb = table(cc{:}, 'VariableNames', chlabel)
+
+writetable(tb, [datadir dataname datafield '_Class_Count.txt'])
+
+
+
+%% Image + Classes + Combined Classes
+
+if verbose
+    % neuroClassColor = num2cell([0.285714, 0.285714, 0.285714;
+    %    0.929412, 0.290196, 0.596078;
+    %    0.462745, 0.392157, 0.67451;
+    %    0.709804, 0.827451, 0.2;
+    %    0.984314, 0.690196, 0.25098;
+    %    0.976471, 0.929412, 0.196078;
+    %    0.584314, 0.752941, 0.705882;
+    %    0, 0.682353, 0.803922
+    %    ], 2);
+
+    %neuroClassColor = num2cell(colorcube(max(neuroClassTotal(:))), 2);
+
+    ncls = 2^(nch-1);
+    neuroClassColor = cell(1, ncls);
+    for i = 1:ncls
+       cb = dec2bin(i-1);
+       cb = cb(end:-1:1);
+       %cb = [cb(end:-1,1), '0000'];
+       %cb = cb(1:nch);
+
+       col = [0,0,0]; k = 0;
+       for l = 1:length(cb)
+          if cb(l) == '1'
+             col = col + neuroBaseColor{l};
+             k = k + 1;
+          end
+       end
+       if k > 1
+          col = col / k;
+       end
+
+       neuroClassColor{i} = col;
+    end
+
+    R = imgsStRaw{c}; G = R; B = R;
+    for p = 1:length(stats);
+       nc = neuroClassColor{neuroClassTotal(p)+1};
+
+       R(stats(p).PixelIdxList) =  nc(1);
+       G(stats(p).PixelIdxList) =  nc(2);
+       B(stats(p).PixelIdxList) =  nc(3);
+    end
+
+    imgClass = cat(3, R, G, B);
+
+    % 
+    % figure(7); clf;
+    % implottiling({imgsSt{1:nch}, imgCf, imgClass}', 'tiling', [3,2]);
+
+
+    h = figure(7); clf;
+    implottiling({imgsStRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
+
+    %saveas(h, [datadir dataname datafield '_Classification_Channels' '.pdf']);
+    %saveas(h, [datadir dataname datafield '_Classification_Image' '.pdf']);
+end
+
+
+%% Co-localization - NURR1 cells
+
+if verbose
+   neuroNurrColor = num2cell([0.285714, 0.285714, 0.285714;
+       0.584314, 0.752941, 0.705882;
+       0.984314, 0.690196, 0.25098;
+       0.709804, 0.827451, 0.2;
+       0.462745, 0.392157, 0.67451;
+       0.976471, 0.929412, 0.196078;
+       0.929412, 0.290196, 0.596078;
+       0, 0.682353, 0.803922
+       ], 2);
+
+    nurr1ids = find(neuroClass(4,:));
+    %nurr1xy = xy(nurr1ids,:);
+    nurr1xy = xy(:, nurr1ids);
+    nurr1NeuroClassTotal = neuroClassTotal(nurr1ids);
+    
+    ord = [9,10,11,12,13,14,15,16];
+    h = figure(66); clf; 
+    hold on
+    k = 1;
+    for i = ord
+        ids = nurr1NeuroClassTotal + 1 == i;
+        %scatter(nurr1xy(ids,1), nurr1xy(ids,2), 20, neuroNurrColor{k}, 'filled');
+        scatter(nurr1xy(2,ids), size(imgI,1) - nurr1xy(1,ids), 20, neuroNurrColor{k}, 'filled');
+        k = k + 1;
+    end
+end
+
+%%
 
 fig = gcf;
 fig.PaperUnits = 'inches';
-fig.PaperPosition = [0 0 8 30];
+fig.PaperPosition =  [0 0  20/ 1.5656  20 ];
 fig.PaperPositionMode = 'manual';
-set(gcf, 'papersize', [8,30]);
+set(gcf, 'papersize',  [20/ 1.5656 , 20]);
 
-saveas(h, [datadir dataname datafield '_Classification' '.pdf']);
-
-
-%%
-
-
-
-%%
-%neuroClassColor = {[0,0,0]; [0.6,0,0]; [0,0.6,0]; [0.33,0.33,0]; [0,0.33,0]; [0.33,0,0.33]; [0,0.33,0.33]; [0.5,0.5,0.5]};
-% neuroClassColor = num2cell([0.285714, 0.285714, 0.285714;
-%    0.929412, 0.290196, 0.596078;
-%    0.462745, 0.392157, 0.67451;
-%    0.709804, 0.827451, 0.2;
-%    0.984314, 0.690196, 0.25098;
-%    0.976471, 0.929412, 0.196078;
-%    0.584314, 0.752941, 0.705882;
-%    0, 0.682353, 0.803922
-%    ], 2);
-
-%neuroClassColor = num2cell(colorcube(max(neuroClassTotal(:))), 2);
-
-ncls = 2^(nch-1);
-neuroClassColor = cell(1, ncls);
-for i = 1:ncls
-   cb = dec2bin(i-1);
-   cb = cb(end:-1:1);
-   %cb = [cb(end:-1,1), '0000'];
-   %cb = cb(1:nch);
-   
-   col = [0,0,0]; k = 0;
-   for l = 1:length(cb)
-      if cb(l) == '1'
-         col = col + neuroBaseColor{l};
-         k = k + 1;
-      end
-   end
-   if k > 1
-      col = col / k;
-   end
-   
-   neuroClassColor{i} = col;
-end
-   
-
-%%
-for p = 1:length(stats);
-   nc = neuroClassColor{neuroClassTotal(p)+1};
-   
-   R(stats(p).PixelIdxList) =  nc(1);
-   G(stats(p).PixelIdxList) =  nc(2);
-   B(stats(p).PixelIdxList) =  nc(3);
-end
-
-imgClass = cat(3, R, G, B);
-
-% 
-% figure(7); clf;
-% implottiling({imgsSt{1:nch}, imgCf, imgClass}', 'tiling', [3,2]);
-
-
-h = figure(7); clf;
-implottiling({imgsStRaw{1:nch}, imgC; imgClass1{:}, imgClass}, 'titles', [[chlabel(1:nch)'; {'merge'}], [chlabel(1:nch)'; {'merge'}]]');
-
-%saveas(h, [datadir dataname datafield '_Classification_Channels' '.pdf']);
-%saveas(h, [datadir dataname datafield '_Classification_Image' '.pdf']);
-
+saveas(fig, [datadir dataname datafield '_Colocalization_Nurr1+.png']);
 
 %% Class in Space
-isgood = logical(isgood);
 
-xy = [stats.Centroid]';
-xy = xy(isgood, :)
+if verbose
+    
+    isgood = logical(isgood);
 
-h = figure(27)
+    xy1 = [stats.Centroid]';
+    xy1 = xy1(isgood, :)
 
-cdat = (cell2mat({[0,0,0], neuroClassColor{:}}'))
-   
-scatter(xy(:,1), xy(:,2), 5, cdat(neuroClassTotal(isgood) + 2, :), 'filled');
-xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
-%title(chlabel{c});
-%freezecolormap(gca)
+    h = figure(27)
 
-pbaspect([1,1,1])
+    cdat = (cell2mat({[0,0,0], neuroClassColor{:}}'))
 
-%saveas(h, [datadir dataname datafield '_Quantification_Space.pdf']);
+    scatter(xy1(:,1), xy1(:,2), 20, cdat(neuroClassTotal(isgood) + 2, :), 'filled');
+    xlim([0, size(imglab,1)]); ylim([0, size(imglab,2)]);
+    %title(chlabel{c});
+    %freezecolormap(gca)
 
+    pbaspect([1,1,1])
+
+    %saveas(h, [datadir dataname datafield '_Quantification_Space.pdf']);
+end
 
 
 %% Histogram of Cell Classes
@@ -878,7 +914,6 @@ pbaspect([1,1,1])
 ncls = length(neuroClassColor);
 
 nstat = zeros(1,ncls);
-
 for i = 1:ncls
    id = num2cell(dec2bin(i-1));
    id = id(end:-1:1);
@@ -897,18 +932,23 @@ for i = 1:ncls
       clslab{i} = 'None';
    end
    
-   nstat(i) = sum(neuroClassTotal + 1== i);
+   nstat(i) = sum(neuroClassTotal + 1 == i);
 end
 
 nc = num2cell(nstat);
 tb = table(nc{:}, 'VariableNames', clslab)
 
+writetable(tb, [datadir dataname datafield '_Counts_All.txt'])
 
-%% save numbers
-writetable(tb, [datadir dataname datafield '_Counts.txt'])
-
-
-%% hist
+% neuroClassColor = num2cell([0.285714, 0.285714, 0.285714;
+%    0.929412, 0.290196, 0.596078;
+%    0.462745, 0.392157, 0.67451;
+%    0.709804, 0.827451, 0.2;
+%    0.984314, 0.690196, 0.25098;
+%    0.976471, 0.929412, 0.196078;
+%    0.584314, 0.752941, 0.705882;
+%    0, 0.682353, 0.803922
+%    ], 2);
 
 h = figure(10); clf; hold on
 
@@ -929,26 +969,83 @@ text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35
 
 saveas(h, [datadir dataname datafield '_Classification_Statistics' '.pdf']);
 
+%%
+
+xy = [stats.Centroid];
+xmax = max(xy(1,:));
+ymax = max(xy(1,:));
+
+xb  = [0,1,2,3,4]/4  * xmax
+nregs = length(xb)-1;
+ncls = length(neuroClassColor);
+
+nstatS = zeros(nregs,ncls);
+for i = 1:nregs
+    xi = and(xb(i) < xy(1,:), xy(1,:) < xb(i+1));
+    for j = 1:ncls
+        nstatS(i,j) = sum(neuroClassTotal(xi) + 1 == j);
+    end      
+end
+
+nstatS
+nstatT = mean(nstatS, 1)        
+nstatV = std(nstatS, 1)    
+
+nc = num2cell(nstat);
+tb = table(nc{:}, 'VariableNames', clslab)
+
+
+%% Histogram Classes NURR1 positive 
+
+h = figure(11); clf; hold on
+
+neuroNurrColor = num2cell([0.285714, 0.285714, 0.285714;
+   0.584314, 0.752941, 0.705882;
+   0.984314, 0.690196, 0.25098;
+   0.709804, 0.827451, 0.2;
+   0.462745, 0.392157, 0.67451;
+   0.976471, 0.929412, 0.196078;
+   0.929412, 0.290196, 0.596078;
+   0, 0.682353, 0.803922
+   ], 2);
+
+k = 1;
+%ord = [1, 5, 3, 6, 7, 8, 4, 2];
+%ord = 1:ncls
+ord = [9,10,11,12,13,14,15,16];
+for i = ord
+   bar(k, nstat(i), 'FaceColor', neuroNurrColor{k});
+   k = k + 1;
+end
+
+set(gca, 'XTickLabel', '')  
+xlabetxt = strrep(clslab(ord), '_', '+');
+n = length(xlabetxt);
+ypos = -max(ylim)/50;
+text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation',35,'FontSize',15)
+
+%saveas(h, [datadir dataname datafield '_Classification_Statistics' '.pdf']);
 
 
 
 %% Save the Statistics to File
 
 statsfile = [datadir dataname datafield '_statistics' '.mat'];
-save(statsfile, 'chlabel', 'stats', 'statsCh', 'statsChN',  'neuroClass');
+save(statsfile, 'chlabel', 'stats', 'statsCh', 'statsChN', 'statsMeasure', 'neuroClass', 'lineshires', 'dinner', 'douter');
 %load(statsfile)
 
 %% Save For Mathematica
 
-% centers = [stats.Centroid];
-% 
-% intensities = zeros(length(statsCh), size(centers,2));
-% intensities_normalized = zeros(length(statsCh), size(centers,2));
-% for c = 1:length(statsCh)
-%    intensities(c, :) = [statsCh{c}.MedianIntensity];
-%    intensities_normalized(c, :) = [statsChN{c}.MedianIntensity];
-% end
+centers = [stats.Centroid];
 
+intensities = zeros(length(statsMeasure), size(centers,2));
+intensities_normalized = zeros(length(statsMeasure), size(centers,2));
+for c = 1:length(statsMeasure)
+   intensities(c, :) = [statsMeasure{c}.(mode)];
+   %intensities_normalized(c, :) = [statsChN{c}.MedianIntensity];
+end
 
 statsfilemathematica = [datadir dataname datafield '_statistics_mathematica' '.mat'];
-save(statsfilemathematica, '-v6', 'chlabel', 'centers', 'dinner', 'douter', 'lineshires', 'intensities', 'intensities_normalized', 'neuroClass');
+save(statsfilemathematica, '-v6', 'chlabel', 'centers', 'intensities', 'intensities_normalized', 'neuroClass');
+
+%%

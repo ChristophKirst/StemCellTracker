@@ -35,7 +35,7 @@ clc
 r = ROIDisk([15,20], 10)
 
 m = r.mask([30,40]);
-r.npixel
+%r.npixel
 total(m)
 
 
@@ -49,7 +49,7 @@ clc
 r = ROIMask(rand(20,30)>0.5, 10)
 
 m = r.mask;
-r.npixel
+%r.npixel
 total(m)
 
 
@@ -65,8 +65,8 @@ p = 3 + [1,1; 1,6; 3,9; 8,12 ]'
 roi = ROIPolygon(p)
 
 
-bb= roi.boundingbox
-bb.toPixelArray
+%bb= roi.boundingbox
+%bb.toPixelArray
 
 
 r = roi.mask([20,20]);

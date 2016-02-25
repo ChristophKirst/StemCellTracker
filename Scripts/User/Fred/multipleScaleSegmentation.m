@@ -14,7 +14,6 @@ fns = {'560DAPI.png', '820DAPI.png', '1005DAPI.tif', '1324DAPI.png'};
 
 for i = 1:4
    
-   
    imgraw{i} = double(imread(fullfile(basedir, fns{i})));
    
    figure(i); clf
