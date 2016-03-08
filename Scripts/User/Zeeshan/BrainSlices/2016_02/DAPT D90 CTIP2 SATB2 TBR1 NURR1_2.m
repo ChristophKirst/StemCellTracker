@@ -19,7 +19,7 @@ resultdir = fullfile(datadir, '/Analysis/2016_02/');
 
 dataname = 'DAPT D90 CTIP2 SATB2 TBR1 NURR1';
 
-datafield = ' 1';
+datafield = ' 2';
 
 verbose = true;
 
@@ -83,7 +83,7 @@ is.printInfo
 % nuclear marker
 is.resetRange();
 
-region = {'x', 1:2000, 'Y', 1:2000}
+region = {'x', 2001:4000, 'Y', 2001:4000}
 
 
 nch = 5;
@@ -932,13 +932,13 @@ saveas(fig, [resultdir dataname datafield '_Classification_Counts_All.png']);
 
 nregions = 4;
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
    regioncounts = zeros(nregions, nclassesfull);
-   for r = 1:nregionsh
-       region_datafield = [' ' str(r)];
+   for r = 1:nregions
+       region_datafield = [' ' num2str(r)];
        tb =  readtable([resultdir dataname region_datafield '_Classification_Counts_All.txt'])
        regioncounts(r, :) = table2array(tb);
-       regionnames{r} = str(r);
+       regionnames{r} = num2str(r);
    end
  
    rg = num2cell(regioncounts, 1);
@@ -952,11 +952,11 @@ if strcmp(datafield, [' ' + num2str(nregions)])
    regioncountsstd = squeeze(std(regioncounts,[], 1))
 
    rg = num2cell(regioncountsmean, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Mean.csv'], 'WriteRowNames', true)
 
    rg = num2cell(regioncountsstd, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Std.csv'], 'WriteRowNames', true)
 end
 
@@ -964,7 +964,7 @@ end
 
 %%
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' '  num2str(nregions)])
 
    nzones = 1;
    fig = figure(17); clf; 
@@ -988,7 +988,7 @@ if strcmp(datafield, [' ' + num2str(nregions)])
        n = length(cellclassfulllabel);
        ypos = -max(ylim)/50;
        text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation', 35, 'FontSize', 6)
-       title(zonenames{z})
+       %title(zonenames{z})
    end
 
    fig = gcf;
@@ -1003,7 +1003,7 @@ end
 
 %% mean and std / normalized
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
 
    for r = 1:nregions
        regioncountsN(r,:) = regioncounts(r,:) / total(regioncounts(r,:));
@@ -1013,17 +1013,17 @@ if strcmp(datafield, [' ' + num2str(nregions)])
    regioncountsNstd = squeeze(std(regioncountsN,[], 1))
 
    rg = num2cell(regioncountsNmean, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Mean_Normalized.csv'], 'WriteRowNames', true)
 
    rg = num2cell(regioncountsNstd, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Std_Normalized.csv'], 'WriteRowNames', true)
 end
 
 
 %%
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
 
    nzones = 1;
    fig = figure(18); clf; 
@@ -1047,7 +1047,7 @@ if strcmp(datafield, [' ' + num2str(nregions)])
        n = length(cellclassfulllabel);
        ypos = -max(ylim)/50;
        text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation', 35, 'FontSize', 6)
-       title(zonenames{z})
+       %title(zonenames{z})
    end
 
    fig = gcf;

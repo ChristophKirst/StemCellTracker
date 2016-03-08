@@ -17,9 +17,9 @@ datadir = '/run/media/ckirst/ChristophsData/BrainSections/';
 savedir   = fullfile(datadir, '/Analysis/2016_02/Data/');
 resultdir = fullfile(datadir, '/Analysis/2016_02/');
 
-dataname = 'DAPT D90 CTIP2 SATB2 TBR1 NURR1';
+dataname = 'Control D90 CTIP2 SATB2 TBR1 NURR1';
 
-datafield = ' 1';
+datafield = ' 2';
 
 verbose = true;
 
@@ -83,7 +83,7 @@ is.printInfo
 % nuclear marker
 is.resetRange();
 
-region = {'x', 1:2000, 'Y', 1:2000}
+region = {'x', 2001:4000, 'Y', 1:2000}
 
 
 nch = 5;
@@ -122,22 +122,24 @@ for i = 1:nch
    %img{i} = img{i} - imopen(img{i}, strel('disk', 20));
    %img{i} = filterAutoContrast(img{i}/max(img{i}(:)));
    
-   if verbose
+   if verbose > 1
       figure(16);
       set(gcf, 'Name', 'Preprocessed Data')
       subplot(nch+1,1,i); 
       hist(img{i}(:), 256);
-      title(channellabel{i});
+      title(channellabel{i});      
    end
    
-   img{i} = mat2gray(img{i});
+   %img{i} = mat2gray(img{i});
    %img{i} = mat2gray(imclip(img{i}, 0, clip(i)));
 end
 
 if verbose
-   figure(1); clf; colormap jet
+   fig = figure(1); clf; colormap jet
    set(gcf, 'Name', 'Stitched and Preprocessed Data')
    implottiling({img{:}; imgRaw{:}}', 'titles', {channellabel{:}, channellabel{:}})
+   
+   saveas(fig, [datadir, dataname, datafield, '_Raw_PreProcessed.png'])
 end
 
 
@@ -256,12 +258,16 @@ end
 
 %%
 
-%imgmaskLo = imgMRaw > 0.05;
-imgmaskLo = imgM > 0.05;
+imgmaskLo = imgMRaw > 0.15;
+%imgmaskLo = imgM > 0.05;
 imgmaskLo = imopen(imgmaskLo, strel('disk', 2));
 %imgmaskLo = postProcessSegments(bwlabeln(imgmaskLo), 'volume.min', 15, 'fillholes', false) > 0;
 
-imgmask = imopen(imgmaskLo, strel('disk', 2));
+%imgmaskHi = imgMRaw < 1;
+
+imgmask = imgmaskLo;
+%imgmask = and(imgmaskLo, imgmaskHi);
+%imgmask = imopen(imgmaskLo, strel('disk', 2));
 %imgmask = postProcessSegments(bwlabeln(imgmask), 'volume.min', 15, 'fillholes', false) > 0;
 
 if verbose
@@ -287,7 +293,7 @@ imgI = img{1}+ img{2};
 if verbose
    figure(3); clf;
    set(gcf, 'Name', 'BM')
-   implottiling({imgC; img{nch}; mat2gray(sum(imgC,3)); mat2gray(imgI)})
+   implottiling({imgC; img{nch}; mat2gray(sum(imgC,3)); mat2gray(imgI)}, 'titles', {'imgC', 'DAPI', 'imgC3', 'imgI'})
 end
 
 
@@ -311,7 +317,7 @@ end
 
 %%
 %imgf = imgV;
-imgf = filterDoG(imgV, 8); % .* imgI;
+imgf = filterDoG(imgV, 10); % .* imgI;
 %imgf = filterSphere(imgV, 4);
 %imgf = filterDisk(imgI,12,1);
 %imgF = imgBMI;
@@ -349,7 +355,7 @@ imgWs = immask(imgWs, imgmask);
 imgWs = imlabelseparate(imgWs);
 imgWs = postProcessSegments(bwlabeln(imgWs), 'volume.min', 15);
 
-if verbose
+if verbose 
    %figure(7); clf;
    %implot(imgWs)
 
@@ -362,7 +368,7 @@ if verbose
    
 end
    
-imgS = imgWs;      
+imgS = imgWs;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -371,7 +377,7 @@ imgS = imgWs;
 
 mode = 'MeanIntensity';
 
-stats = imstatistics(imgS, {mode, 'Volume'}, immask(img{5}, imgmask));
+stats = imstatistics(imgS, {mode, 'Volume'}, immask(img{nch}, imgmask));
 
 if verbose
    figure(7); clf;
@@ -391,7 +397,7 @@ end
 
 [imgSP, stats] = postProcessSegments(imgS, imgRaw{5}, 'intensity.mean.min', 0.1, 'volume.min', 30, 'volume.max', 220, 'fillholes', false);
 
-if verbose
+if verbose > 1
    imgsurf = impixelsurface(imgSP);
    figure(5); clf;
    implottiling({imoverlaylabel(imgC, imgsurf, false), imoverlaylabel(img{5}, imgsurf, false)}');
@@ -418,7 +424,7 @@ imglabc = imdilate(imglabc, strel('disk', 4));
 
 if verbose
     fig = figure(78); clf;
-    implottiling({imoverlaylabel(img{5}, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
+    implottiling({imoverlaylabel(img{nch}, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
                   imoverlaylabel(imgC, imglabc > 0, false, 'color.map', [[0,0,0]; [1,0,0]])}');
               
     %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
@@ -434,14 +440,13 @@ if verbose
     implottiling({imoverlaylabel(img{5}, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]]), 
                   imoverlaylabel(imgC, imglabcSurf > 0, false, 'color.map', [[0,0,0]; [1,0,0]])});
               
-    %saveas(h, [datadir, dataname, datafield, '_CellDetection.pdf'])
+    saveas(fig, [datadir, dataname, datafield, '_CellDetection.png'])
 end
 
 statsSurf = imstatistics(imglabcSurf, {'PixelIdxList'});
 
 
 %% Save Image Preporcessing Result
-
 
 close all
 clear('imgV', 'imgm', 'imgsurf', 'imglabcSurf', 'imgf', 'imgf2', 'imgS', 'imgSP', 'imgWs', 'disk', 'i', 'imgmax', 'centers')
@@ -477,7 +482,7 @@ clear statsChN
 parfor c = 1:nch
    statsChN{c} = statsCh{c};
    statsChRawN{c} = statsChRaw{c};
-   if c < 5
+   if c < nch
       for i = 1:length(statsCh{c})
          statsChN{c}(i).(mode) = statsCh{c}(i).(mode) / statsCh{5}(i).(mode);
          statsChRawN{c}(i).(mode) = statsChRaw{c}(i).(mode) / statsChRaw{5}(i).(mode);
@@ -932,13 +937,13 @@ saveas(fig, [resultdir dataname datafield '_Classification_Counts_All.png']);
 
 nregions = 4;
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
    regioncounts = zeros(nregions, nclassesfull);
-   for r = 1:nregionsh
-       region_datafield = [' ' str(r)];
+   for r = 1:nregions
+       region_datafield = [' ' num2str(r)];
        tb =  readtable([resultdir dataname region_datafield '_Classification_Counts_All.txt'])
        regioncounts(r, :) = table2array(tb);
-       regionnames{r} = str(r);
+       regionnames{r} = num2str(r);
    end
  
    rg = num2cell(regioncounts, 1);
@@ -952,11 +957,11 @@ if strcmp(datafield, [' ' + num2str(nregions)])
    regioncountsstd = squeeze(std(regioncounts,[], 1))
 
    rg = num2cell(regioncountsmean, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Mean.csv'], 'WriteRowNames', true)
 
    rg = num2cell(regioncountsstd, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Std.csv'], 'WriteRowNames', true)
 end
 
@@ -964,7 +969,7 @@ end
 
 %%
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' '  num2str(nregions)])
 
    nzones = 1;
    fig = figure(17); clf; 
@@ -988,7 +993,7 @@ if strcmp(datafield, [' ' + num2str(nregions)])
        n = length(cellclassfulllabel);
        ypos = -max(ylim)/50;
        text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation', 35, 'FontSize', 6)
-       title(zonenames{z})
+       %title(zonenames{z})
    end
 
    fig = gcf;
@@ -1003,7 +1008,7 @@ end
 
 %% mean and std / normalized
 
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
 
    for r = 1:nregions
        regioncountsN(r,:) = regioncounts(r,:) / total(regioncounts(r,:));
@@ -1013,17 +1018,17 @@ if strcmp(datafield, [' ' + num2str(nregions)])
    regioncountsNstd = squeeze(std(regioncountsN,[], 1))
 
    rg = num2cell(regioncountsNmean, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Mean_Normalized.csv'], 'WriteRowNames', true)
 
    rg = num2cell(regioncountsNstd, 1);
-   tb = table(rg{:}, 'VariableNames', cellclassfulllabel, 'RowNames', zonenames)
+   tb = table(rg{:}, 'VariableNames', cellclassfulllabel)
    writetable(tb, [resultdir dataname datafield '_Classification_Counts_Std_Normalized.csv'], 'WriteRowNames', true)
 end
 
 
 %%
-if strcmp(datafield, [' ' + num2str(nregions)])
+if strcmp(datafield, [' ' num2str(nregions)])
 
    nzones = 1;
    fig = figure(18); clf; 
@@ -1047,7 +1052,7 @@ if strcmp(datafield, [' ' + num2str(nregions)])
        n = length(cellclassfulllabel);
        ypos = -max(ylim)/50;
        text(1:n,repmat(ypos,n,1), xlabetxt','horizontalalignment','right','Rotation', 35, 'FontSize', 6)
-       title(zonenames{z})
+       %title(zonenames{z})
    end
 
    fig = gcf;
